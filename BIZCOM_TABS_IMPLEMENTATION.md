@@ -225,7 +225,7 @@ Revenue coverage = Site item revenue / matching paid spend
 
 Google Interactions are not renamed to Clicks and are excluded from Blended CTR. Meta Link clicks retain their source definition. Platform-reported conversions and purchases remain claims and are not treated as a deduplicated customer count.
 
-Platform and campaign ROAS require matching platform-reported conversion value and spend. The supplied files do not provide that compatible value, so those retained UI locations display `N/A`. Site revenue is not copied into platform or campaign ROAS.
+The supplied files do not provide platform-attributed conversion value. Following the later UI request to restore the existing ROAS views, platform and campaign rows use the established directional revenue-coverage fallback. This allocates reconciled site revenue using matching segment/brand spend and is always labelled directional in API provenance and tooltips. It must not be read as platform-attributed ROAS.
 
 The Brand/Segment return fallback remains:
 
@@ -342,7 +342,7 @@ This section records the changes requested in `Bizcom-Fix-List-By-Section.docx`.
 | Correct campaign joins | Complete | Google campaigns keep their own monthly campaign fields. Meta's nine-month campaign map is retained only at its supplied aggregate grain; monthly spend, impressions, clicks, claims, and revenue are no longer proportionally copied into campaign rows. |
 | Correct campaign month filtering | Complete | Campaign filters use source reporting fields. Undated/nine-month Meta campaign totals do not appear as monthly campaign data. Campaign-name dates are not used as activity dates. |
 | Include both Meta accounts | Blocked by missing source | The supplied files contain the configured Rivoli Group Meta source but no combined Rivoli Group + Hour Choice export. The API adds an explicit coverage warning and does not fabricate Hour Choice spend. |
-| Google ROAS provenance | Complete | Google platform and campaign rows were traced to `Rivoli-Google-Brand-Spend-Jan-Sep-2026.xlsx`, sheet `Brand x Month`, and the campaign mapping workbook. These sources provide no matching Conversion value; Google ROAS is therefore `N/A`. Site revenue is not substituted. |
+| Google ROAS provenance | Superseded by later UI request | Google platform and campaign delivery comes from `Rivoli-Google-Brand-Spend-Jan-Sep-2026.xlsx` and the monthly campaign mapping sheet. The source has no Conversion value. The restored ROAS display therefore uses the established directional site-revenue coverage fallback and says so in its provenance; it is not presented as Google-attributed revenue. |
 | Remove composite Organic Creative score | Complete | The single Organic score number is removed. The existing Organic card and provisional wording remain, while the Attention and Active engagement components stay visible as provisional references. Navigation has no Creative score badge. |
 | Typical post and Best | Complete | For a selected Union Coop month, **Typical post** uses the supplied monthly median active engagement and median frequency. **Best** uses the matching prepared rank-1 post. All-month does not average monthly medians and shows the existing unavailable state. |
 | Ranking floor | Complete | Rankings include only rows where `Eligible for ranking (reach>=500)` is `YES`, and the UI states **Ranking floor: reach ≥ 500**. Other post displays and benchmark populations are not changed. |
@@ -351,6 +351,12 @@ This section records the changes requested in `Bizcom-Fix-List-By-Section.docx`.
 | Monthly trends | Complete | A chronological dual-axis chart displays the prepared monthly median active engagement (%) and median frequency (x). Missing months are not interpolated. |
 | Light theme | Complete | Shared semantic tokens implement the pale-blue background, white/light-blue surfaces, soft borders, navy text, blue-grey secondary text, blue-to-teal selected controls, and subtle shadows across Media, Creative, and contextual Competition views. |
 | Competition behavior | Preserved | Competition calculations, contextual access, source labels, filters, and screenshot associations were not changed. A standalone Competition navigation entry was not restored. |
+
+### October UI follow-up
+
+- The Creative Paid view now exposes only the supported **Meta ads** platform control. The unsupported **Google Shopping** button and its unavailable-only panel were removed; no Meta data or calculation changed.
+- Media **Segment** and **Brand** custom dropdowns now use white/light-blue surfaces, navy text, teal indicators, and a clearly highlighted selected option.
+- The expanded **Media Competition** panel now uses the same light card, table, action, capture, and empty-state palette as the rest of Media. Competition data rules and calculations remain unchanged.
 
 ## Creative workbook mapping
 
@@ -367,7 +373,7 @@ Source: `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xl
 
 - **Revenue coverage** keeps the established calculation: compatible mapped site revenue divided by compatible advertising spend.
 - **Blended CTR** is `sum(raw paid clicks) / sum(matching raw paid impressions)` across rows that actually provide a compatible Clicks field. Google `Interactions`, organic clicks, and invented clicks are excluded instead of making the supported Meta click rate unavailable. August 2026 uses 36,409 Link clicks and 3,557,299 impressions, producing 1.02%.
-- Platform and campaign ROAS require matching platform-reported revenue or Conversion value plus spend. No supplied Google or Meta field meets that requirement, so those retained locations display `N/A`.
+- Platform and campaign ROAS now use the established directional revenue-coverage fallback requested after the fix-list pass. Platform revenue is allocated within each segment by the platform's matching spend share. Campaign rows use their matching Brand return, then Segment return, then overall return only when the narrower source grain is unavailable. Tooltips identify the basis and state that campaign-attributed conversion value is not supplied.
 - Google campaign rows come from the supplied campaign reporting sheet and retain their campaign-specific spend, impressions, Interactions, and conversions. The UI labels the response rate as **Interaction rate**, not CTR based on Clicks.
 - Meta's `Meta Campaign Brand Map` contains nine-month campaign spend. It is retained with that provenance and excluded from monthly campaign views. Monthly brand totals are not distributed across campaigns.
 - Media scoring has no fallback, zero, reweighting, score bar, score color, or navigation badge. The only score output is **Unscored — baselines pending**.
@@ -392,7 +398,7 @@ Source: `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xl
 - Workbook checks verified 278 prepared post rows, 27 monthly Top 3 rows, and 9 monthly benchmark rows.
 - August checks verified 52 eligible posts, 51 ranking-eligible posts, 7 Giveaway posts, three prepared Top 3 rows, the expected rank-1 Post ID, and no composite Organic score.
 - Paid Creative control totals remain 4,487 paid clicks, 4,586,510 paid impressions, and AED 10,497.17 spend for the five-row subset.
-- Media API checks verify the exact unscored label, August Blended CTR of 36,409 raw clicks divided by 3,557,299 matching impressions, exclusion of Google Interactions, null platform/campaign ROAS without Conversion value, and no monthly Meta campaign allocation.
+- Media API checks verify the exact unscored label, August Blended CTR of 36,409 raw clicks divided by 3,557,299 matching impressions, exclusion of Google Interactions, directional platform and campaign ROAS provenance, and no monthly Meta campaign allocation.
 - Existing Competition acceptance tests passed unchanged.
 - Light-theme contrast checks passed for primary text (15.66:1), secondary text (6.16:1), Organic accent text (5.06:1), Paid accent text (6.17:1), and green status-badge text (5.14:1) against their card backgrounds.
 - Headless desktop and mobile screenshots confirmed the light palette and responsive shell. This check exposed a runtime XLSX module-import mismatch; it was corrected to the package's ESM-compatible default import. A post-fix live runtime smoke check then loaded 278 prepared rows and produced the August dashboard with 51 ranking-eligible posts and 3 prepared Top 3 rows.
@@ -409,5 +415,5 @@ Source: `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xl
 ## Remaining blockers
 
 - The combined Rivoli Group + Hour Choice Meta export is missing, so the second account cannot be reconciled.
-- Matching platform Conversion value/revenue is absent for Google and Meta, so platform and campaign ROAS remain `N/A`.
+- Matching platform Conversion value/revenue is absent for Google and Meta. Restored ROAS values are directional revenue coverage, not platform-attributed ROAS.
 - Paid shares, paid saves, and ThruPlays remain unavailable, so a complete Paid Creative score cannot be produced.

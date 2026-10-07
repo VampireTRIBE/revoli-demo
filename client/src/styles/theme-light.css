@@ -217,3 +217,64 @@ table td,.creative-method td,.competition-details td { border-color: #deebf6; co
 }
 .competition-context-actions select option { background: #ffffff; color: var(--ink); }
 .reference-subtab:disabled { cursor: not-allowed; opacity: .48; }
+
+/* Media Competition panel: keep every expanded surface in the light dashboard palette. */
+.reference-media-page .competition-context-panel {
+  border-color: #a9cde7;
+  background: linear-gradient(145deg, #f7fbff, #eef7fc);
+  color: var(--ink);
+  box-shadow: 0 14px 34px rgba(30,76,114,.1);
+}
+.reference-media-page .competition-context-panel .competition-card,
+.reference-media-page .competition-context-panel .competition-kpis > div,
+.reference-media-page .competition-context-panel .competition-activity-row,
+.reference-media-page .competition-context-panel .competition-table-wrap,
+.reference-media-page .competition-context-panel .competition-gallery-card,
+.reference-media-page .competition-context-panel .competition-empty,
+.reference-media-page .competition-context-panel .competition-state,
+.reference-media-page .competition-context-panel .competition-unavailable {
+  border-color: #c7ddec;
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 6px 18px rgba(31,83,126,.06);
+}
+.reference-media-page .competition-context-panel .competition-context-capture {
+  border-color: #9bd9d1;
+  background: linear-gradient(135deg, #edf9f8, #f6fbff);
+}
+.reference-media-page .competition-context-panel .competition-source,
+.reference-media-page .competition-context-panel .competition-kpis span,
+.reference-media-page .competition-context-panel .competition-summary-card p,
+.reference-media-page .competition-context-panel .competition-card-heading p,
+.reference-media-page .competition-context-panel .competition-activity-row dt,
+.reference-media-page .competition-context-panel .competition-context-capture small {
+  color: #56738e;
+}
+.reference-media-page .competition-context-panel h3,
+.reference-media-page .competition-context-panel .competition-kpis strong,
+.reference-media-page .competition-context-panel .competition-activity-row > strong,
+.reference-media-page .competition-context-panel .competition-activity-row dd {
+  color: #082442;
+}
+.reference-media-page .competition-context-panel .competition-context-actions select,
+.reference-media-page .competition-context-panel .competition-context-actions button {
+  border-color: #9fc6e4;
+  background: #ffffff;
+  color: #082442;
+}
+.reference-media-page .competition-context-panel .competition-context-actions button:hover,
+.reference-media-page .competition-context-panel .competition-context-actions button:focus-visible {
+  border-color: #4d8fce;
+  background: #eaf5fd;
+}
+.reference-media-page .competition-context-panel .competition-details th {
+  border-color: #c7ddec;
+  background: #eaf4fb;
+  color: #345777;
+}
+.reference-media-page .competition-context-panel .competition-details td {
+  border-color: #deebf6;
+  color: #082442;
+}
+.reference-media-page .competition-context-panel .competition-details tbody tr:hover { background: #f2f8fd; }
+.reference-media-page .competition-context-panel .competition-mix-track { background: #dceaf5; }

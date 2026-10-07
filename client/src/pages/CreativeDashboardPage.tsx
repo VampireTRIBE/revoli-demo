@@ -12,13 +12,11 @@ import type { CreativeDashboard } from '../types/creative';
 import '../styles/reference-creative.css';
 
 type MainTab = 'organic' | 'paid';
-type PaidTab = 'meta' | 'google';
 
 export function CreativeDashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const options = useCreativeOptions();
   const [mainTab, setMainTab] = useState<MainTab>('organic');
-  const [paidTab, setPaidTab] = useState<PaidTab>('meta');
   const filter = useMemo(() => ({
     year: numberParam(searchParams.get('year')),
     month: numberParam(searchParams.get('month')),
@@ -75,7 +73,7 @@ export function CreativeDashboardPage() {
         <button type="button" className={mainTab === 'organic' ? 'active' : ''} onClick={() => onMainTabChange('organic')}>Organic ({dashboard.data.brand.label})</button>
         <button type="button" className={mainTab === 'paid' ? 'active' : ''} onClick={() => onMainTabChange('paid')}>Paid (Meta + Google)</button>
       </div>
-      {mainTab === 'organic' ? <OrganicPanel data={dashboard.data} /> : <PaidPanel data={dashboard.data} paidTab={paidTab} onTabChange={setPaidTab} />}
+      {mainTab === 'organic' ? <OrganicPanel data={dashboard.data} /> : <PaidPanel data={dashboard.data} />}
       <OverallMethod data={dashboard.data} />
     </>}
   </section>;
@@ -191,15 +189,12 @@ function PreparedCreativeInsights({ data }: { data: CreativeDashboard }) {
   </>;
 }
 
-function PaidPanel({ data, paidTab, onTabChange }: { data: CreativeDashboard; paidTab: PaidTab; onTabChange: (tab: PaidTab) => void }) {
+function PaidPanel({ data }: { data: CreativeDashboard }) {
   return <>
     <div className="creative-subtabs" role="tablist" aria-label="Paid Creative platform">
-      <button type="button" className={paidTab === 'meta' ? 'active' : ''} onClick={() => onTabChange('meta')}>Meta ads</button>
-      <button type="button" className={paidTab === 'google' ? 'active' : ''} onClick={() => onTabChange('google')}>Google Shopping</button>
+      <button type="button" className="active" role="tab" aria-selected="true">Meta ads</button>
     </div>
-    {paidTab === 'meta'
-      ? data.paid.meta.available ? <MetaPaid data={data} /> : <MetaUnavailable message={data.paid.meta.message} />
-      : <GoogleUnavailable message={data.paid.googleShopping.message} />}
+    {data.paid.meta.available ? <MetaPaid data={data} /> : <MetaUnavailable message={data.paid.meta.message} />}
   </>;
 }
 
@@ -296,17 +291,6 @@ function MetaUnavailable({ message }: { message: string }) {
     <UnavailableCreativeSection title="Static creatives ranked by budget" message={message} />
     <details className="creative-method"><summary>Full ad-level detail</summary><p>Data not available. No paid ad-level rows are present in the supplied files.</p></details>
     <details className="creative-method"><summary>How the paid score is computed</summary><p>Data not available. Paid methodology values remain blank until the required paid inputs exist.</p></details>
-  </>;
-}
-
-function GoogleUnavailable({ message }: { message: string }) {
-  return <>
-    <div className="creative-note">On Google, the reference grades product images using product-level clicks, impressions, product titles, and verified product images. The supplied Google workbooks contain campaign delivery and Interactions, not product-level creative rows or compatible Clicks, so those values cannot be substituted here.</div>
-    <div className="creative-grid three creative-mt">
-      {['Product-image CTR', 'Top product', 'Products (>50 clicks)'].map((label) => <CreativeMetricCard key={label} label={label} value="Data not available" detail={message} unavailable />)}
-    </div>
-    <UnavailableCreativeSection title="Product creatives ranked by click-through" message={message} />
-    <details className="creative-method"><summary>How the Google product-creative score is computed</summary><p>Data not available. Product-score methodology values remain blank until Product ID, image, clicks, and impressions are supplied.</p></details>
   </>;
 }
 

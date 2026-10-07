@@ -1,7 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import { ChevronDown, ExternalLink, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import type { CompetitionDashboard, CompetitionMixRow, CompetitionObservation, CompetitionScreenshot } from '../../../types/competition';
+import type { CompetitionDashboard, CompetitionMixRow, CompetitionScreenshot } from '../../../types/competition';
 import { useCompetitionDashboard, useCompetitionOptions } from '../hooks/use-competition-data';
 import { competitionAssetUrl } from '../services/competition-api';
 import { CompetitionSourceLabel } from './CompetitionSourceLabel';

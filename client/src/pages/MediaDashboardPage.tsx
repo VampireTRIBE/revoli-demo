@@ -8,7 +8,7 @@ import { MediaPeriodFilters } from '../features/media/components/MediaPeriodFilt
 import { OverviewCards } from '../features/media/components/OverviewCards';
 import { PlatformComparisonTable } from '../features/media/components/PlatformComparisonTable';
 import { useBrands, useOverview, usePeriods, usePlatforms, useSegments } from '../features/media/hooks/use-media-data';
-import { formatNumber, formatPercent, formatRatio } from '../features/media/utils/formatters';
+import { formatNumber } from '../features/media/utils/formatters';
 import { CompetitionDropdown, ContextualCompetitionPanel, useContextualCompetition } from '../features/competition/components/ContextualCompetition';
 import '../styles/reference-media.css';
 
@@ -113,31 +113,15 @@ function AttributionNote({ data }: { data: Overview }) {
     : 'do not equal';
 
   return <div className="reference-note reference-mt">
-    <b>Attribution caveat:</b> platform-reported conversions ({formatNumber(metrics.platformClaims.value)}) {comparison} actual site purchases ({formatNumber(metrics.sitePurchases)}) in the selected window &mdash; platforms may claim overlapping credit. Treat platform performance as directional. Campaign ROAS is the mapped brand/segment revenue-coverage return, not campaign-attributed revenue, so campaigns in the same group can share a value. &quot;iCAC&quot; (incremental CAC) requires geo-holdout or spend-pause testing and remains a phase-2 item.
+    <b>Attribution caveat:</b> platform-reported conversions ({formatNumber(metrics.platformClaims.value)}) {comparison} actual site purchases ({formatNumber(metrics.sitePurchases)}) in the selected window &mdash; platforms may claim overlapping credit. Revenue coverage uses site revenue divided by advertising spend and is not platform ROAS. Campaign and platform ROAS remain N/A when matching conversion value is not supplied. &quot;iCAC&quot; (incremental CAC) requires geo-holdout or spend-pause testing and remains a phase-2 item.
     {data.metadata.warnings.length ? <><br /><b>Source check:</b> {data.metadata.warnings.length} workbook control difference{data.metadata.warnings.length === 1 ? '' : 's'} detected. Values remain calculated from the detailed monthly sheets.</> : null}
   </div>;
 }
 
 function ScoreMethod({ data }: { data: Overview }) {
-  const metrics = data.metrics;
-
   return <details className="reference-method" open>
     <summary>How this score is computed</summary>
-    <div className="reference-table-wrap reference-mobile-table reference-score-table">
-      <table>
-        <thead><tr><th>Metric</th><th className="num">Value</th><th className="num">Benchmark (0 &rarr; 100)</th><th className="num">Weight</th><th className="num">Score</th></tr></thead>
-        <tbody>
-          <tr><td>Blended ROAS</td><td className="num">{formatRatio(metrics.directionalReturn.value)}</td><td className="num">1.00x &rarr; 4.00x</td><td className="num">40%</td><td className={`num reference-method-score ${scoreTone(metrics.directionalReturn.benchmarkScore)}`}>{metrics.directionalReturn.benchmarkScore ?? 'N/A'}</td></tr>
-          <tr><td>CAC &divide; AOV</td><td className="num">{formatPercent(metrics.cacAovRatio.value, 0)}</td><td className="num">100% &rarr; 30%</td><td className="num">30%</td><td className={`num reference-method-score ${scoreTone(metrics.cacAovRatio.benchmarkScore)}`}>{metrics.cacAovRatio.benchmarkScore ?? 'N/A'}</td></tr>
-          <tr><td>Blended CTR</td><td className="num">{formatPercent(metrics.blendedCtr.value, 2)}</td><td className="num">0.50% &rarr; 2.00%</td><td className="num">30%</td><td className={`num reference-method-score ${scoreTone(metrics.blendedCtr.benchmarkScore)}`}>{metrics.blendedCtr.benchmarkScore ?? 'N/A'}</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p>Score is linear between the two anchors, clamped 0&ndash;100. Anchors follow published e-commerce / Core Web Vitals benchmarks.</p>
+    <p><b>{data.metrics.scoreLabel}</b></p>
+    <p>No numeric Media score, benchmark bar, or performance colour is produced until signed baselines are supplied. Valid underlying metrics remain visible and do not feed an overall score.</p>
   </details>;
-}
-
-function scoreTone(score?: number | null): string {
-  if (score == null || score < 50) return 'bad';
-  return score >= 70 ? 'good' : 'warn';
 }

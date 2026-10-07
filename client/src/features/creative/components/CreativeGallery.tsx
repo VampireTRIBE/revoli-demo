@@ -16,6 +16,7 @@ export function CreativeGallery({ posts }: { posts: CreativePost[] }) {
             ? <img className="creative-image" src={post.imageUrl} alt={title} loading="lazy" />
             : <div className="creative-placeholder" style={placeholderStyle(post.postId)} aria-label="Creative image not supplied">{initials(title)}</div>}
           <span className={`creative-type-badge ${post.postType.toLowerCase()}`}>{post.postType.toUpperCase()}</span>
+          {post.giveaway ? <span className="creative-giveaway-badge">Giveaway</span> : null}
         </div>
         <div className="creative-post-meta">
           <div className="creative-post-name" title={post.caption ?? post.postType}>{title}</div>

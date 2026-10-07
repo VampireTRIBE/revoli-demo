@@ -23,6 +23,12 @@ export function calculateOrganic(posts: NormalizedCreativePost[]) {
       frequency,
       attentionBasis,
       attentionValue: useWatchTime ? post.averageWatchTimeSeconds : frequency,
+      giveaway: null,
+      language: null,
+      day: null,
+      timeSlot: null,
+      theme: null,
+      eligibleForRanking: null,
     };
   }).sort((left, right) => right.activeEngagementRate - left.activeEngagementRate);
 

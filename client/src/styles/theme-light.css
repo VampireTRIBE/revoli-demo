@@ -1,0 +1,219 @@
+:root {
+  color-scheme: light;
+  color: #082442;
+  background: #eff8ff;
+  --bg: #eff8ff;
+  --card: #ffffff;
+  --card-2: #f3f9fe;
+  --line: #bcd8ed;
+  --ink: #082442;
+  --muted: #416582;
+  --accent: #4b83e6;
+  --accent-2: #35cbc2;
+  --blue: #246db8;
+  --teal: #087c75;
+  --good: #08755f;
+  --warn: #8b5a00;
+  --bad: #b52f45;
+  --shadow: 0 9px 24px rgba(31, 83, 126, .08);
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 83% -8%, rgba(75,131,230,.14), transparent 32rem),
+    radial-gradient(circle at 16% 2%, rgba(53,203,194,.08), transparent 24rem),
+    var(--bg);
+}
+.reference-shell { background: transparent; color: var(--ink); }
+.reference-top h1,.reference-sub strong,.creative-heading h2,.reference-media-heading h2 { color: var(--ink); }
+.reference-sub,.creative-kpi-label,.creative-kpi-detail,.creative-summary-cell .detail,.creative-post-stat,.creative-paid-source span,.creative-paid-source small,.creative-account-heading p,.competition-muted,.competition-heading p { color: var(--muted); }
+
+.reference-tab,.creative-subtabs button,.reference-subtab {
+  border-color: var(--line);
+  background: rgba(255,255,255,.78);
+  color: var(--muted);
+  box-shadow: 0 3px 10px rgba(35,92,144,.04);
+}
+.reference-tab:hover:not(:disabled),.creative-subtabs button:hover,.reference-subtab:hover { border-color: #87b4df; color: var(--ink); }
+.reference-tab.active,.creative-subtabs button.active,.reference-subtab.active { border-color: transparent; background: linear-gradient(135deg,#70a4f5,var(--accent-2)); color: #06233e; }
+.reference-pill { background: #dcebf8; color: var(--ink); }
+.reference-tab.active .reference-pill { background: rgba(255,255,255,.32); color: #071d36; }
+.reference-logo { box-shadow: 0 8px 22px rgba(35,92,144,.16); }
+
+.period-filters select,.campaign-controls select,.competition-filter select {
+  color-scheme: light;
+  color: var(--ink);
+  border-color: var(--line);
+  background-color: var(--card);
+  background-image: linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+}
+.period-filters select:hover:not(:disabled),.campaign-controls select:hover:not(:disabled),.competition-filter select:hover:not(:disabled),
+.period-filters select:focus,.campaign-controls select:focus,.competition-filter select:focus { border-color: #73a9db; background-color: #f8fbff; }
+.period-filters select option,.campaign-controls select option,.competition-filter select option { color: var(--ink); background: var(--card); }
+
+.reference-card,.creative-card,.competition-card,.creative-summary-cell,.competition-kpis > div,.competition-creative,
+.competition-table-wrap,.competition-launch-groups > div > span,.creative-account-summary-grid article {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.reference-kpi-label,.reference-kpi-detail,.reference-card h3,.creative-card h3,.creative-summary-cell .score,
+.creative-account-empty,.competition-source,.competition-kpis span,.competition-summary-card p,.competition-card-heading p,
+.competition-launch-groups > span,.competition-creative dt,.competition-creative small,.competition-mix-copy small { color: var(--muted); }
+.reference-kpi-value,.creative-kpi-value,.creative-post-name,.creative-paid-source strong,.creative-account-summary-grid h4,
+.competition-capture-banner strong,.competition-kpis strong,.competition-creative h4,.competition-mix-copy { color: var(--ink); }
+
+.reference-note,.reference-method,.creative-note,.creative-method,.creative-placeholder-panel,.creative-unavailable-section > div,
+.creative-loading,.creative-account-empty,.state-card,.data-notice,.selected-file,.competition-empty {
+  border-color: var(--line);
+  background: rgba(255,255,255,.72);
+  color: var(--muted);
+}
+.reference-note b,.creative-verdict b,.creative-note b,.creative-method p b { color: var(--ink); }
+.creative-verdict,.competition-capture-banner { border-color: #afd2ee; background: linear-gradient(135deg,rgba(67,135,232,.11),rgba(38,199,189,.1)); color: var(--muted); }
+.creative-note.accent { border-color: #b7d8f3; background: #f1f8ff; color: #4d6f95; }
+.reference-method summary,.creative-method summary { color: #286fc9; }
+
+table th,.reference-table-wrap th,.creative-method th,.competition-details th { border-color: var(--line); background: #eef6fd; color: #526f91; }
+table td,.creative-method td,.competition-details td { border-color: #deebf6; color: var(--ink); }
+.reference-card td,.reference-method td { border-color: #deebf6; color: var(--ink); }
+.reference-table-wrap,.creative-table-wrap { scrollbar-color: #9bbdd9 #eef6fd; }
+
+.creative-post-card { border-color: var(--line); background: #f8fbff; box-shadow: 0 5px 16px rgba(35,92,144,.08); }
+.creative-post-card:hover { border-color: #78aede; }
+.creative-post-stat.creative-date { border-color: var(--line); }
+.creative-placeholder[aria-label="Image not available"] { background: linear-gradient(135deg,#e5f1fb,#f7fbff); color: var(--muted); }
+.creative-type-badge { border-color: rgba(67,135,232,.38); background: rgba(67,135,232,.88); color: #fff; }
+.creative-type-badge.reel { border-color: rgba(122,83,180,.35); background: rgba(122,83,180,.88); color: #fff; }
+
+.competition-image,.competition-image-placeholder { border-color: var(--line); background: #eef6fd; }
+.competition-creative dl div { border-color: #deebf6; }
+.competition-creative dd,.competition-launch-groups b { color: var(--ink); }
+.competition-search { border-color: var(--line); background: var(--card); color: var(--muted); }
+.competition-search input { color: var(--ink); }
+.competition-mix-track,.creative-score-track,.reference-score-track,.reference-mobile-roas-track { background: #dcebf8; }
+
+.reference-chart-tooltip,.tooltip { border-color: var(--line); background: #fff; color: var(--muted); box-shadow: var(--shadow); }
+.reference-chart-tooltip strong,.tooltip b { color: var(--ink); }
+.skeleton { background: linear-gradient(90deg,#e4eff8,#f5faff,#e4eff8); background-size: 200% 100%; }
+.creative-error,.state-card.error { border-color: rgba(195,64,79,.3); background: rgba(195,64,79,.07); color: var(--bad); }
+.reference-chart-unavailable { border-color: var(--line); background: #f7fbff; color: var(--muted); }
+.reference-chart-unavailable strong { color: var(--ink); }
+.reference-roas.unavailable { color: var(--muted); }
+
+@media (max-width: 640px) {
+  .reference-mobile-roas-item,.reference-mobile-table tr { border-color: var(--line); background: rgba(255,255,255,.75); }
+  .reference-mobile-roas-heading strong { color: var(--ink); }
+  .reference-mobile-roas-heading span,.reference-mobile-roas-item small,.reference-mobile-table td::before { color: var(--muted); }
+}
+
+/* High-contrast light-theme text and contextual Competition surfaces. */
+.reference-media-page,.creative-page,.competition-page { color: var(--ink); }
+.reference-media-heading h2,.creative-heading h2,.competition-heading h2,
+.reference-card h3,.creative-card h3,.competition-card h3,.competition-modal h3,
+.competition-context-heading h3 { color: var(--ink); }
+.reference-kpi-label,.creative-kpi-label,.creative-paid-source span,
+.reference-card th,.creative-card th,.competition-card th { color: #345777; }
+.reference-kpi-detail,.creative-kpi-detail,.creative-post-stat,.creative-method p,
+.reference-method p,.competition-method p,.competition-context-heading p,
+.competition-context-menu small,.competition-context-menu > div,
+.competition-context-dropdown > span,.competition-context-actions label > span,
+.competition-context-capture small,.competition-activity-row dt { color: var(--muted); }
+
+.competition-context-trigger,.competition-context-actions select,.competition-context-actions button,
+.competition-modal-heading button,.competition-activity-row,.competition-method,.competition-state,
+.competition-unavailable,.competition-gallery-card,.competition-context-menu {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.competition-context-menu button { color: var(--ink); }
+.competition-context-menu button:hover,.competition-context-menu button:focus-visible { background: #e8f3fc; }
+.competition-context-capture strong,.competition-activity-row > strong,.competition-activity-row dd,
+.competition-method b,.competition-gallery-card h4 { color: var(--ink); }
+.competition-context-capture span { color: #087d78; }
+.competition-gallery-card p,.competition-modal-heading p { color: var(--muted); }
+
+.recharts-cartesian-axis-tick-value,.recharts-legend-item-text { fill: var(--muted); color: var(--muted) !important; }
+.recharts-default-tooltip { border-color: var(--line) !important; background: #fff !important; color: var(--ink) !important; box-shadow: var(--shadow); }
+.recharts-tooltip-label,.recharts-tooltip-item { color: var(--ink) !important; }
+
+/* Accessible foreground colours for pale cards and blue-teal accents. */
+.reference-badge.live {
+  border-color: #8ad8c8;
+  background: #ddf7f1;
+  color: #08735f;
+}
+.creative-summary-cell.organic .title { color: #087c75; }
+.creative-summary-cell.paid .title { color: #365fae; }
+.creative-summary-cell.organic { border-color: #9edfd7; }
+.creative-summary-cell.paid { border-color: #bfd0f4; }
+.creative-note.accent { color: #315d83; }
+.creative-account-heading > span,.competition-badge {
+  border-color: #b5ccef;
+  background: #edf3ff;
+  color: #315b9d;
+}
+.creative-method summary,.reference-method summary,.creative-why-section a { color: #1d67b3; }
+.reference-kpi-value.unavailable,.creative-kpi-value.unavailable,
+.creative-unavailable-section strong { color: var(--muted); }
+.creative-scorebar.good,.reference-scorebar.good,.reference-roas.good,.reference-chart-tooltip dd { color: var(--good); }
+.creative-scorebar.warn,.reference-scorebar.warn,.reference-roas.warn { color: var(--warn); }
+.creative-scorebar.bad,.reference-scorebar.bad,.reference-roas.bad { color: var(--bad); }
+.creative-scorebar.good span,.reference-scorebar.good .reference-score-track span { background: var(--good); }
+.creative-scorebar.warn span,.reference-scorebar.warn .reference-score-track span { background: #d99a16; }
+.creative-scorebar.bad span,.reference-scorebar.bad .reference-score-track span { background: #d85d6c; }
+.creative-post-stat strong.good { color: var(--good); }
+.creative-post-stat strong.warn { color: var(--warn); }
+.creative-post-stat strong.bad { color: var(--bad); }
+.creative-giveaway-inline { color: #7a4a00; }
+.reference-kpi-detail span { color: var(--muted); }
+.reference-card,.creative-card,.competition-card,.creative-summary-cell { box-shadow: var(--shadow); }
+
+/* Competition dropdown: light surfaces, clear selected state and readable interaction colours. */
+.competition-context-dropdown > span,.competition-context-actions label > span { color: #2f5778; }
+.competition-context-trigger {
+  border-color: #9fc6e4;
+  background: linear-gradient(180deg,#ffffff,#f2f8fd);
+  color: var(--ink);
+  box-shadow: 0 4px 12px rgba(31,83,126,.07);
+}
+.competition-context-trigger svg { color: #147c91; transition: transform .16s ease; }
+.competition-context-trigger.open svg { transform: rotate(180deg); }
+.competition-context-trigger:hover,.competition-context-trigger.open,.competition-context-trigger:focus-visible {
+  border-color: #4d8fce;
+  background: #eef7ff;
+  box-shadow: 0 0 0 3px rgba(75,131,230,.14),0 8px 20px rgba(31,83,126,.1);
+}
+.competition-context-menu {
+  border-color: #a9cde7;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(30,76,114,.18);
+}
+.competition-context-menu button {
+  border: 1px solid transparent;
+  color: var(--ink);
+}
+.competition-context-menu button small { color: #56738e; }
+.competition-context-menu button:hover,.competition-context-menu button:focus-visible {
+  border-color: #c3daf0;
+  background: #edf6fd;
+}
+.competition-context-menu button.selected {
+  border-color: #91c9dc;
+  background: linear-gradient(135deg,rgba(112,164,245,.2),rgba(53,203,194,.2));
+  color: #07365e;
+  box-shadow: inset 3px 0 0 #168f9b;
+}
+.competition-context-menu button.selected small { color: #315f77; }
+.competition-context-actions select {
+  color-scheme: light;
+  border-color: #9fc6e4;
+  background: #ffffff;
+  color: var(--ink);
+}
+.competition-context-actions select option { background: #ffffff; color: var(--ink); }
+.reference-subtab:disabled { cursor: not-allowed; opacity: .48; }

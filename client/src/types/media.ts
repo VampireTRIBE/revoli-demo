@@ -26,14 +26,15 @@ export interface Overview {
   metrics: {
     directionalReturn: Metric & { calculationLevel: 'BRAND' | 'SEGMENT' | 'OVERALL'; revenue: number; spend: number };
     referenceMediaScore: number | null;
+    scoreLabel: 'Unscored — baselines pending';
     platformClaimedCac: Metric;
     claimsVsSite: Metric;
     platformClaims: Metric & { google: number; meta: number };
     siteAov: Metric;
     cacAovRatio: Metric;
     blendedCtr: Metric;
-    paidImpressions: number;
-    paidTrafficActions: number;
+    paidImpressions: number | null;
+    paidTrafficActions: number | null;
     googleInteractions: number;
     metaClicks: number;
     totalSpend: number;
@@ -46,9 +47,9 @@ export interface Overview {
 export interface Periods {
   years: { year: number; months: { month: number; label: string; available: boolean; partial: boolean; startDate: string; endDate: string; sourcePeriodLabel: string }[] }[];
 }
-export interface PlatformData { platforms: { platform: string; spend: number | null; spendShare: number | null; impressions: number | null; interactions: number | null; clicks: number | null; ctr: number | null; ctrLabel: string; platformClaims: number | null; claimShare: number | null; claimedCac: number | null; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL'; roasBasis: string }[]; metadata: Metadata }
+export interface PlatformData { platforms: { platform: string; spend: number | null; spendShare: number | null; impressions: number | null; interactions: number | null; clicks: number | null; ctr: number | null; ctrLabel: string; platformClaims: number | null; claimShare: number | null; claimedCac: number | null; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL' | 'UNAVAILABLE'; roasBasis: string }[]; metadata: Metadata }
 export interface Campaign {
-  platform: string; campaign: string; brand: string; brandScope: string; segment: string; stage: string; campaignType: string; mappingSource: string; confidence: string; spend: number; claims?: number; impressions?: number; interactions?: number; clicks?: number; calculationBasis?: string; ctr: number | null; ctrLabel: string; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL'; roasBasis: string;
+  platform: string; campaign: string; brand: string; brandScope: string; segment: string; stage: string; campaignType: string; mappingSource: string; confidence: string; spend: number; claims?: number; impressions?: number; interactions?: number; clicks?: number; calculationBasis?: string; ctr: number | null; ctrLabel: string; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL' | 'UNAVAILABLE'; roasBasis: string;
 }
 export interface CampaignData {
   campaigns: Campaign[];

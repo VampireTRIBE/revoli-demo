@@ -1,4 +1,4 @@
-import { benchmarkScore, calculateMetrics, safeDivide, weightedBenchmarkScore, type MediaTotals } from '../calculations/media-calculations.js';
+import { calculateMetrics, safeDivide, type MediaTotals } from '../calculations/media-calculations.js';
 import { sourceDataset, mediaDataset } from './media-data.service.js';
 import type { CampaignRecord, MediaDataset, MediaFilter, MediaPeriod, MetricStatus, PlatformRecord } from '../types/media.types.js';
 
@@ -15,6 +15,15 @@ function round(value: number | null, places = 2): number | null {
 function totals(dataset: MediaDataset): MediaTotals {
   const google = dataset.platforms.filter((row) => row.platform === 'Google Ads');
   const meta = dataset.platforms.filter((row) => row.platform === 'Meta Ads');
+  const paidRows = [...google, ...meta];
+  const clickRows = paidRows.filter((row) =>
+    row.clicks !== undefined && row.impressions !== undefined && row.impressions > 0);
+  const comparableClicks = clickRows.length > 0
+    ? sum(clickRows, (row) => row.clicks ?? 0)
+    : null;
+  const comparableImpressions = clickRows.length > 0
+    ? sum(clickRows, (row) => row.impressions ?? 0)
+    : null;
   return {
     googleSpend: sum(google, (row) => row.spend),
     metaSpend: sum(meta, (row) => row.spend),
@@ -24,6 +33,8 @@ function totals(dataset: MediaDataset): MediaTotals {
     siteRevenue: sum(dataset.site, (row) => row.revenue),
     itemsViewed: sum(dataset.site, (row) => row.itemsViewed),
     itemsAddedToCart: sum(dataset.site, (row) => row.itemsAddedToCart),
+    paidImpressions: comparableImpressions,
+    paidClicks: comparableClicks,
     googleImpressions: sum(google, (row) => row.impressions ?? 0),
     googleInteractions: sum(google, (row) => row.interactions ?? 0),
     metaImpressions: sum(meta, (row) => row.impressions ?? 0),
@@ -121,7 +132,7 @@ async function directionalReturnContext(filter: MediaFilter, filtered: MediaData
 }
 
 function platformDirectionalRevenue(dataset: MediaDataset, platform: PlatformRecord['platform']): number {
-  const segments = [...new Set(dataset.platforms.map((row) => row.segment).filter(Boolean))];
+  const segments = unique(dataset.platforms.map((row) => row.segment));
   return sum(segments, (segment) => {
     const segmentRows = dataset.platforms.filter((row) => row.segment === segment);
     const segmentSpend = sum(segmentRows, (row) => row.spend);
@@ -158,18 +169,13 @@ export async function getOverview(filter: MediaFilter) {
   const input = totals(dataset);
   const metrics = calculateMetrics(input);
   const returnEstimate = directionalReturnEstimate(returnContext, filter.brand ?? '', filter.segment ?? '');
-  const returnScore = benchmarkScore(returnEstimate.value, 1, 4);
   return {
     metrics: {
-      referenceMediaScore: weightedBenchmarkScore([
-        { score: returnScore, weight: 40 },
-        { score: metrics.cacAovRatio.benchmarkScore ?? null, weight: 30 },
-        { score: metrics.blendedCtr.benchmarkScore ?? null, weight: 30 },
-      ]),
+      referenceMediaScore: null,
+      scoreLabel: 'Unscored — baselines pending',
       directionalReturn: {
         ...metrics.directionalReturn,
         value: round(returnEstimate.value),
-        benchmarkScore: returnScore,
         formula: returnEstimate.basis,
         calculationLevel: returnEstimate.level,
         revenue: round(returnEstimate.revenue) ?? 0,
@@ -229,8 +235,10 @@ export async function getPlatforms(filter: MediaFilter) {
       claimedCac: hasData ? round(safeDivide(spend, claims)) : null,
       directionalRevenue: hasData ? round(directionalRevenue) : null,
       roas: hasData ? round(safeDivide(directionalRevenue, spend)) : null,
-      roasStatus: 'DIRECTIONAL' as MetricStatus,
-      roasBasis: "Segment site revenue allocated by each platform's share of paid spend within that segment; no site revenue is counted twice.",
+      roasStatus: hasData ? 'DIRECTIONAL' as MetricStatus : 'UNAVAILABLE' as MetricStatus,
+      roasBasis: hasData
+        ? "Directional ROAS: reconciled site revenue is allocated within each segment by the platform's share of matching paid spend. This is revenue coverage, not platform-attributed conversion value."
+        : 'No platform source rows are available for the selected period.',
     };
   });
   return { platforms, metadata: metadata(dataset, filter) };
@@ -263,15 +271,18 @@ export async function getCampaigns(filter: CampaignFilters) {
   });
   const enrichedRows = rows.map((row) => {
     const trafficActions = row.platform === 'Google Ads' ? row.interactions : row.clicks;
+    const hasComparableRate = trafficActions !== undefined && row.impressions !== undefined && row.impressions > 0;
     const returnEstimate = directionalReturnEstimate(returnContext, row.brand, row.segment);
     return {
       ...row,
-      ctr: round(safeDivide(trafficActions ?? 0, row.impressions ?? 0), 4),
+      ctr: hasComparableRate ? round(safeDivide(trafficActions, row.impressions ?? 0), 4) : null,
       ctrLabel: row.platform === 'Google Ads' ? 'Interaction rate' : 'Link CTR',
       directionalRevenue: returnEstimate.value === null ? null : round(row.spend * returnEstimate.value),
       roas: round(returnEstimate.value),
-      roasStatus: 'DIRECTIONAL' as MetricStatus,
-      roasBasis: returnEstimate.basis,
+      roasStatus: returnEstimate.value === null ? 'UNAVAILABLE' as MetricStatus : 'DIRECTIONAL' as MetricStatus,
+      roasBasis: returnEstimate.value === null
+        ? `${row.sourceFile} / ${row.sourceSheet} has no compatible revenue coverage basis for this campaign.`
+        : `${returnEstimate.basis}. Directional revenue coverage only; the campaign source does not supply attributed conversion value.`,
     };
   });
   const start = (filter.page - 1) * filter.limit;

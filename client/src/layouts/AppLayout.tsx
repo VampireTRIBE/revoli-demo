@@ -1,7 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom';
-import type { MediaFilter } from '../types/media';
-import { useOverview } from '../features/media/hooks/use-media-data';
 import '../styles/header.css';
 
 const scoreTabs = ['Tech', 'UI/UX', 'SEO'];
@@ -26,14 +24,6 @@ export function AppLayout() {
   const location = useLocation();
   const isCreative = location.pathname.startsWith('/creative');
   const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
-  const mediaFilter = useMemo<MediaFilter>(() => isCreative ? {} : ({
-    year: searchParams.get('year') ? Number(searchParams.get('year')) : undefined,
-    month: searchParams.get('month') ? Number(searchParams.get('month')) : undefined,
-    segment: searchParams.get('segment') || undefined,
-    brand: searchParams.get('brand') || undefined,
-  }), [isCreative, searchParams]);
-  const mediaOverview = useOverview(mediaFilter);
-  const mediaScore = mediaOverview.data?.metrics.referenceMediaScore;
   const [openedAt] = useState(() => new Date().toLocaleString('en-US'));
 
   return <div className="app-shell reference-shell">
@@ -49,8 +39,8 @@ export function AppLayout() {
       <nav className="reference-tabs" aria-label="BizCom Engine modules">
         <button type="button" className="reference-tab" disabled>Overview</button>
         {scoreTabs.map((tab) => <button type="button" className="reference-tab" disabled key={tab}><span>{tab}</span><span className="reference-pill">&ndash;</span></button>)}
-        <NavLink end to="/creative" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Creative</span><span className="reference-pill">N/A</span></NavLink>
-        <NavLink end to="/media" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Media</span><span className="reference-pill" aria-label={mediaScore == null ? 'Media score loading' : `Media score ${mediaScore} out of 100`}>{mediaScore ?? '...'}</span></NavLink>
+        <NavLink end to="/creative" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Creative</span></NavLink>
+        <NavLink end to="/media" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Media</span></NavLink>
         <button type="button" className="reference-tab" disabled>Business</button>
       </nav>
 

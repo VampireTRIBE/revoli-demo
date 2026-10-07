@@ -14,7 +14,7 @@ export function PlatformComparisonTable({ data }: { data: PlatformData }) {
           <td className="num" title={row.ctrLabel}>{formatPercent(row.ctr, 2)}</td>
           <td className="num">{formatNumber(row.platformClaims)}</td>
           <td className="num">{formatAED(row.claimedCac)}</td>
-          <td className={`num reference-roas ${roasTone(row.roas)}`} title={`${row.roasBasis} Directional, not platform-attributed revenue.`}>{formatRatio(row.roas)}</td>
+          <td className={`num reference-roas ${roasTone(row.roas)}`} title={row.roasBasis}>{formatRatio(row.roas)}</td>
         </tr>)}</tbody>
       </table>
     </div>
@@ -22,6 +22,7 @@ export function PlatformComparisonTable({ data }: { data: PlatformData }) {
 }
 
 function roasTone(value: number | null): string {
-  if (value === null || value < 1.5) return 'bad';
+  if (value === null) return 'unavailable';
+  if (value < 1.5) return 'bad';
   return value >= 2.5 ? 'good' : 'warn';
 }

@@ -5,6 +5,8 @@ export const creativeScoringMode: CreativeScoringMode =
 
 export const CREATIVE_TIMEZONE = 'UTC';
 
+export const creativePreparedImportSource = 'UnionCoop-Creative-WhyItWorked-Import.xlsx';
+
 export const creativeBrands = [
   {
     id: 'union-coop',

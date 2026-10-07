@@ -79,6 +79,23 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   const filteredPosts = dataset.posts.filter((post) =>
     post.brandId === brand.id && post.year === selected.year && (selected.month === 0 || post.month === selected.month));
   const organic = calculateOrganic(filteredPosts);
+  const prepared = brand.id === 'union-coop' ? dataset.preparedImport : null;
+  const preparedById = new Map(prepared?.postMetrics.map((row) => [row.postId, row]) ?? []);
+  const joinedPosts = organic.posts.map((post) => {
+    const supplied = preparedById.get(post.postId);
+    return supplied ? {
+      ...post,
+      giveaway: supplied.giveaway,
+      language: supplied.language,
+      day: supplied.day,
+      timeSlot: supplied.timeSlot,
+      theme: supplied.theme,
+      eligibleForRanking: supplied.eligibleForRanking,
+    } : post;
+  });
+  const rankedPosts = joinedPosts
+    .filter((post) => prepared ? post.eligibleForRanking === true : true)
+    .sort((left, right) => right.activeEngagementRate - left.activeEngagementRate);
   const filteredAccountRows = dataset.accountDailyMetrics.filter((row) =>
     row.brandId === brand.id && row.year === selected.year && (selected.month === 0 || row.month === selected.month));
   const accountDailyMetrics = summarizeAccountMetrics(filteredAccountRows);
@@ -103,13 +120,30 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   const periodLabel = selected.month === 0
     ? `All months ${selected.year}`
     : `${new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(selected.year, selected.month - 1, 1)))} ${selected.year}`;
+  const selectedBenchmark = selected.month > 0
+    ? prepared?.monthlyBenchmarks.find((row) => row.year === selected.year && row.month === selected.month) ?? null
+    : null;
+  const selectedTopPosts = selected.month > 0
+    ? prepared?.monthlyTopPosts.filter((row) => row.year === selected.year && row.month === selected.month).sort((left, right) => left.rank - right.rank) ?? []
+    : [];
+  const rawById = new Map(dataset.posts.filter((post) => post.brandId === brand.id).map((post) => [post.postId, post]));
+  const topPostViews = selectedTopPosts.map((post) => {
+    const raw = rawById.get(post.postId);
+    return {
+      ...post,
+      postUrl: raw?.postUrl ?? null,
+      imageUrl: raw?.imageUrl ?? null,
+      matchedPost: Boolean(raw),
+    };
+  });
+  const preparedAvailable = Boolean(prepared && selected.month > 0 && selectedBenchmark && topPostViews.length);
 
   return {
     filter: selected,
     periodLabel,
     partial: period?.partial ?? false,
     timezone: CREATIVE_TIMEZONE,
-    sourceLabel: 'Uploaded Buffer and Meta CSV exports',
+    sourceLabel: prepared ? 'Uploaded Buffer and Meta exports plus prepared Union Coop Creative workbook' : 'Uploaded Buffer and Meta CSV exports',
     scoringMode: creativeScoringMode,
     creativeScore: null,
     brand: {
@@ -143,12 +177,29 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
       frequency: available ? organic.frequency : null,
       watchTimeCoverage: available ? organic.watchTimeCoverage : { populatedReels: 0, totalReels: 0 },
       score: {
-        overall: scoresEnabled ? organic.score.overall : null,
+        overall: null,
         attention: scoresEnabled ? organic.score.attention : null,
         activeEngagement: scoresEnabled ? organic.score.activeEngagement : null,
         provisional: scoresEnabled,
       },
-      posts: available ? organic.posts : [],
+      posts: available ? rankedPosts : [],
+      preparedInsights: {
+        available: preparedAvailable,
+        message: preparedAvailable
+          ? null
+          : brand.id !== 'union-coop'
+            ? 'Data not available. Prepared monthly benchmarks and Why it worked analysis are supplied only for Union Coop.'
+            : selected.month === 0
+              ? 'Data not available for All months. The supplied workbook provides monthly medians and does not provide an all-period median.'
+              : 'Data not available for the selected month in the prepared Union Coop workbook.',
+        sourceFile: prepared?.sourceFile ?? null,
+        typical: selectedBenchmark,
+        best: topPostViews[0] ?? null,
+        topPosts: topPostViews,
+        trend: prepared?.monthlyBenchmarks.filter((row) => row.year === selected.year).sort((left, right) => left.month - right.month) ?? [],
+        unmatchedPostIds: topPostViews.filter((row) => !row.matchedPost).map((row) => row.postId),
+        rankingFloor: 'reach >= 500',
+      },
     },
     paid: {
       available: paidAvailable,

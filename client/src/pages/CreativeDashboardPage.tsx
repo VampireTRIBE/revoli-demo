@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CreativeFilters } from '../features/creative/components/CreativeFilters';
 import { CreativeGallery } from '../features/creative/components/CreativeGallery';
 import { CreativeMetricCard } from '../features/creative/components/CreativeMetricCard';
@@ -84,7 +85,7 @@ function CreativeSummary({ data }: { data: CreativeDashboard }) {
   return <>
     <div className="creative-verdict"><b>Two buckets, one lens.</b> Creative is organised into Organic and Paid views. Each bucket uses only the selected Brand&apos;s compatible source records. Missing components remain N/A and are never replaced with data from another account.</div>
     <div className="creative-grid two creative-mt">
-      <div className="creative-summary-cell organic"><div className="title">Organic + boosted combined &middot; {data.brand.label}</div><div className="score">{data.organic.score.overall ?? 'N/A'}{data.organic.score.overall != null ? <small> / 100</small> : null}</div><div className="detail">Instagram posts published in {data.periodLabel}{data.partial ? ' (partial)' : ''}</div></div>
+      <div className="creative-summary-cell organic"><div className="title">Organic + boosted combined &middot; {data.brand.label}</div><div className="score">Provisional</div><div className="detail">Instagram posts published in {data.periodLabel}{data.partial ? ' (partial)' : ''} &middot; no composite score</div></div>
       <div className="creative-summary-cell paid"><div className="title">Paid &middot; {data.brand.label}</div><div className="score">N/A</div><div className="detail">{data.paid.meta.available ? `${data.paid.meta.detailRecordCount} detailed Meta records · incomplete score` : 'Meta score · Google shown separately'}</div></div>
     </div>
   </>;
@@ -116,19 +117,77 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
       <CreativeSourceMetric label="Reel watch-time coverage" value={`${data.organic.watchTimeCoverage.populatedReels} / ${data.organic.watchTimeCoverage.totalReels}`} detail="Populated Reels / eligible Reels" />
     </div>
     <div className="creative-grid three creative-mt">
-      <CreativeMetricCard label="Organic creative score" value={scoringDisabled ? 'Score not available' : String(data.organic.score.overall ?? 'N/A')} detail={`${data.organic.eligiblePostCount} posts · ${data.periodLabel}${data.organic.score.provisional ? ' · provisional' : ''}`} score={data.organic.score.overall} unavailable={scoringDisabled} />
+      <CreativeMetricCard label="Organic creative score" value="Provisional" detail={`Composite score removed. ${data.organic.eligiblePostCount} posts · ${data.periodLabel}; component cards remain for reference.`} />
       <CreativeMetricCard label="Attention · 50%" value={scoringDisabled ? 'Score not available' : String(data.organic.score.attention ?? 'N/A')} detail={`${formatRatio(data.organic.frequency)} views ÷ reach · watch time ${data.organic.watchTimeCoverage.populatedReels}/${data.organic.watchTimeCoverage.totalReels} reels`} score={data.organic.score.attention} unavailable={scoringDisabled} />
       <CreativeMetricCard label="Active engagement · 50%" value={scoringDisabled ? 'Score not available' : String(data.organic.score.activeEngagement ?? 'N/A')} detail={`${formatPercent(data.organic.activeEngagementRate, 2)} of summed post reach · shares+saves+comments`} score={data.organic.score.activeEngagement} unavailable={scoringDisabled} />
     </div>
-    <div className="creative-card creative-mt"><h3>Posts, ranked by active engagement rate</h3><CreativeGallery posts={data.organic.posts} /></div>
+    <PreparedCreativeInsights data={data} />
+    <div className="creative-card creative-mt"><div className="creative-section-heading"><h3>Posts, ranked by active engagement rate</h3><span>Ranking floor: reach &ge; 500</span></div><CreativeGallery posts={data.organic.posts} /></div>
     <details className="creative-method">
       <summary>How the organic score is computed</summary>
       <div className="creative-table-wrap"><table><thead><tr><th>Component</th><th className="num">Value</th><th className="num">Benchmark (0 → 100)</th><th className="num">Weight</th><th className="num">Score</th></tr></thead><tbody>
         <tr><td>Attention — views ÷ reach (images and reel fallback) or reel average watch time, reach-weighted</td><td className="num">{formatRatio(data.organic.frequency)} frequency</td><td className="num">1.00x → 2.00x · 2.0s → 8.0s</td><td className="num">50%</td><td className="num method-score">{data.organic.score.attention ?? 'N/A'}</td></tr>
         <tr><td>Active engagement — (shares+saves+comments) ÷ summed post reach</td><td className="num">{formatPercent(data.organic.activeEngagementRate, 2)}</td><td className="num">0.50% → 5.00%</td><td className="num">50%</td><td className="num method-score">{data.organic.score.activeEngagement ?? 'N/A'}</td></tr>
       </tbody></table></div>
-      <p>Likes are passive and excluded. Posts with zero or missing reach are excluded from reach-based calculations. Only {data.organic.watchTimeCoverage.populatedReels} of {data.organic.watchTimeCoverage.totalReels} Reels have watch time; the HTML reference frequency fallback is used for other Reels only when reference scoring is enabled. Scores are {data.scoringMode === 'disabled' ? 'disabled by configuration' : 'provisional and use the reference benchmarks'}.</p>
+      <p>The single Organic Creative score has been removed. The Attention and Active engagement cards remain provisional reference components. Likes are passive and excluded. Posts with zero or missing reach are excluded from reach-based calculations. Rankings include only records marked eligible in the supplied workbook (reach &ge; 500). Only {data.organic.watchTimeCoverage.populatedReels} of {data.organic.watchTimeCoverage.totalReels} Reels have watch time; the HTML reference frequency fallback is used for other Reels only when reference scoring is enabled.</p>
     </details>
+  </>;
+}
+
+function PreparedCreativeInsights({ data }: { data: CreativeDashboard }) {
+  const insights = data.organic.preparedInsights;
+  if (!insights.available || !insights.typical || !insights.best) {
+    return <UnavailableCreativeSection title="Typical post, Best and Why it worked" message={insights.message ?? 'Data not available.'} />;
+  }
+  const typical = insights.typical;
+  const best = insights.best;
+  const trend = insights.trend.map((row) => ({
+    month: new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(row.year, row.month - 1, 1))),
+    engagement: row.medianActiveEngagementRate * 100,
+    frequency: row.medianFrequency,
+  }));
+  return <>
+    <div className="creative-grid two creative-mt" aria-label="Typical and best post comparison">
+      <article className="creative-card creative-typical-best">
+        <span>Typical post</span><strong>{formatPercent(typical.medianActiveEngagementRate, 2)}</strong>
+        <small>Monthly median active engagement · {formatRatio(typical.medianFrequency)} median frequency</small>
+      </article>
+      <article className="creative-card creative-typical-best best">
+        <span>Best</span><strong>{formatPercent(best.activeEngagementRate, 2)}</strong>
+        <small>Rank {best.rank} monthly top post · {formatRatio(best.frequency)} frequency · {formatNumber(best.reach)} reach</small>
+      </article>
+    </div>
+    <section className="creative-card creative-mt creative-why-section">
+      <div className="creative-section-heading"><div><h3>Why it worked</h3><p>Prepared monthly Top 3 from the supplied Union Coop workbook.</p></div><span>{data.periodLabel}</span></div>
+      <div className="creative-table-wrap"><table><thead><tr><th>Rank</th><th>Post</th><th>Format/type</th><th>Language</th><th>Day</th><th>Time slot</th><th>Giveaway</th><th className="num">Reach</th><th className="num">Active engagement</th><th className="num">Frequency</th></tr></thead><tbody>
+        {insights.topPosts.map((post) => <tr key={post.postId}>
+          <td>#{post.rank}</td>
+          <td>{post.postUrl ? <a href={post.postUrl} target="_blank" rel="noopener noreferrer">{compactLabel(post.caption ?? post.postId)}</a> : compactLabel(post.caption ?? post.postId)}</td>
+          <td>{post.postType}</td><td>{post.language}</td><td>{post.day}</td><td>{post.timeSlot}</td>
+          <td>{post.giveaway ? <span className="creative-giveaway-inline">Giveaway</span> : '—'}</td>
+          <td className="num">{formatNumber(post.reach)}</td><td className="num">{formatPercent(post.activeEngagementRate, 2)}</td><td className="num">{formatRatio(post.frequency)}</td>
+        </tr>)}
+      </tbody></table></div>
+      <p className="creative-source-note">Values, ranks, factors, and Giveaway flags are displayed directly from {insights.sourceFile}. {insights.unmatchedPostIds.length ? `${insights.unmatchedPostIds.length} Top 3 Post ID(s) did not match a verified source link or image.` : 'All selected Top 3 Post IDs matched the verified post export.'}</p>
+    </section>
+    <section className="creative-card creative-mt creative-trend-section">
+      <div className="creative-section-heading"><div><h3>Monthly trends</h3><p>Prepared monthly medians; missing months are not interpolated.</p></div><span>Active engagement % and frequency x</span></div>
+      <div className="creative-trend-chart" role="img" aria-label="Monthly median active engagement and median frequency">
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={trend} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+            <XAxis dataKey="month" stroke="var(--muted)" />
+            <YAxis yAxisId="engagement" tickFormatter={(value) => `${value}%`} stroke="var(--blue)" />
+            <YAxis yAxisId="frequency" orientation="right" tickFormatter={(value) => `${value}x`} stroke="var(--teal)" />
+            <Tooltip formatter={(value, name) => name === 'Median active engagement' ? `${Number(value).toFixed(2)}%` : `${Number(value).toFixed(2)}x`} />
+            <Legend />
+            <Line yAxisId="engagement" type="monotone" dataKey="engagement" name="Median active engagement" stroke="var(--blue)" strokeWidth={3} dot={{ r: 3 }} />
+            <Line yAxisId="frequency" type="monotone" dataKey="frequency" name="Median frequency" stroke="var(--teal)" strokeWidth={3} dot={{ r: 3 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="creative-trend-foot"><span>{typical.giveawayPosts} Giveaway post{typical.giveawayPosts === 1 ? '' : 's'} in {data.periodLabel}</span><span>{formatPercent(typical.giveawayActionShare, 2)} of monthly actions from Giveaway posts</span></div>
+    </section>
   </>;
 }
 

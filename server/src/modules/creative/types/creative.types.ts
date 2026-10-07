@@ -157,6 +157,72 @@ export interface CreativeCoverageRecord {
   grain: 'post' | 'daily-account' | 'summary';
 }
 
+export interface PreparedCreativePostMetric {
+  postId: string;
+  publishedAtDubai: string;
+  year: number;
+  month: number;
+  day: string;
+  timeSlot: string;
+  postType: string;
+  language: string;
+  giveaway: boolean;
+  reach: number;
+  views: number;
+  activeActions: number;
+  activeEngagementRate: number;
+  frequency: number;
+  eligibleForRanking: boolean;
+  theme: string;
+  caption: string | null;
+  sourceFile: string;
+  sourceSheet: 'Post Metrics (import)';
+}
+
+export interface PreparedCreativeTopPost {
+  year: number;
+  month: number;
+  rank: number;
+  postId: string;
+  date: string;
+  postType: string;
+  language: string;
+  day: string;
+  timeSlot: string;
+  giveaway: boolean;
+  reach: number;
+  activeActions: number;
+  activeEngagementRate: number;
+  frequency: number;
+  theme: string;
+  caption: string | null;
+  sourceFile: string;
+  sourceSheet: 'Why It Worked - Monthly Top 3';
+}
+
+export interface PreparedCreativeBenchmark {
+  year: number;
+  month: number;
+  eligiblePosts: number;
+  rankingEligiblePosts: number;
+  medianActiveEngagementRate: number;
+  meanActiveEngagementRate: number;
+  medianFrequency: number;
+  giveawayPosts: number;
+  giveawayActionShare: number;
+  sourceFile: string;
+  sourceSheet: 'Monthly Benchmarks';
+}
+
+export interface PreparedCreativeImport {
+  sourceFile: string;
+  account: 'Union Coop';
+  timezone: 'Asia/Dubai';
+  postMetrics: PreparedCreativePostMetric[];
+  monthlyTopPosts: PreparedCreativeTopPost[];
+  monthlyBenchmarks: PreparedCreativeBenchmark[];
+}
+
 export interface CreativeSourceDataset {
   posts: NormalizedCreativePost[];
   paidPosts: NormalizedPaidCreativePost[];
@@ -167,6 +233,7 @@ export interface CreativeSourceDataset {
   audit: CreativeSourceAudit;
   paidAudit: PaidCreativeSourceAudit;
   paidSummary: PaidCreativeAccountSummary;
+  preparedImport: PreparedCreativeImport | null;
 }
 
 export interface CreativeFilter {
@@ -209,6 +276,18 @@ export interface CreativePostView extends NormalizedCreativePost {
   frequency: number | null;
   attentionBasis: 'watch-time' | 'frequency' | null;
   attentionValue: number | null;
+  giveaway: boolean | null;
+  language: string | null;
+  day: string | null;
+  timeSlot: string | null;
+  theme: string | null;
+  eligibleForRanking: boolean | null;
+}
+
+export interface CreativePreparedTopPostView extends PreparedCreativeTopPost {
+  postUrl: string | null;
+  imageUrl: string | null;
+  matchedPost: boolean;
 }
 
 export interface CreativeDashboard {
@@ -252,6 +331,17 @@ export interface CreativeDashboard {
       provisional: boolean;
     };
     posts: CreativePostView[];
+    preparedInsights: {
+      available: boolean;
+      message: string | null;
+      sourceFile: string | null;
+      typical: PreparedCreativeBenchmark | null;
+      best: CreativePreparedTopPostView | null;
+      topPosts: CreativePreparedTopPostView[];
+      trend: PreparedCreativeBenchmark[];
+      unmatchedPostIds: string[];
+      rankingFloor: 'reach >= 500';
+    };
   };
   paid: {
     available: boolean;

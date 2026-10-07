@@ -56,6 +56,7 @@ export function parseMediaSources(paths: string[]): MediaDataset {
   ];
   if (!googleSource) warnings.push('Google media workbook was not detected.');
   if (!metaSource) warnings.push('Meta media workbook was not detected.');
+  warnings.push('Combined Rivoli Group + Hour Choice Meta export was not received. Meta coverage is limited to the configured Rivoli Group source.');
 
   const campaigns = [
     ...(siteSource ? parseGoogleCampaigns(siteSource, periods, batchId) : []),
@@ -237,7 +238,7 @@ function parseGoogleCampaigns(source: WorkbookSource, periods: MediaPeriod[], ba
   });
 }
 
-function parseMetaCampaigns(source: WorkbookSource, periods: MediaPeriod[], platformRows: PlatformRecord[], batchId: string): CampaignRecord[] {
+function parseMetaCampaigns(source: WorkbookSource, _periods: MediaPeriod[], _platformRows: PlatformRecord[], batchId: string): CampaignRecord[] {
   const templates = rows(source.workbook, 'Meta Campaign Brand Map').flatMap((row, index) => {
     const campaign = text(value(row, 'Campaign'));
     const nineMonthSpend = numberValue(value(row, 'Spend 9-mo (AED)'));
@@ -260,55 +261,11 @@ function parseMetaCampaigns(source: WorkbookSource, periods: MediaPeriod[], plat
     }];
   });
 
-  return periods.flatMap((period) => {
-    const monthRows = platformRows.filter((row) => row.periodKey === period.periodKey);
-    const monthlySpend = monthRows.reduce((total, row) => total + row.spend, 0);
-    if (monthlySpend <= 0) return [];
-
-    return monthRows.flatMap((platformRow) => {
-      const brandTemplates = templates.filter((template) => template.brand === platformRow.brand);
-      const brandTemplateSpend = brandTemplates.reduce((total, template) => total + template.spend, 0);
-      if (brandTemplateSpend <= 0) {
-        return [{
-          batchId,
-          sourceFile: source.name,
-          sourceSheet: platformRow.sourceSheet,
-          sourceRow: platformRow.sourceRow,
-          platform: 'Meta Ads' as const,
-          campaign: `Unallocated Meta campaign detail - ${platformRow.brand}`,
-          brand: platformRow.brand,
-          brandScope: 'Unallocated campaign detail',
-          segment: platformRow.segment,
-          stage: 'Unallocated',
-          campaignType: 'Unallocated',
-          mappingSource: 'No matching campaign-map row',
-          confidence: 'Unallocated',
-          year: period.year,
-          month: period.month,
-          periodKey: period.periodKey,
-          spend: platformRow.spend,
-          claims: platformRow.claims,
-          impressions: platformRow.impressions,
-          clicks: platformRow.clicks,
-          calculationBasis: 'Monthly Meta brand total retained as unallocated because no matching campaign map row was supplied.',
-        }];
-      }
-      return brandTemplates.map((template) => {
-        const share = template.spend / brandTemplateSpend;
-        return {
-          ...template,
-          year: period.year,
-          month: period.month,
-          periodKey: period.periodKey,
-          spend: platformRow.spend * share,
-          claims: platformRow.claims * share,
-          impressions: (platformRow.impressions ?? 0) * share,
-          clicks: (platformRow.clicks ?? 0) * share,
-          calculationBasis: "Monthly Meta brand totals allocated among that brand's campaigns by each campaign's share of nine-month brand campaign spend.",
-        };
-      });
-    });
-  });
+  return templates.map((template) => ({
+    ...template,
+    year: 2026,
+    calculationBasis: 'Supplied nine-month Meta campaign spend only. No monthly campaign activity, impressions, clicks, conversions, or conversion value is assigned.',
+  }));
 }
 
 function parseOrganic(source: WorkbookSource, periods: MediaPeriod[], batchId: string): OrganicRecord[] {

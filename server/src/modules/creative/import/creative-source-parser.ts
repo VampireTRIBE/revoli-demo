@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
-import { creativeBrands, instagramSourcePrecedence, paidMetaSource } from '../config/creative-source.config.js';
+import XLSX from 'xlsx';
+import { creativeBrands, creativePreparedImportSource, instagramSourcePrecedence, paidMetaSource } from '../config/creative-source.config.js';
 import type {
   CreativeCoverageRecord,
   CreativeMetricConflict,
@@ -9,6 +10,10 @@ import type {
   NormalizedCreativePost,
   NormalizedPaidCreativePost,
   PaidCreativeAccountSummary,
+  PreparedCreativeBenchmark,
+  PreparedCreativeImport,
+  PreparedCreativePostMetric,
+  PreparedCreativeTopPost,
 } from '../types/creative.types.js';
 import { decodeCsv, nullableNumber, parseCsv, repairMojibake, tableRecords } from './csv-parser.js';
 import { parseSouqSources } from './souq-source-parser.js';
@@ -50,6 +55,7 @@ export function parseCreativeSources(directory = resolveCreativeSourceDirectory(
   const paidPerformanceRows = existsSync(paidPerformancePath) ? recordsFromFile(paidPerformancePath) : [];
   const paidAverageRows = existsSync(paidAveragePath) ? recordsFromFile(paidAveragePath) : [];
   const paidSummary = normalizePaidSummary(paidSummaryRows[0], paidPerformanceRows[0], paidAverageRows[0]);
+  const preparedImport = parsePreparedCreativeImport(directory);
   const accountPaidPostCount = paidSummary.paidPostCount;
   if (paidResult.posts.length) {
     coverage.push({
@@ -91,6 +97,102 @@ export function parseCreativeSources(directory = resolveCreativeSourceDirectory(
       accountPaidPostCount,
     },
     paidSummary,
+    preparedImport,
+  };
+}
+
+function parsePreparedCreativeImport(directory: string): PreparedCreativeImport | null {
+  const path = resolve(directory, creativePreparedImportSource);
+  if (!existsSync(path)) return null;
+  const workbook = XLSX.readFile(path, { cellDates: false });
+  const rows = <T extends Record<string, unknown>>(sheet: string): T[] => {
+    const worksheet = workbook.Sheets[sheet];
+    if (!worksheet) throw new Error(`Creative prepared import is missing required sheet: ${sheet}`);
+    return XLSX.utils.sheet_to_json<T>(worksheet, { defval: null, raw: true });
+  };
+  const monthParts = (value: unknown) => {
+    const match = /^(\d{4})-(\d{2})$/.exec(String(value ?? '').trim());
+    if (!match) throw new Error(`Invalid Creative prepared month: ${String(value)}`);
+    return { year: Number(match[1]), month: Number(match[2]) };
+  };
+  const number = (value: unknown, field: string): number => {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(parsed)) throw new Error(`Invalid Creative prepared ${field}: ${String(value)}`);
+    return parsed;
+  };
+  const text = (value: unknown): string => String(value ?? '').trim();
+  const giveaway = (value: unknown): boolean => text(value).toUpperCase() === 'YES';
+
+  const postMetrics = rows<Record<string, unknown>>('Post Metrics (import)').map((row): PreparedCreativePostMetric => {
+    const period = monthParts(row.Month);
+    return {
+      postId: text(row['Post Id']),
+      publishedAtDubai: text(row['Published (Dubai)']),
+      ...period,
+      day: text(row.Day),
+      timeSlot: text(row['Time slot']),
+      postType: text(row.Type),
+      language: text(row.Language),
+      giveaway: giveaway(row['Giveaway flag']),
+      reach: number(row.Reach, 'reach'),
+      views: number(row.Views, 'views'),
+      activeActions: number(row['Active actions'], 'active actions'),
+      activeEngagementRate: number(row['Active engagement'], 'active engagement'),
+      frequency: number(row.Frequency, 'frequency'),
+      eligibleForRanking: text(row['Eligible for ranking (reach>=500)']).toUpperCase() === 'YES',
+      theme: text(row.Theme) || 'Untagged',
+      caption: text(row['Caption (first 90 chars)']) || null,
+      sourceFile: creativePreparedImportSource,
+      sourceSheet: 'Post Metrics (import)',
+    };
+  }).filter((row) => row.postId);
+
+  const monthlyTopPosts = rows<Record<string, unknown>>('Why It Worked - Monthly Top 3').map((row): PreparedCreativeTopPost => {
+    const period = monthParts(row.Month);
+    return {
+      ...period,
+      rank: number(row.Rank, 'rank'),
+      postId: text(row['Post Id']),
+      date: text(row.Date),
+      postType: text(row.Type),
+      language: text(row.Language),
+      day: text(row.Day),
+      timeSlot: text(row['Time slot']),
+      giveaway: giveaway(row['Giveaway flag']),
+      reach: number(row.Reach, 'reach'),
+      activeActions: number(row['Active actions'], 'active actions'),
+      activeEngagementRate: number(row['Active engagement'], 'active engagement'),
+      frequency: number(row.Frequency, 'frequency'),
+      theme: text(row.Theme) || 'Untagged',
+      caption: text(row['Caption (first 90 chars)']) || null,
+      sourceFile: creativePreparedImportSource,
+      sourceSheet: 'Why It Worked - Monthly Top 3',
+    };
+  }).filter((row) => row.postId);
+
+  const monthlyBenchmarks = rows<Record<string, unknown>>('Monthly Benchmarks').map((row): PreparedCreativeBenchmark => {
+    const period = monthParts(row.Month);
+    return {
+      ...period,
+      eligiblePosts: number(row['Eligible posts'], 'eligible posts'),
+      rankingEligiblePosts: number(row['Eligible >=500 reach'], 'ranking eligible posts'),
+      medianActiveEngagementRate: number(row['Median active engagement'], 'median active engagement'),
+      meanActiveEngagementRate: number(row['Mean active engagement'], 'mean active engagement'),
+      medianFrequency: number(row['Median frequency'], 'median frequency'),
+      giveawayPosts: number(row['Giveaway posts'], 'giveaway posts'),
+      giveawayActionShare: number(row['Share of actions from giveaway posts'], 'giveaway action share'),
+      sourceFile: creativePreparedImportSource,
+      sourceSheet: 'Monthly Benchmarks',
+    };
+  });
+
+  return {
+    sourceFile: creativePreparedImportSource,
+    account: 'Union Coop',
+    timezone: 'Asia/Dubai',
+    postMetrics,
+    monthlyTopPosts,
+    monthlyBenchmarks,
   };
 }
 

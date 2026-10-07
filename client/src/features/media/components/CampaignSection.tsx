@@ -11,6 +11,15 @@ export function CampaignSection({ filter }: { filter: MediaFilter }) {
   const compactChart = useMediaQuery('(max-width: 640px)');
   const query = useCampaigns(filter, { platform, page: 1, limit: 100, sort: 'spend', order: 'desc' });
   const chartQuery = useCampaigns(filter, { page: 1, limit: 100, sort: 'spend', order: 'desc' });
+  const availablePlatforms = new Set(chartQuery.data?.campaigns.map((row) => row.platform) ?? []);
+  const metaAvailable = availablePlatforms.has('Meta Ads');
+  const googleAvailable = availablePlatforms.has('Google Ads');
+
+  useEffect(() => {
+    if (!chartQuery.isSuccess) return;
+    if (platform === 'Meta Ads' && !metaAvailable && googleAvailable) setPlatform('Google Ads');
+    if (platform === 'Google Ads' && !googleAvailable && metaAvailable) setPlatform('Meta Ads');
+  }, [chartQuery.isSuccess, googleAvailable, metaAvailable, platform]);
   const chartRows: CampaignChartRow[] = (chartQuery.data?.roasCampaigns ?? []).slice(0, 12).map((row) => ({
     ...row,
     label: `${row.platform === 'Google Ads' ? 'G' : 'M'}: ${formatCampaignName(row.campaign)}`,
@@ -32,15 +41,15 @@ export function CampaignSection({ filter }: { filter: MediaFilter }) {
             <Tooltip content={<CampaignRoasTooltip />} cursor={{ fill: 'rgba(124, 154, 255, 0.07)' }} wrapperStyle={{ outline: 'none', zIndex: 10 }} />
             <Bar dataKey="roas" barSize={20} radius={[0, 4, 4, 0]}>{chartRows.map((row) => <Cell key={`${row.platform}-${row.campaign}`} fill={roasColor(row.roas)} />)}</Bar>
           </BarChart>
-        </ResponsiveContainer> : <div className="reference-chart-unavailable"><div><strong>No eligible campaigns</strong>No campaign with spend above AED 300 has a mapped directional return for this period.</div></div>}
+        </ResponsiveContainer> : <div className="reference-chart-unavailable"><div><strong>Data not available</strong>Campaign-specific conversion value is not supplied, so Campaign ROAS cannot be calculated for this period.</div></div>}
       </div>
     </section>
 
     <section className="reference-card">
       <h3>Campaign detail</h3>
       <div className="reference-subtabs" role="tablist" aria-label="Campaign platform">
-        <button type="button" className={`reference-subtab${platform === 'Meta Ads' ? ' active' : ''}`} onClick={() => setPlatform('Meta Ads')} role="tab" aria-selected={platform === 'Meta Ads'}>Meta</button>
-        <button type="button" className={`reference-subtab${platform === 'Google Ads' ? ' active' : ''}`} onClick={() => setPlatform('Google Ads')} role="tab" aria-selected={platform === 'Google Ads'}>Google</button>
+        <button type="button" className={`reference-subtab${platform === 'Meta Ads' ? ' active' : ''}`} onClick={() => setPlatform('Meta Ads')} role="tab" aria-selected={platform === 'Meta Ads'} disabled={!chartQuery.isLoading && !metaAvailable} title={metaAvailable ? 'Show Meta campaigns' : 'No monthly Meta campaign-detail rows are available for this period'}>Meta</button>
+        <button type="button" className={`reference-subtab${platform === 'Google Ads' ? ' active' : ''}`} onClick={() => setPlatform('Google Ads')} role="tab" aria-selected={platform === 'Google Ads'} disabled={!chartQuery.isLoading && !googleAvailable} title={googleAvailable ? 'Show Google campaigns' : 'No Google campaign-detail rows are available for this period'}>Google</button>
       </div>
       {query.isLoading ? <LoadingSkeleton /> : query.isError ? <ErrorState message="Campaign data could not be loaded." /> : query.data?.campaigns.length ? <div className="reference-table-wrap reference-mobile-table reference-campaign-table">
         <table>
@@ -52,7 +61,7 @@ export function CampaignSection({ filter }: { filter: MediaFilter }) {
             <td className="num" title={row.calculationBasis}>{formatAED(row.spend)}</td>
             <td className={row.ctr == null ? 'num reference-na' : 'num'} title={`${row.ctrLabel}${row.calculationBasis ? `; ${row.calculationBasis}` : ''}`}>{formatPercent(row.ctr, 2)}</td>
             <td className="num" title={row.calculationBasis}>{row.claims == null ? 'N/A' : formatNumber(row.claims)}</td>
-            <td className={`num reference-roas ${roasTone(row.roas)}`} title={`${row.roasBasis}. Directional, not campaign-attributed revenue.`}>{formatRatio(row.roas)}</td>
+            <td className={`num reference-roas ${roasTone(row.roas)}`} title={row.roasBasis}>{formatRatio(row.roas)}</td>
           </tr>;
           })}</tbody>
         </table>
@@ -62,7 +71,8 @@ export function CampaignSection({ filter }: { filter: MediaFilter }) {
 }
 
 function roasTone(value: number | null): string {
-  if (value === null || value < 1.5) return 'bad';
+  if (value === null) return 'unavailable';
+  if (value < 1.5) return 'bad';
   return value >= 2.5 ? 'good' : 'warn';
 }
 

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+coverage/
+.source-inspection/
+server/uploads/
+~$*.xlsx

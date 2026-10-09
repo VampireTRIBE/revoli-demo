@@ -259,7 +259,7 @@ Base path: `/api/v1/media`
 | `GET /imports/:batchId` | One import audit |
 | `POST /import` | Validates and stores an `.xlsx` or `.zip` Media package |
 
-Analytics endpoints accept `year`, `month`, `segment`, and `brand` as supported by each route. Campaign detail also supports platform, stage, campaign type, paging, and sorting.
+Analytics endpoints accept `year`, `month`, `segment`, and `brand` as supported by each route. `segment` and `brand` accept one value or a comma-separated list. Multiple values are OR-matched within their dimension and Segment/Brand dimensions are AND-matched; the normal aggregate formulas then calculate combined totals from each matching source row once. Campaign detail also supports platform, stage, campaign type, paging, and sorting.
 
 ### Media database
 
@@ -276,6 +276,7 @@ Every stored row keeps `batchId`, `sourceFile`, `sourceSheet`, and `sourceRow`. 
 ## 6. Filters and period meaning
 
 - Creative Month filters posts by publication month. It does not claim engagements occurred only in that month.
+- Media Segment and Brand controls are multi-select. Selected values remain visible below the controls as comma-separated labels, and the URL preserves the selection for refresh/share.
 - Paid Creative whole-period exports are not split using post publication dates.
 - Media Month uses the paid/GA4 reporting month from workbook sheets.
 - Competition Month uses capture month, not ad start month.
@@ -356,6 +357,7 @@ This section records the changes requested in `Bizcom-Fix-List-By-Section.docx`.
 
 - The Creative Paid view now exposes only the supported **Meta ads** platform control. The unsupported **Google Shopping** button and its unavailable-only panel were removed; no Meta data or calculation changed.
 - Media **Segment** and **Brand** custom dropdowns now use white/light-blue surfaces, navy text, teal indicators, and a clearly highlighted selected option.
+- Media **Segment** and **Brand** dropdowns support multiple checked values and display the selected Segment and Brand lists immediately below the controls. Combined results sum matching source records once and recompute ratios from the combined numerators and denominators.
 - The expanded **Media Competition** panel now uses the same light card, table, action, capture, and empty-state palette as the rest of Media. Competition data rules and calculations remain unchanged.
 
 ## Creative workbook mapping

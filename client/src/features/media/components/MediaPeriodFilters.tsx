@@ -7,15 +7,15 @@ interface Props {
   periods: Periods;
   year?: number;
   month?: number;
-  segment?: string;
-  brand?: string;
+  segment?: string[];
+  brand?: string[];
   segments: PerformanceRow[];
   brands: PerformanceRow[];
   segmentsLoading?: boolean;
   brandsLoading?: boolean;
   onChange: (year?: number, month?: number) => void;
-  onSegmentChange: (segment?: string) => void;
-  onBrandChange: (brand?: string) => void;
+  onSegmentChange: (segment?: string[]) => void;
+  onBrandChange: (brand?: string[]) => void;
 }
 
 interface FilterOption {
@@ -57,19 +57,23 @@ export function MediaPeriodFilters({
   );
 }
 
-function FilterDropdown({ label, value, options, allLabel, loadingLabel, disabled, onChange }: {
+function FilterDropdown({ label, value = [], options, allLabel, loadingLabel, disabled, onChange }: {
   label: string;
-  value?: string;
+  value?: string[];
   options: FilterOption[];
   allLabel: string;
   loadingLabel: string;
   disabled: boolean;
-  onChange: (value?: string) => void;
+  onChange: (value?: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const listboxId = useId();
-  const selectedLabel = value ? options.find((option) => option.value === value)?.label ?? displayFilterLabel(value) : allLabel;
+  const selectedLabel = value.length === 0
+    ? allLabel
+    : value.length === 1
+      ? options.find((option) => option.value === value[0])?.label ?? displayFilterLabel(value[0] ?? '')
+      : `${value.length} selected`;
 
   useEffect(() => {
     if (!open) return;
@@ -81,8 +85,15 @@ function FilterDropdown({ label, value, options, allLabel, loadingLabel, disable
   }, [open]);
 
   const select = (nextValue?: string) => {
-    onChange(nextValue);
-    setOpen(false);
+    if (!nextValue) {
+      onChange(undefined);
+      setOpen(false);
+      return;
+    }
+    const selected = value.includes(nextValue)
+      ? value.filter((entry) => entry !== nextValue)
+      : [...value, nextValue];
+    onChange(selected.length ? selected : undefined);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -98,9 +109,12 @@ function FilterDropdown({ label, value, options, allLabel, loadingLabel, disable
     <button type="button" className={`media-filter-trigger${open ? ' open' : ''}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={listboxId} disabled={disabled} onClick={() => setOpen((current) => !current)} onKeyDown={handleKeyDown}>
       <span>{disabled ? loadingLabel : selectedLabel}</span><i aria-hidden="true" />
     </button>
-    {open && !disabled ? <div className="media-filter-menu" id={listboxId} role="listbox" aria-label={label}>
-      <button type="button" role="option" aria-selected={!value} className={!value ? 'selected' : ''} onClick={() => select(undefined)}>{allLabel}</button>
-      {options.map((option) => <button type="button" role="option" aria-selected={value === option.value} className={value === option.value ? 'selected' : ''} key={option.value} onClick={() => select(option.value)}>{option.label}</button>)}
+    {open && !disabled ? <div className="media-filter-menu" id={listboxId} role="listbox" aria-label={label} aria-multiselectable="true">
+      <button type="button" role="option" aria-selected={value.length === 0} className={value.length === 0 ? 'selected' : ''} onClick={() => select(undefined)}><span className="media-filter-check" aria-hidden="true" />{allLabel}</button>
+      {options.map((option) => {
+        const selected = value.includes(option.value);
+        return <button type="button" role="option" aria-selected={selected} className={selected ? 'selected' : ''} key={option.value} onClick={() => select(option.value)}><span className="media-filter-check" aria-hidden="true" />{option.label}</button>;
+      })}
     </div> : null}
   </div>;
 }

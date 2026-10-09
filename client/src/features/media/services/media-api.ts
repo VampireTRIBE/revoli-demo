@@ -4,8 +4,8 @@ import type { ApiResponse, CampaignData, FunnelData, MediaFilter, OrganicData, O
 const params = (filter: MediaFilter) => ({
   ...(filter.year ? { year: filter.year } : {}),
   ...(filter.month ? { month: filter.month } : {}),
-  ...(filter.segment ? { segment: filter.segment } : {}),
-  ...(filter.brand ? { brand: filter.brand } : {}),
+  ...(filter.segment?.length ? { segment: filter.segment.join(',') } : {}),
+  ...(filter.brand?.length ? { brand: filter.brand.join(',') } : {}),
 });
 const get = async <T>(url: string, query?: Record<string, unknown>) => (await http.get<ApiResponse<T>>(url, { params: query })).data.data;
 

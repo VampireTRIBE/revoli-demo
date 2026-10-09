@@ -45,7 +45,7 @@ function filterDataset(dataset: MediaDataset, filter: MediaFilter): MediaDataset
   const matchesPeriod = (record: { year?: number; month?: number }) =>
     (!filter.year || record.year === filter.year) && (!filter.month || record.month === filter.month);
   const matchesDimensions = (record: { segment?: string; brand?: string }) =>
-    (!filter.segment || record.segment === filter.segment) && (!filter.brand || record.brand === filter.brand);
+    matchesSelection(filter.segment, record.segment) && matchesSelection(filter.brand, record.brand);
   const matches = (record: { year?: number; month?: number; segment?: string; brand?: string }) =>
     matchesPeriod(record) && matchesDimensions(record);
   const selectedPeriod = filter.month ? dataset.periods.find(matchesPeriod) : undefined;
@@ -68,6 +68,10 @@ function filterDataset(dataset: MediaDataset, filter: MediaFilter): MediaDataset
     }),
     warnings,
   };
+}
+
+function matchesSelection(selection: string[] | undefined, value: string | undefined): boolean {
+  return !selection?.length || (value !== undefined && selection.includes(value));
 }
 
 function enrichLegacyCampaignMetrics(databaseDataset: MediaDataset, source: MediaDataset): MediaDataset {

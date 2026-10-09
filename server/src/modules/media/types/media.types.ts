@@ -109,8 +109,8 @@ export interface ReconciliationCheck {
 export interface MediaFilter {
   year?: number;
   month?: number;
-  segment?: string;
-  brand?: string;
+  segment?: string[];
+  brand?: string[];
 }
 
 export interface MetricValue {

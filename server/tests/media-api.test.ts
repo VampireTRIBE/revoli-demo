@@ -122,6 +122,55 @@ describe('Media API', () => {
     expect(reconciliationResponse.body.data.checks.every((check: { passed: boolean }) => check.passed)).toBe(true);
   });
 
+  it('combines multiple selected Segments and Brands without duplicating source rows', async () => {
+    const segmentsResponse = await request(app).get('/api/v1/media/segments?year=2026&month=8').expect(200);
+    const selectedSegments = segmentsResponse.body.data.segments
+      .filter((row: { totalSpend: number }) => row.totalSpend > 0)
+      .slice(0, 2)
+      .map((row: { label: string }) => row.label);
+
+    expect(selectedSegments).toHaveLength(2);
+    const segmentQuery = new URLSearchParams({
+      year: '2026',
+      month: '8',
+      segment: selectedSegments.join(','),
+    }).toString();
+    const brandsResponse = await request(app).get(`/api/v1/media/brands?${segmentQuery}`).expect(200);
+    const selectedBrands = brandsResponse.body.data.brands
+      .filter((row: { totalSpend: number }) => row.totalSpend > 0)
+      .slice(0, 2)
+      .map((row: { label: string }) => row.label);
+
+    expect(selectedBrands).toHaveLength(2);
+    const combinedQuery = new URLSearchParams({
+      year: '2026',
+      month: '8',
+      segment: selectedSegments.join(','),
+      brand: selectedBrands.join(','),
+    }).toString();
+    const [overviewResponse, campaignsResponse] = await Promise.all([
+      request(app).get(`/api/v1/media/overview?${combinedQuery}`).expect(200),
+      request(app).get(`/api/v1/media/campaigns?${combinedQuery}&page=1&limit=100`).expect(200),
+    ]);
+
+    const dataset = sourceDataset();
+    const matchingPlatforms = dataset.platforms.filter((row) =>
+      row.year === 2026 && row.month === 8 && selectedSegments.includes(row.segment) && selectedBrands.includes(row.brand));
+    const matchingSite = dataset.site.filter((row) =>
+      row.year === 2026 && row.month === 8 && selectedSegments.includes(row.segment) && selectedBrands.includes(row.brand));
+    const expectedSpend = matchingPlatforms.reduce((total, row) => total + row.spend, 0);
+    const expectedRevenue = matchingSite.reduce((total, row) => total + row.revenue, 0);
+    const overview = overviewResponse.body.data;
+
+    expect(overview.metadata.segment).toBe(selectedSegments.join(', '));
+    expect(overview.metadata.brand).toBe(selectedBrands.join(', '));
+    expect(overview.metrics.totalSpend).toBeCloseTo(expectedSpend, 1);
+    expect(overview.metrics.siteRevenue).toBeCloseTo(expectedRevenue, 1);
+    expect(campaignsResponse.body.data.campaigns.every((row: { segment: string; brand: string }) =>
+      selectedSegments.includes(row.segment) && selectedBrands.includes(row.brand),
+    )).toBe(true);
+  });
+
   it('calculates a documented ROAS basis for every spreadsheet-backed Segment and Brand', async () => {
     for (const period of sourceDataset().periods) {
       const query = `year=${period.year}&month=${period.month}`;

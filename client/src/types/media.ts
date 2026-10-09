@@ -1,7 +1,7 @@
 export type MetricStatus = 'VERIFIED' | 'DERIVED' | 'DIRECTIONAL' | 'PLATFORM_CLAIMED' | 'PARTIAL' | 'UNAVAILABLE';
 
 export interface ApiResponse<T> { success: boolean; message: string; data: T }
-export interface MediaFilter { year?: number; month?: number; segment?: string; brand?: string }
+export interface MediaFilter { year?: number; month?: number; segment?: string[]; brand?: string[] }
 export interface Metadata {
   year: number | null;
   month: number | null;

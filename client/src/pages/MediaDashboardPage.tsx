@@ -18,8 +18,8 @@ export function MediaDashboardPage() {
   const filter = useMemo<MediaFilter>(() => ({
     year: searchParams.get('year') ? Number(searchParams.get('year')) : undefined,
     month: searchParams.get('month') ? Number(searchParams.get('month')) : undefined,
-    segment: searchParams.get('segment') || undefined,
-    brand: searchParams.get('brand') || undefined,
+    segment: parseSelections(searchParams.get('segment')),
+    brand: parseSelections(searchParams.get('brand')),
   }), [searchParams]);
   const periodFilter = useMemo<MediaFilter>(() => ({
     year: filter.year,
@@ -46,13 +46,19 @@ export function MediaDashboardPage() {
   }, [periods.data, searchParams, setSearchParams]);
 
   useEffect(() => {
-    if (!filter.segment || segmentData.isLoading || !segmentData.data || segments.some((row) => row.label === filter.segment)) return;
-    setSearchParams(toSearchParams({ ...filter, segment: undefined, brand: undefined }), { replace: true });
+    if (!filter.segment?.length || segmentData.isLoading || !segmentData.data) return;
+    const available = new Set(segments.map((row) => row.label));
+    const valid = filter.segment.filter((value) => available.has(value));
+    if (valid.length === filter.segment.length) return;
+    setSearchParams(toSearchParams({ ...filter, segment: valid.length ? valid : undefined }), { replace: true });
   }, [filter, segmentData.data, segmentData.isLoading, segments, setSearchParams]);
 
   useEffect(() => {
-    if (!filter.brand || brandData.isLoading || !brandData.data || brands.some((row) => row.label === filter.brand)) return;
-    setSearchParams(toSearchParams({ ...filter, brand: undefined }), { replace: true });
+    if (!filter.brand?.length || brandData.isLoading || !brandData.data) return;
+    const available = new Set(brands.map((row) => row.label));
+    const valid = filter.brand.filter((value) => available.has(value));
+    if (valid.length === filter.brand.length) return;
+    setSearchParams(toSearchParams({ ...filter, brand: valid.length ? valid : undefined }), { replace: true });
   }, [brandData.data, brandData.isLoading, brands, filter, setSearchParams]);
 
   const overview = useOverview(filter);
@@ -60,10 +66,10 @@ export function MediaDashboardPage() {
   const onFilterChange = (year?: number, month?: number) => {
     setSearchParams(toSearchParams({ year, month }));
   };
-  const onSegmentChange = (segment?: string) => {
-    setSearchParams(toSearchParams({ year: filter.year, month: filter.month, segment }));
+  const onSegmentChange = (segment?: string[]) => {
+    setSearchParams(toSearchParams({ ...filter, segment }));
   };
-  const onBrandChange = (brand?: string) => {
+  const onBrandChange = (brand?: string[]) => {
     setSearchParams(toSearchParams({ ...filter, brand }));
   };
 
@@ -87,6 +93,10 @@ export function MediaDashboardPage() {
         onBrandChange={onBrandChange}
       /> : <LoadingSkeleton rows={2} />}<CompetitionDropdown context={competitionContext} /></div>
     </div>
+    {filter.segment?.length || filter.brand?.length ? <div className="media-filter-selection-summary" aria-live="polite">
+      {filter.segment?.length ? <div><strong>Segment:</strong> {filter.segment.map(displayFilterLabel).join(', ')}</div> : null}
+      {filter.brand?.length ? <div><strong>Brand:</strong> {filter.brand.map(displayFilterLabel).join(', ')}</div> : null}
+    </div> : null}
     <ContextualCompetitionPanel context={competitionContext} view="media" />
 
     {overview.isLoading ? <div className="reference-media-grid four">{Array.from({ length: 4 }, (_, index) => <div className="reference-card" key={index}><LoadingSkeleton rows={3} /></div>)}</div> : overview.isError ? <ErrorState /> : overview.data ? <OverviewCards data={overview.data} /> : <EmptyState />}
@@ -101,9 +111,19 @@ function toSearchParams(filter: MediaFilter): URLSearchParams {
   const next = new URLSearchParams();
   if (filter.year) next.set('year', String(filter.year));
   if (filter.year && filter.month) next.set('month', String(filter.month));
-  if (filter.segment) next.set('segment', filter.segment);
-  if (filter.brand) next.set('brand', filter.brand);
+  if (filter.segment?.length) next.set('segment', filter.segment.join(','));
+  if (filter.brand?.length) next.set('brand', filter.brand.join(','));
   return next;
+}
+
+function parseSelections(value: string | null): string[] | undefined {
+  if (!value) return undefined;
+  const selections = [...new Set(value.split(',').map((entry) => entry.trim()).filter(Boolean))];
+  return selections.length ? selections : undefined;
+}
+
+function displayFilterLabel(value: string): string {
+  return /^corporate\s*\/\s*multi(?:[-\s].*)?$/i.test(value.trim()) ? 'Corporate' : value;
 }
 
 function AttributionNote({ data }: { data: Overview }) {

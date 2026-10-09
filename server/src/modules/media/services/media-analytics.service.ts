@@ -48,8 +48,8 @@ function metadata(dataset: MediaDataset, filter: MediaFilter) {
   return {
     year: filter.year ?? null,
     month: filter.month ?? null,
-    segment: filter.segment ?? null,
-    brand: filter.brand ?? null,
+    segment: filter.segment?.join(', ') ?? null,
+    brand: filter.brand?.join(', ') ?? null,
     partialPeriod: selected?.isPartialPeriod ?? partialPeriods.length > 0,
     periodStart: selected?.periodStart ?? dataset.periods[0]?.periodStart ?? null,
     periodEnd: selected?.periodEnd ?? dataset.periods.at(-1)?.periodEnd ?? null,
@@ -127,7 +127,8 @@ function segmentForBrand(dataset: MediaDataset, brand: string): string {
 }
 
 async function directionalReturnContext(filter: MediaFilter, filtered: MediaDataset): Promise<MediaDataset> {
-  if (!filter.brand && !filter.segment) return filtered;
+  if (!filter.brand?.length && !filter.segment?.length) return filtered;
+  if ((filter.brand?.length ?? 0) > 1 || (filter.segment?.length ?? 0) > 1) return filtered;
   return mediaDataset({ year: filter.year, month: filter.month });
 }
 
@@ -168,7 +169,7 @@ export async function getOverview(filter: MediaFilter) {
   const returnContext = await directionalReturnContext(filter, dataset);
   const input = totals(dataset);
   const metrics = calculateMetrics(input);
-  const returnEstimate = directionalReturnEstimate(returnContext, filter.brand ?? '', filter.segment ?? '');
+  const returnEstimate = directionalReturnEstimate(returnContext, singleSelection(filter.brand), singleSelection(filter.segment));
   return {
     metrics: {
       referenceMediaScore: null,
@@ -246,8 +247,6 @@ export async function getPlatforms(filter: MediaFilter) {
 
 interface CampaignFilters extends MediaFilter {
   platform?: string;
-  brand?: string;
-  segment?: string;
   stage?: string;
   campaignType?: string;
   page: number;
@@ -261,8 +260,8 @@ export async function getCampaigns(filter: CampaignFilters) {
   const returnContext = await directionalReturnContext(filter, dataset);
   let rows = aggregateCampaignRows(dataset.campaigns).filter((row) =>
     (!filter.platform || row.platform === filter.platform) &&
-    (!filter.brand || row.brand === filter.brand) &&
-    (!filter.segment || row.segment === filter.segment) &&
+    matchesSelection(filter.brand, row.brand) &&
+    matchesSelection(filter.segment, row.segment) &&
     (!filter.stage || row.stage === filter.stage) &&
     (!filter.campaignType || row.campaignType === filter.campaignType));
   rows = [...rows].sort((a, b) => {
@@ -340,7 +339,7 @@ export async function getBrands(filter: MediaFilter) {
     ...dataset.site.map((row) => row.brand),
   ]);
   const brands = names.map((brand) => {
-    const estimate = directionalReturnEstimate(dataset, brand, filter.segment ?? '');
+    const estimate = directionalReturnEstimate(dataset, brand, singleSelection(filter.segment));
     return aggregatePerformance(
       brand,
       dataset.platforms.filter((row) => row.brand === brand),
@@ -507,8 +506,8 @@ function sourceReconciliationChecks(dataset: MediaDataset, filter: MediaFilter) 
   return dataset.periods.flatMap((period) => {
     const sourceRows = original.site.filter((row) =>
       row.periodKey === period.periodKey &&
-      (!filter.segment || row.segment === filter.segment) &&
-      (!filter.brand || row.brand === filter.brand));
+      matchesSelection(filter.segment, row.segment) &&
+      matchesSelection(filter.brand, row.brand));
     const importedRows = dataset.site.filter((row) => row.periodKey === period.periodKey);
     const metrics = [
       ['Items viewed', sum(sourceRows, (row) => row.itemsViewed), sum(importedRows, (row) => row.itemsViewed), 0.0001],
@@ -525,6 +524,14 @@ function sourceReconciliationChecks(dataset: MediaDataset, filter: MediaFilter) 
 
 function unique(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function singleSelection(values: string[] | undefined): string {
+  return values?.length === 1 ? values[0] ?? '' : '';
+}
+
+function matchesSelection(selection: string[] | undefined, value: string): boolean {
+  return !selection?.length || selection.includes(value);
 }
 
 export type { CampaignRecord };

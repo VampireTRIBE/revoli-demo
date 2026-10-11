@@ -343,7 +343,7 @@ This section records the changes requested in `Bizcom-Fix-List-By-Section.docx`.
 | Correct campaign joins | Complete | Google campaigns keep their own monthly campaign fields. Meta's nine-month campaign map is retained only at its supplied aggregate grain; monthly spend, impressions, clicks, claims, and revenue are no longer proportionally copied into campaign rows. |
 | Correct campaign month filtering | Complete | Campaign filters use source reporting fields. Undated/nine-month Meta campaign totals do not appear as monthly campaign data. Campaign-name dates are not used as activity dates. |
 | Include both Meta accounts | Blocked by missing source | The supplied files contain the configured Rivoli Group Meta source but no combined Rivoli Group + Hour Choice export. The API adds an explicit coverage warning and does not fabricate Hour Choice spend. |
-| Google ROAS provenance | Superseded by later UI request | Google platform and campaign delivery comes from `Rivoli-Google-Brand-Spend-Jan-Sep-2026.xlsx` and the monthly campaign mapping sheet. The source has no Conversion value. The restored ROAS display therefore uses the established directional site-revenue coverage fallback and says so in its provenance; it is not presented as Google-attributed revenue. |
+| Google ROAS provenance | Complete | Google platform and campaign delivery comes from `Rivoli-Google-Brand-Spend-Jan-Sep-2026.xlsx` and the monthly campaign mapping sheet. The source has no matching Conversion value, so no Google ROAS value is displayed or inferred from site revenue. |
 | Remove composite Organic Creative score | Complete | The single Organic score number is removed. The existing Organic card and provisional wording remain, while the Attention and Active engagement components stay visible as provisional references. Navigation has no Creative score badge. |
 | Typical post and Best | Complete | For a selected Union Coop month, **Typical post** uses the supplied monthly median active engagement and median frequency. **Best** uses the matching prepared rank-1 post. All-month does not average monthly medians and shows the existing unavailable state. |
 | Ranking floor | Complete | Rankings include only rows where `Eligible for ranking (reach>=500)` is `YES`, and the UI states **Ranking floor: reach ≥ 500**. Other post displays and benchmark populations are not changed. |
@@ -375,7 +375,7 @@ Source: `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xl
 
 - **Revenue coverage** keeps the established calculation: compatible mapped site revenue divided by compatible advertising spend.
 - **Blended CTR** is `sum(raw paid clicks) / sum(matching raw paid impressions)` across rows that actually provide a compatible Clicks field. Google `Interactions`, organic clicks, and invented clicks are excluded instead of making the supported Meta click rate unavailable. August 2026 uses 36,409 Link clicks and 3,557,299 impressions, producing 1.02%.
-- Platform and campaign ROAS now use the established directional revenue-coverage fallback requested after the fix-list pass. Platform revenue is allocated within each segment by the platform's matching spend share. Campaign rows use their matching Brand return, then Segment return, then overall return only when the narrower source grain is unavailable. Tooltips identify the basis and state that campaign-attributed conversion value is not supplied.
+- Platform and campaign ROAS are not displayed because the supplied sources do not contain matching platform/campaign conversion value. Site revenue is not allocated to those rows. The separate Revenue coverage card retains its established site-revenue/spend calculation.
 - Google campaign rows come from the supplied campaign reporting sheet and retain their campaign-specific spend, impressions, Interactions, and conversions. The UI labels the response rate as **Interaction rate**, not CTR based on Clicks.
 - Meta's `Meta Campaign Brand Map` contains nine-month campaign spend. It is retained with that provenance and excluded from monthly campaign views. Monthly brand totals are not distributed across campaigns.
 - Media scoring has no fallback, zero, reweighting, score bar, score color, or navigation badge. The only score output is **Unscored — baselines pending**.
@@ -400,7 +400,7 @@ Source: `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xl
 - Workbook checks verified 278 prepared post rows, 27 monthly Top 3 rows, and 9 monthly benchmark rows.
 - August checks verified 52 eligible posts, 51 ranking-eligible posts, 7 Giveaway posts, three prepared Top 3 rows, the expected rank-1 Post ID, and no composite Organic score.
 - Paid Creative control totals remain 4,487 paid clicks, 4,586,510 paid impressions, and AED 10,497.17 spend for the five-row subset.
-- Media API checks verify the exact unscored label, August Blended CTR of 36,409 raw clicks divided by 3,557,299 matching impressions, exclusion of Google Interactions, directional platform and campaign ROAS provenance, and no monthly Meta campaign allocation.
+- Media API checks verify the exact unscored label, August Blended CTR of 36,409 raw clicks divided by 3,557,299 matching impressions, exclusion of Google Interactions, unavailable platform/campaign ROAS without conversion value, and no monthly Meta campaign allocation.
 - Existing Competition acceptance tests passed unchanged.
 - Light-theme contrast checks passed for primary text (15.66:1), secondary text (6.16:1), Organic accent text (5.06:1), Paid accent text (6.17:1), and green status-badge text (5.14:1) against their card backgrounds.
 - Headless desktop and mobile screenshots confirmed the light palette and responsive shell. This check exposed a runtime XLSX module-import mismatch; it was corrected to the package's ESM-compatible default import. A post-fix live runtime smoke check then loaded 278 prepared rows and produced the August dashboard with 51 ranking-eligible posts and 3 prepared Top 3 rows.
@@ -417,5 +417,109 @@ Source: `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xl
 ## Remaining blockers
 
 - The combined Rivoli Group + Hour Choice Meta export is missing, so the second account cannot be reconciled.
-- Matching platform Conversion value/revenue is absent for Google and Meta. Restored ROAS values are directional revenue coverage, not platform-attributed ROAS.
+- Matching platform Conversion value/revenue is absent for Google and Meta. Platform and campaign ROAS therefore remain N/A; site revenue/spend is shown only as Revenue coverage.
 - Paid shares, paid saves, and ThruPlays remain unavailable, so a complete Paid Creative score cannot be produced.
+
+## 9 October 2026 consolidated change document
+
+This section supersedes earlier notes where the new consolidated fix document changed the requested behavior.
+
+### Completion status
+
+| Change | Status | Implementation |
+|---|---|---|
+| TBL Reads at the top of each supported section | Complete | `TBL-Reads-Import.xlsx`, sheet `Reads`, is exposed by `GET /api/v1/reads`. At most three authored bullets are returned for the exact client, section, and period. Missing periods show `TBL read pending`; the engine never writes or generates these sentences. |
+| Consumer tab | Complete for supplied fields | Added `GET /api/v1/consumer/options`, `GET /api/v1/consumer/dashboard`, a responsive Consumer route, six required cards, monthly trends, cohort evidence, partial-period handling, and aligned Media-spend versus first-time-purchaser intake. |
+| Creative v3 prepared workbook | Complete | The server reads `Post Metrics (import)`, `Why It Worked - Monthly Top 3`, `Monthly Benchmarks`, and `Creative Cuts (import)` directly. `ALL 2026` is supported. |
+| Creative scoring removal | Complete | No Organic or Paid 0-100 component, 50% weight, or composite score is rendered. Raw frequency, active engagement, and Paid CTR remain. |
+| Creative ranking bands | Complete | Gallery records use the workbook `Band (vs monthly median)` value and appear in collapsible Top, Core, and Low groups. Top is open initially. Rankings enforce the workbook `Eligible (reach>=500)` flag. |
+| Creative Cuts and trends | Complete for supplied columns | Language, Format, Time slot, Giveaway, Action mix, and Follows are imported. Median active engagement and median frequency are plotted. Output and reach-per-post are shown as N/A because the workbook does not supply those benchmark columns. |
+| Creative images | Honest unavailable state | Post links remain clickable. No unrelated or generated image is used. Cards show `Image not available`; the supplied v3 workbook has no verified Top-3 screenshot assets. |
+| Media score removal | Complete | Every Media score location remains `Unscored — baselines pending`; no numeric score or score-derived colour is produced. |
+| Blended CTR | Complete | Uses matching raw paid clicks divided by matching paid impressions. Google Interactions are excluded from the click numerator and visibly labelled `Interaction rate` in the platform table. |
+| Revenue coverage | Complete | Site revenue divided by compatible spend remains labelled `Revenue coverage`, never platform ROAS. |
+| Platform and campaign ROAS provenance | Complete | Platform and campaign ROAS are now N/A because matching platform-reported conversion value is absent. Site/brand revenue is not copied or allocated into these rows. |
+| Campaign joins and month filtering | Complete | Rows keep their campaign-specific source grain and period evidence. Unsupported monthly Meta campaign detail remains unavailable rather than being inferred from names or whole-period totals. |
+| Media trends and deltas | Complete | Headline cards receive compact monthly trends. Full-month comparisons use month versus previous full month; All Months uses the last full month versus the prior-three-full-month average. September partial data is excluded. |
+| Media multi-select toolbar | Complete | Segment and Brand remain independent multi-select controls. Selected values appear immediately below the dropdown row, and desktop/tablet/mobile toolbar layouts avoid the earlier oversized Brand row. |
+| Competition contextual views | Complete for supplied EDIT capture | Competition stays inside Creative and Media. Media now includes launch timeline, age profile, grouped activity detail, and small grey Library IDs. Existing capture rules, screenshots, source labels, and no-spend/no-performance limits are preserved. |
+
+### New source mappings
+
+- `spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xlsx`
+  - `Post Metrics (import)`: post identity, URL, month, format, language, giveaway, band, reach, views, actions, engagement, frequency, ranking eligibility, theme, and caption.
+  - `Why It Worked - Monthly Top 3`: prepared rank and explanatory factors. No causal text is generated.
+  - `Monthly Benchmarks`: eligible counts, monthly medians, giveaway count, and giveaway action share.
+  - `Creative Cuts (import)`: display-ready cross-cuts and follows.
+- `spreadsheets data/consumer-tab/Rivoli-Consumer-Import.xlsx`
+  - `Monthly Series (import)`: customer base, first-time purchaser intake, supplied delta, repeat observations, and partial flag.
+  - `Cohort Matrix (import)`: approximate repeat evidence with GA4 privacy rounding.
+  - `Fixed Card Values (import)`: card state and label notes.
+- `spreadsheets data/TBL-Reads-Import.xlsx`
+  - `Reads`: authored client/section/period bullets, order, linked-card tag, author, and date.
+
+### Exact label changes
+
+- Media: `Blended ROAS` was replaced by `Revenue coverage` where site revenue is divided by spend.
+- Media score areas: `Unscored — baselines pending`.
+- Creative raw components: `Frequency` and `Active engagement`; the prior 0-100 component labels and 50% labels were removed.
+- Creative additions: `Typical post`, `Best`, `Why it worked`, `Creative Cuts`, `Giveaway`, and `Ranking floor: reach ≥ 500`.
+- Consumer additions: `Customer base`, `New customer intake`, `Repeat buying share`, `Consideration window`, `Visitor retention`, and `True repeat & value`; the final card displays `Awaiting order export — Thirty31North`.
+
+### Validation performed
+
+- Server TypeScript build passed.
+- Client production TypeScript/Vite build passed.
+- Server test suite passed: 28 tests across six files.
+- Server and client ESLint passed with zero warnings.
+- Creative checks confirm 278 prepared posts, 276 all-period ranking-eligible posts, 51 August ranking-eligible posts, 30 prepared Top-3 rows including the all-period rows, 10 benchmark rows, and 138 Creative Cuts rows.
+- Consumer checks confirm nine monthly rows, September partial, Jan-Aug first-time purchaser total 9,610, Jan-Aug customer-base total 9,786, and eight full-month aligned observations.
+- Media checks confirm August Blended CTR uses 36,409 compatible clicks / 3,557,299 impressions and remains below 3%; Google Interactions do not enter this numerator.
+- Media platform and campaign checks confirm ROAS and directional revenue are null without compatible conversion value.
+- Competition acceptance tests remain unchanged and passing.
+- Automated browser screenshot capture could not be completed in this run because the Windows browser-control helper reset twice while opening the local page. Responsive behavior was still checked through the production build, CSS breakpoints, and existing component tests; no screenshot comparison is claimed for this run.
+
+### Remaining source blockers
+
+- The combined Rivoli Group + Hour Choice Meta export is not present. All-period Meta coverage cannot be reconciled to the document's approximately AED 2.02M reference, and the UI must continue to disclose incomplete account coverage.
+- Matching Google/Meta platform-reported conversion value is absent, so platform and campaign ROAS remain N/A.
+- Carrefour and LuLu capture workbooks are not present. Union Coop Competition remains `Data not received`; no results are created from the brief or TBL Reads sentences.
+- Consumer Day-1, Day-7, and Day-30 visitor-retention values are not present, so `Visitor retention` remains N/A.
+- Consumer purchases by first-touch channel are not present, so the channel-alignment pair remains `Data not available`.
+- The Thirty31North order export is not present, so true 6/12-month repeat and customer-value fields remain pending.
+- Creative Monthly Benchmarks does not supply output or reach-per-post columns, and the Creative workbook does not supply verified thumbnails/screenshots. These remain N/A rather than being derived or fabricated.
+
+## 11 October 2026 UI correction and consolidated-document audit
+
+### Media UI corrections
+
+- Rebuilt the Media heading as a two-column grid with a shrink-safe controls column. Year, Month, Segment, Brand, and Competition now share one aligned toolbar at desktop width and stack at the existing tablet/mobile breakpoints.
+- Segment and Brand keep their independent multi-select menus. Their selected-value summaries stay below the toolbar and no control overlays another control.
+- Removed the ROAS column from both **By platform** and **Campaign detail** tables.
+- Removed the unsupported **Campaign ROAS (spend > AED 300)** graph. The source workbooks do not provide matching campaign conversion value, so an honest graph cannot be drawn. Campaign Detail now occupies the full available width.
+- Kept **Revenue coverage**, because it is the approved site-revenue/spend calculation and is not labelled platform or campaign ROAS.
+- Added the two requested Consumer **Aligned** panels to the bottom of Media. Media-spend versus first-time-purchaser intake is populated; purchase by first-touch channel remains `Data not available` because that source field is missing.
+
+### `Bizcom-All-Changes-One-Document-09-Oct.docx` verification
+
+| Document area | Status | Verification |
+| --- | --- | --- |
+| TBL Reads | Complete | Exact imported reads are served for Media, Creative, Consumer, and an opened Competition context. A maximum of three rows is shown; missing periods use the pending state. |
+| Trend rules | Partial: supplied fields complete | Media headline cards have monthly trends and comparison deltas, and partial September is excluded. Creative plots supplied median engagement/frequency. Consumer has its monthly trend and biggest mover. Creative output and reach-per-post trends cannot be created because those benchmark columns are absent. |
+| Media scoring, CTR, revenue coverage | Complete | No numeric Media score is rendered. August CTR is 36,409 / 3,557,299 = 1.02%; Google Interactions are excluded. Site revenue/spend is labelled Revenue coverage. |
+| Media account coverage | Blocked by missing source | The combined Rivoli Group + Hour Choice Meta export is absent, so the approximate AED 2.02M reconciliation cannot be verified or displayed. |
+| Media campaigns | Complete for supplied monthly rows | Campaign-specific source rows and period evidence are used. Whole-period Meta rows are not allocated into a month. ROAS columns/chart are removed because matching conversion value is absent. |
+| Creative scoring and bands | Complete | 0-100 components/weights are removed. Top/Core/Low bands come from the prepared workbook; Top starts open and reach >= 500 eligibility is enforced. |
+| Creative Cuts and prepared trends | Complete for supplied fields | Language, format, time slot, giveaway, action mix, follows, median engagement, and median frequency are imported. No missing benchmark is fabricated. |
+| Creative imagery | Blocked by missing source | Post links work and neutral placeholders are shown, but the supplied workbook has no verified monthly Top-3 images. |
+| Competition inline Rivoli view | Complete | Contextual Creative/Media panels remain in-page. Media Competition includes start-month timeline, age profile, Theme mix, theme counts, grouped details, and grey Library IDs. EDIT capture images and associations remain source-driven. |
+| Union Coop Competition | Blocked by missing source | Carrefour and LuLu capture workbooks are absent. The selector reports `Data not received`; Tempo/prize-promotion pairs and own-vs-competitor comparisons are not fabricated. |
+| Consumer tab | Complete for supplied fields | Six cards, three visual states, imported monthly/cohort data, partial-period handling, trends, and aligned Media panels are present. Visitor retention, first-touch channel purchases, and true repeat/value remain unavailable pending their named sources. |
+| Acceptance safeguards | Complete | No unsigned 0-100 score is rendered; no site revenue is presented as platform/campaign ROAS; missing values stay N/A/Data not available/Data not received; partial September remains excluded from comparisons. |
+
+### Verification run
+
+- `npm.cmd run lint`: passed for server and client.
+- `npm.cmd test`: passed, 28 server tests and 3 client tests.
+- `npm.cmd run build`: passed for server TypeScript and client production build; Vite reports only its existing bundle-size advisory.
+- Static UI audit confirms no `ROAS` table header or `Campaign ROAS` chart remains in Media components.

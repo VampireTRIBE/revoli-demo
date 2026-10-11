@@ -123,3 +123,4 @@
   .competition-context-dropdown { width: 100%; min-width: 0; }.competition-context-menu { right: auto; left: 0; width: 100%; }.competition-context-heading,.competition-context-capture { align-items: stretch; flex-direction: column; }.competition-context-actions { width: 100%; align-items: stretch; flex-direction: column; }.competition-context-actions label { min-width: 0; }.competition-context-actions button { justify-content: center; }
 }
 @media (max-width: 420px) { .competition-filters { grid-template-columns: 1fr; }.competition-kpis { grid-template-columns: 1fr; }.competition-kpis > :last-child { grid-column: auto; } }
+.competition-theme-group{margin-top:14px}.competition-theme-group h4{margin:0 0 7px;color:var(--ink)}.competition-library-id{color:var(--muted)!important;font-size:10px;white-space:nowrap}

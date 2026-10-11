@@ -1,7 +1,7 @@
 import { creativeBrands, creativeScoringMode, CREATIVE_TIMEZONE, paidMetaSource } from '../config/creative-source.config.js';
 import { calculateOrganic, calculatePaidCreative } from '../calculations/creative-calculations.js';
 import { parseCreativeSources } from '../import/creative-source-parser.js';
-import type { CreativeAccountMetricSummary, CreativeDashboard, CreativeFilter, CreativeOptions, CreativeSourceDataset } from '../types/creative.types.js';
+import type { CreativeAccountMetricSummary, CreativeDashboard, CreativeFilter, CreativeOptions, CreativePostView, CreativeSourceDataset } from '../types/creative.types.js';
 
 let sourceCache: CreativeSourceDataset | null = null;
 
@@ -91,9 +91,21 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
       timeSlot: supplied.timeSlot,
       theme: supplied.theme,
       eligibleForRanking: supplied.eligibleForRanking,
+      band: supplied.band,
     } : post;
   });
-  const rankedPosts = joinedPosts
+  const preparedPeriodPosts: CreativePostView[] = (prepared?.postMetrics.filter((row) => row.year === selected.year && (selected.month === 0 || row.month === selected.month)) ?? []).map((row) => ({
+    brandId: 'union-coop', brand: 'Union Coop', account: 'Union Coop Instagram', platform: 'instagram', postId: row.postId,
+    publishedAt: row.publishedAtDubai.replace(' ', 'T'), year: row.year, month: row.month, postType: row.postType,
+    caption: row.caption, postUrl: row.postUrl, imageUrl: null, reach: row.reach, views: row.views,
+    shares: null, saves: null, comments: null, reactions: null, averageWatchTimeSeconds: null,
+    storyExits: null, storyTapsBack: null, storyTapsForward: null, sourceFile: row.sourceFile,
+    sourceKind: 'selected-post-extract', reportingPeriodStart: '2026-01-01', reportingPeriodEnd: '2026-09-22',
+    activeActions: row.activeActions, activeEngagementRate: row.activeEngagementRate, frequency: row.frequency,
+    attentionBasis: 'frequency', attentionValue: row.frequency, giveaway: row.giveaway, language: row.language,
+    day: row.day, timeSlot: row.timeSlot, theme: row.theme, eligibleForRanking: row.eligibleForRanking, band: row.band,
+  }));
+  const rankedPosts = (prepared ? preparedPeriodPosts : joinedPosts)
     .filter((post) => prepared ? post.eligibleForRanking === true : true)
     .sort((left, right) => right.activeEngagementRate - left.activeEngagementRate);
   const filteredAccountRows = dataset.accountDailyMetrics.filter((row) =>
@@ -120,23 +132,21 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   const periodLabel = selected.month === 0
     ? `All months ${selected.year}`
     : `${new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(selected.year, selected.month - 1, 1)))} ${selected.year}`;
-  const selectedBenchmark = selected.month > 0
-    ? prepared?.monthlyBenchmarks.find((row) => row.year === selected.year && row.month === selected.month) ?? null
-    : null;
-  const selectedTopPosts = selected.month > 0
-    ? prepared?.monthlyTopPosts.filter((row) => row.year === selected.year && row.month === selected.month).sort((left, right) => left.rank - right.rank) ?? []
-    : [];
+  const selectedBenchmark = prepared?.monthlyBenchmarks.find((row) => row.year === selected.year && row.month === selected.month) ?? null;
+  const selectedTopPosts = prepared?.monthlyTopPosts.filter((row) => row.year === selected.year && row.month === selected.month).sort((left, right) => left.rank - right.rank) ?? [];
+  const selectedCuts = prepared?.creativeCuts.filter((row) => row.year === selected.year && row.month === selected.month) ?? [];
   const rawById = new Map(dataset.posts.filter((post) => post.brandId === brand.id).map((post) => [post.postId, post]));
   const topPostViews = selectedTopPosts.map((post) => {
     const raw = rawById.get(post.postId);
+    const supplied = preparedById.get(post.postId);
     return {
       ...post,
-      postUrl: raw?.postUrl ?? null,
+      postUrl: supplied?.postUrl ?? raw?.postUrl ?? null,
       imageUrl: raw?.imageUrl ?? null,
-      matchedPost: Boolean(raw),
+      matchedPost: Boolean(raw || supplied),
     };
   });
-  const preparedAvailable = Boolean(prepared && selected.month > 0 && selectedBenchmark && topPostViews.length);
+  const preparedAvailable = Boolean(prepared && selectedBenchmark && (selected.month === 0 || topPostViews.length));
 
   return {
     filter: selected,
@@ -189,14 +199,13 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
           ? null
           : brand.id !== 'union-coop'
             ? 'Data not available. Prepared monthly benchmarks and Why it worked analysis are supplied only for Union Coop.'
-            : selected.month === 0
-              ? 'Data not available for All months. The supplied workbook provides monthly medians and does not provide an all-period median.'
-              : 'Data not available for the selected month in the prepared Union Coop workbook.',
+            : 'Data not available for the selected period in the prepared Union Coop workbook.',
         sourceFile: prepared?.sourceFile ?? null,
         typical: selectedBenchmark,
         best: topPostViews[0] ?? null,
         topPosts: topPostViews,
         trend: prepared?.monthlyBenchmarks.filter((row) => row.year === selected.year).sort((left, right) => left.month - right.month) ?? [],
+        cuts: selectedCuts,
         unmatchedPostIds: topPostViews.filter((row) => !row.matchedPost).map((row) => row.postId),
         rankingFloor: 'reach >= 500',
       },

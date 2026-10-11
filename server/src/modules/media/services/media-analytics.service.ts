@@ -1,6 +1,6 @@
 import { calculateMetrics, safeDivide, type MediaTotals } from '../calculations/media-calculations.js';
 import { sourceDataset, mediaDataset } from './media-data.service.js';
-import type { CampaignRecord, MediaDataset, MediaFilter, MediaPeriod, MetricStatus, PlatformRecord } from '../types/media.types.js';
+import type { CampaignRecord, MediaDataset, MediaFilter, MediaPeriod, MetricStatus } from '../types/media.types.js';
 
 function sum<T>(rows: T[], select: (row: T) => number): number {
   return rows.reduce((total, row) => total + select(row), 0);
@@ -132,18 +132,6 @@ async function directionalReturnContext(filter: MediaFilter, filtered: MediaData
   return mediaDataset({ year: filter.year, month: filter.month });
 }
 
-function platformDirectionalRevenue(dataset: MediaDataset, platform: PlatformRecord['platform']): number {
-  const segments = unique(dataset.platforms.map((row) => row.segment));
-  return sum(segments, (segment) => {
-    const segmentRows = dataset.platforms.filter((row) => row.segment === segment);
-    const segmentSpend = sum(segmentRows, (row) => row.spend);
-    const platformSpend = sum(segmentRows.filter((row) => row.platform === platform), (row) => row.spend);
-    const segmentRevenue = sum(dataset.site.filter((row) => row.segment === segment), (row) => row.revenue);
-    const platformShare = safeDivide(platformSpend, segmentSpend);
-    return platformShare === null ? 0 : segmentRevenue * platformShare;
-  });
-}
-
 export async function getPeriods() {
   const dataset = await mediaDataset();
   const yearMap = new Map<number, MediaPeriod[]>();
@@ -221,7 +209,6 @@ export async function getPlatforms(filter: MediaFilter) {
     const interactions = sum(rows, (row) => row.interactions ?? 0);
     const clicks = sum(rows, (row) => row.clicks ?? 0);
     const trafficActions = platform === 'Google Ads' ? interactions : clicks;
-    const directionalRevenue = platformDirectionalRevenue(dataset, platform);
     return {
       platform,
       spend: hasData ? round(spend) : null,
@@ -234,11 +221,11 @@ export async function getPlatforms(filter: MediaFilter) {
       platformClaims: hasData ? round(claims, 1) : null,
       claimShare: hasData ? round(safeDivide(claims, allClaims), 4) : null,
       claimedCac: hasData ? round(safeDivide(spend, claims)) : null,
-      directionalRevenue: hasData ? round(directionalRevenue) : null,
-      roas: hasData ? round(safeDivide(directionalRevenue, spend)) : null,
-      roasStatus: hasData ? 'DIRECTIONAL' as MetricStatus : 'UNAVAILABLE' as MetricStatus,
+      directionalRevenue: null,
+      roas: null,
+      roasStatus: 'UNAVAILABLE' as MetricStatus,
       roasBasis: hasData
-        ? "Directional ROAS: reconciled site revenue is allocated within each segment by the platform's share of matching paid spend. This is revenue coverage, not platform-attributed conversion value."
+        ? 'N/A: the source does not supply matching platform-reported conversion value. Site revenue is not substituted for platform ROAS.'
         : 'No platform source rows are available for the selected period.',
     };
   });
@@ -257,7 +244,6 @@ interface CampaignFilters extends MediaFilter {
 
 export async function getCampaigns(filter: CampaignFilters) {
   const dataset = await mediaDataset(filter);
-  const returnContext = await directionalReturnContext(filter, dataset);
   let rows = aggregateCampaignRows(dataset.campaigns).filter((row) =>
     (!filter.platform || row.platform === filter.platform) &&
     matchesSelection(filter.brand, row.brand) &&
@@ -271,17 +257,14 @@ export async function getCampaigns(filter: CampaignFilters) {
   const enrichedRows = rows.map((row) => {
     const trafficActions = row.platform === 'Google Ads' ? row.interactions : row.clicks;
     const hasComparableRate = trafficActions !== undefined && row.impressions !== undefined && row.impressions > 0;
-    const returnEstimate = directionalReturnEstimate(returnContext, row.brand, row.segment);
     return {
       ...row,
       ctr: hasComparableRate ? round(safeDivide(trafficActions, row.impressions ?? 0), 4) : null,
       ctrLabel: row.platform === 'Google Ads' ? 'Interaction rate' : 'Link CTR',
-      directionalRevenue: returnEstimate.value === null ? null : round(row.spend * returnEstimate.value),
-      roas: round(returnEstimate.value),
-      roasStatus: returnEstimate.value === null ? 'UNAVAILABLE' as MetricStatus : 'DIRECTIONAL' as MetricStatus,
-      roasBasis: returnEstimate.value === null
-        ? `${row.sourceFile} / ${row.sourceSheet} has no compatible revenue coverage basis for this campaign.`
-        : `${returnEstimate.basis}. Directional revenue coverage only; the campaign source does not supply attributed conversion value.`,
+      directionalRevenue: null,
+      roas: null,
+      roasStatus: 'UNAVAILABLE' as MetricStatus,
+      roasBasis: `${row.sourceFile} / ${row.sourceSheet} does not supply matching campaign-level conversion value. Brand or site revenue is not copied into campaign ROAS.`,
     };
   });
   const start = (filter.page - 1) * filter.limit;

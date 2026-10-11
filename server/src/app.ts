@@ -6,6 +6,8 @@ import { notFound } from './middleware/not-found.js';
 import { mediaRouter } from './modules/media/routes/media.routes.js';
 import { creativeRouter } from './modules/creative/routes/creative.routes.js';
 import { competitionRouter } from './modules/competition/routes/competition.routes.js';
+import { readsRouter } from './modules/reads/routes/reads.routes.js';
+import { consumerRouter } from './modules/consumer/routes/consumer.routes.js';
 
 export const app = express();
 
@@ -16,5 +18,7 @@ app.get('/api/v1/health', (_request, response) => response.json({ success: true,
 app.use('/api/v1/media', mediaRouter);
 app.use('/api/v1/creative', creativeRouter);
 app.use('/api/v1/competition', competitionRouter);
+app.use('/api/v1/reads', readsRouter);
+app.use('/api/v1/consumer', consumerRouter);
 app.use(notFound);
 app.use(errorHandler);

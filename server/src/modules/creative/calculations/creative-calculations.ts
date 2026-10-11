@@ -29,6 +29,7 @@ export function calculateOrganic(posts: NormalizedCreativePost[]) {
       timeSlot: null,
       theme: null,
       eligibleForRanking: null,
+      band: null,
     };
   }).sort((left, right) => right.activeEngagementRate - left.activeEngagementRate);
 

@@ -14,8 +14,9 @@ describe('Creative source normalization and calculations', () => {
     expect(dataset.audit.conflictFieldCounts.Views).toBe(44);
     expect(dataset.audit.conflictFieldCounts.Reach).toBe(41);
     expect(dataset.preparedImport?.postMetrics).toHaveLength(278);
-    expect(dataset.preparedImport?.monthlyTopPosts).toHaveLength(27);
-    expect(dataset.preparedImport?.monthlyBenchmarks).toHaveLength(9);
+    expect(dataset.preparedImport?.monthlyTopPosts).toHaveLength(30);
+    expect(dataset.preparedImport?.monthlyBenchmarks).toHaveLength(10);
+    expect(dataset.preparedImport?.creativeCuts).toHaveLength(138);
   });
 
   it('uses prepared August medians, Top 3, giveaway flags, and ranking eligibility', () => {

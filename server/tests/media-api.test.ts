@@ -35,15 +35,15 @@ describe('Media API', () => {
     expect(response.body.data.metrics.blendedCtr.definition).toContain('Google Interactions are excluded');
   });
 
-  it('returns directional platform and campaign ROAS from the documented site-revenue coverage basis', async () => {
+  it('keeps platform and campaign ROAS unavailable without matching platform conversion value', async () => {
     const platformsResponse = await request(app).get('/api/v1/media/platforms?year=2026&month=8').expect(200);
     const platforms = platformsResponse.body.data.platforms;
 
     expect(platforms).toHaveLength(2);
-    expect(platforms.every((row: { roas: number | null }) => Number.isFinite(row.roas))).toBe(true);
-    expect(platforms.every((row: { roasStatus: string }) => row.roasStatus === 'DIRECTIONAL')).toBe(true);
-    expect(platforms.every((row: { directionalRevenue: number | null }) => Number.isFinite(row.directionalRevenue))).toBe(true);
-    expect(platforms.every((row: { roasBasis: string }) => row.roasBasis.includes('revenue coverage'))).toBe(true);
+    expect(platforms.every((row: { roas: number | null }) => row.roas === null)).toBe(true);
+    expect(platforms.every((row: { roasStatus: string }) => row.roasStatus === 'UNAVAILABLE')).toBe(true);
+    expect(platforms.every((row: { directionalRevenue: number | null }) => row.directionalRevenue === null)).toBe(true);
+    expect(platforms.every((row: { roasBasis: string }) => row.roasBasis.includes('does not supply matching'))).toBe(true);
 
     const campaignsResponse = await request(app)
       .get('/api/v1/media/campaigns?year=2026&month=8&platform=Google%20Ads&page=1&limit=100')
@@ -52,16 +52,15 @@ describe('Media API', () => {
     const roasCampaigns = campaignsResponse.body.data.roasCampaigns;
 
     expect(campaigns.length).toBeGreaterThan(0);
-    expect(campaigns.every((row: { roas: number | null }) => Number.isFinite(row.roas))).toBe(true);
-    expect(campaigns.every((row: { roasStatus: string }) => row.roasStatus === 'DIRECTIONAL')).toBe(true);
-    expect(campaigns.every((row: { directionalRevenue: number | null }) => Number.isFinite(row.directionalRevenue))).toBe(true);
-    expect(roasCampaigns.length).toBeGreaterThan(0);
-    expect(roasCampaigns.every((row: { spend: number; roas: number | null }) => row.spend > 300 && Number.isFinite(row.roas))).toBe(true);
+    expect(campaigns.every((row: { roas: number | null }) => row.roas === null)).toBe(true);
+    expect(campaigns.every((row: { roasStatus: string }) => row.roasStatus === 'UNAVAILABLE')).toBe(true);
+    expect(campaigns.every((row: { directionalRevenue: number | null }) => row.directionalRevenue === null)).toBe(true);
+    expect(roasCampaigns).toHaveLength(0);
 
     const yearlyCampaignsResponse = await request(app)
       .get('/api/v1/media/campaigns?year=2026&page=1&limit=100')
       .expect(200);
-    expect(yearlyCampaignsResponse.body.data.roasCampaigns.length).toBeGreaterThan(0);
+    expect(yearlyCampaignsResponse.body.data.roasCampaigns).toHaveLength(0);
 
     const augustMetaResponse = await request(app)
       .get('/api/v1/media/campaigns?year=2026&month=8&platform=Meta%20Ads&page=1&limit=100')

@@ -167,6 +167,9 @@ export interface PreparedCreativePostMetric {
   postType: string;
   language: string;
   giveaway: boolean;
+  band: 'Top' | 'Core' | 'Low';
+  postUrl: string | null;
+  followsFromPost: number;
   reach: number;
   views: number;
   activeActions: number;
@@ -214,6 +217,19 @@ export interface PreparedCreativeBenchmark {
   sourceSheet: 'Monthly Benchmarks';
 }
 
+export interface PreparedCreativeCut {
+  year: number;
+  month: number;
+  cut: string;
+  value: string;
+  posts: number | null;
+  medianActiveEngagementRate: number | null;
+  shareOfTotalActions: number | null;
+  note: string | null;
+  sourceFile: string;
+  sourceSheet: 'Creative Cuts (import)';
+}
+
 export interface PreparedCreativeImport {
   sourceFile: string;
   account: 'Union Coop';
@@ -221,6 +237,7 @@ export interface PreparedCreativeImport {
   postMetrics: PreparedCreativePostMetric[];
   monthlyTopPosts: PreparedCreativeTopPost[];
   monthlyBenchmarks: PreparedCreativeBenchmark[];
+  creativeCuts: PreparedCreativeCut[];
 }
 
 export interface CreativeSourceDataset {
@@ -282,6 +299,7 @@ export interface CreativePostView extends NormalizedCreativePost {
   timeSlot: string | null;
   theme: string | null;
   eligibleForRanking: boolean | null;
+  band: 'Top' | 'Core' | 'Low' | null;
 }
 
 export interface CreativePreparedTopPostView extends PreparedCreativeTopPost {
@@ -339,6 +357,7 @@ export interface CreativeDashboard {
       best: CreativePreparedTopPostView | null;
       topPosts: CreativePreparedTopPostView[];
       trend: PreparedCreativeBenchmark[];
+      cuts: PreparedCreativeCut[];
       unmatchedPostIds: string[];
       rankingFloor: 'reach >= 500';
     };

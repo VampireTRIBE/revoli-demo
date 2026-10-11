@@ -23,6 +23,7 @@ export function AppLayout() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const isCreative = location.pathname.startsWith('/creative');
+  const isConsumer = location.pathname.startsWith('/consumer');
   const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
   const [openedAt] = useState(() => new Date().toLocaleString('en-US'));
 
@@ -32,7 +33,7 @@ export function AppLayout() {
         <NavLink to="/media" className="reference-logo" aria-label="Open Media dashboard"><GpLogo /></NavLink>
         <div>
           <h1>The GP Inc. Bizcom Engine <span className="reference-badge live">PROOF OF CONCEPT</span></h1>
-          <div className="reference-sub">Client: <strong>{isCreative ? creativeClient : 'Rivoli'}</strong> {isCreative ? 'Uploaded creative data' : 'Imported media data'} &middot; opened {openedAt}</div>
+          <div className="reference-sub">Client: <strong>{isCreative ? creativeClient : 'Rivoli'}</strong> {isCreative ? 'Uploaded creative data' : isConsumer ? 'Imported consumer data' : 'Imported media data'} &middot; opened {openedAt}</div>
         </div>
       </header>
 
@@ -41,6 +42,7 @@ export function AppLayout() {
         {scoreTabs.map((tab) => <button type="button" className="reference-tab" disabled key={tab}><span>{tab}</span><span className="reference-pill">&ndash;</span></button>)}
         <NavLink end to="/creative" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Creative</span></NavLink>
         <NavLink end to="/media" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Media</span></NavLink>
+        <NavLink end to="/consumer" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Consumer</span></NavLink>
         <button type="button" className="reference-tab" disabled>Business</button>
       </nav>
 

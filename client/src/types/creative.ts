@@ -119,6 +119,7 @@ export interface CreativePost {
   timeSlot: string | null;
   theme: string | null;
   eligibleForRanking: boolean | null;
+  band: 'Top' | 'Core' | 'Low' | null;
 }
 
 export interface PreparedCreativeBenchmark {
@@ -133,6 +134,19 @@ export interface PreparedCreativeBenchmark {
   giveawayActionShare: number;
   sourceFile: string;
   sourceSheet: 'Monthly Benchmarks';
+}
+
+export interface PreparedCreativeCut {
+  year: number;
+  month: number;
+  cut: string;
+  value: string;
+  posts: number | null;
+  medianActiveEngagementRate: number | null;
+  shareOfTotalActions: number | null;
+  note: string | null;
+  sourceFile: string;
+  sourceSheet: 'Creative Cuts (import)';
 }
 
 export interface PreparedCreativeTopPost {
@@ -196,6 +210,7 @@ export interface CreativeDashboard {
       best: PreparedCreativeTopPost | null;
       topPosts: PreparedCreativeTopPost[];
       trend: PreparedCreativeBenchmark[];
+      cuts: PreparedCreativeCut[];
       unmatchedPostIds: string[];
       rankingFloor: 'reach >= 500';
     };

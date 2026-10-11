@@ -1,15 +1,19 @@
 import { useEffect, useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import type { MediaFilter, Overview } from '../types/media';
 import { CampaignSection } from '../features/media/components/CampaignSection';
 import { EmptyState, ErrorState } from '../features/media/components/StateCard';
 import { LoadingSkeleton } from '../features/media/components/LoadingSkeleton';
 import { MediaPeriodFilters } from '../features/media/components/MediaPeriodFilters';
+import { MediaConsumerAlignment } from '../features/media/components/MediaConsumerAlignment';
 import { OverviewCards } from '../features/media/components/OverviewCards';
 import { PlatformComparisonTable } from '../features/media/components/PlatformComparisonTable';
 import { useBrands, useOverview, usePeriods, usePlatforms, useSegments } from '../features/media/hooks/use-media-data';
 import { formatNumber } from '../features/media/utils/formatters';
 import { CompetitionDropdown, ContextualCompetitionPanel, useContextualCompetition } from '../features/competition/components/ContextualCompetition';
+import { TblReadsStrip } from '../features/reads/TblReadsStrip';
+import { mediaApi } from '../features/media/services/media-api';
 import '../styles/reference-media.css';
 
 export function MediaDashboardPage() {
@@ -63,6 +67,9 @@ export function MediaDashboardPage() {
 
   const overview = useOverview(filter);
   const platforms = usePlatforms(filter);
+  const trendPeriods = useMemo(() => periods.data?.years.find((row) => row.year === filter.year)?.months.filter((row) => !row.partial) ?? [], [filter.year, periods.data]);
+  const trendQueries = useQueries({ queries: trendPeriods.map((period) => ({ queryKey: ['media','overview','trend',filter.year,period.month,filter.segment,filter.brand], queryFn: () => mediaApi.overview({ ...filter, month: period.month }) })) });
+  const trend = trendQueries.flatMap((query, index) => query.data ? [{ month: trendPeriods[index]?.label ?? '', data: query.data }] : []);
   const onFilterChange = (year?: number, month?: number) => {
     setSearchParams(toSearchParams({ year, month }));
   };
@@ -78,7 +85,7 @@ export function MediaDashboardPage() {
   return <section className="reference-media-page">
     <div className="reference-media-heading">
       <h2>Media Performance <span className="reference-badge live">IMPORTED &middot; META + GOOGLE ADS</span></h2>
-      <div className="reference-media-toolbar">{periods.data ? <MediaPeriodFilters
+      <div className="reference-media-controls"><div className="reference-media-toolbar">{periods.data ? <MediaPeriodFilters
         periods={periods.data}
         year={filter.year}
         month={filter.month}
@@ -92,16 +99,18 @@ export function MediaDashboardPage() {
         onSegmentChange={onSegmentChange}
         onBrandChange={onBrandChange}
       /> : <LoadingSkeleton rows={2} />}<CompetitionDropdown context={competitionContext} /></div>
+      {filter.segment?.length || filter.brand?.length ? <div className="media-filter-selection-summary" aria-live="polite">
+        {filter.segment?.length ? <div><strong>Segment:</strong> {filter.segment.map(displayFilterLabel).join(', ')}</div> : null}
+        {filter.brand?.length ? <div><strong>Brand:</strong> {filter.brand.map(displayFilterLabel).join(', ')}</div> : null}
+      </div> : null}</div>
     </div>
-    {filter.segment?.length || filter.brand?.length ? <div className="media-filter-selection-summary" aria-live="polite">
-      {filter.segment?.length ? <div><strong>Segment:</strong> {filter.segment.map(displayFilterLabel).join(', ')}</div> : null}
-      {filter.brand?.length ? <div><strong>Brand:</strong> {filter.brand.map(displayFilterLabel).join(', ')}</div> : null}
-    </div> : null}
+    <TblReadsStrip client="Rivoli" section="Media" year={filter.year} month={filter.month ?? 0} />
     <ContextualCompetitionPanel context={competitionContext} view="media" />
 
-    {overview.isLoading ? <div className="reference-media-grid four">{Array.from({ length: 4 }, (_, index) => <div className="reference-card" key={index}><LoadingSkeleton rows={3} /></div>)}</div> : overview.isError ? <ErrorState /> : overview.data ? <OverviewCards data={overview.data} /> : <EmptyState />}
+    {overview.isLoading ? <div className="reference-media-grid four">{Array.from({ length: 4 }, (_, index) => <div className="reference-card" key={index}><LoadingSkeleton rows={3} /></div>)}</div> : overview.isError ? <ErrorState /> : overview.data ? <OverviewCards data={overview.data} trend={trend} selectedMonth={filter.month} /> : <EmptyState />}
     {platforms.isLoading ? <div className="reference-card reference-mt"><LoadingSkeleton /></div> : platforms.isError ? <ErrorState /> : platforms.data ? <PlatformComparisonTable data={platforms.data} /> : null}
     <CampaignSection filter={filter} />
+    <MediaConsumerAlignment year={filter.year} />
     {overview.data ? <AttributionNote data={overview.data} /> : null}
     {overview.data ? <ScoreMethod data={overview.data} /> : null}
   </section>;
@@ -133,7 +142,7 @@ function AttributionNote({ data }: { data: Overview }) {
     : 'do not equal';
 
   return <div className="reference-note reference-mt">
-    <b>Attribution caveat:</b> platform-reported conversions ({formatNumber(metrics.platformClaims.value)}) {comparison} actual site purchases ({formatNumber(metrics.sitePurchases)}) in the selected window &mdash; platforms may claim overlapping credit. Revenue coverage uses site revenue divided by advertising spend and is not platform ROAS. Campaign and platform ROAS remain N/A when matching conversion value is not supplied. &quot;iCAC&quot; (incremental CAC) requires geo-holdout or spend-pause testing and remains a phase-2 item.
+    <b>Attribution caveat:</b> platform-reported conversions ({formatNumber(metrics.platformClaims.value)}) {comparison} actual site purchases ({formatNumber(metrics.sitePurchases)}) in the selected window &mdash; platforms may claim overlapping credit. Revenue coverage uses site revenue divided by advertising spend and is not platform ROAS. Campaign- and platform-level ROAS are not displayed because matching conversion value is not supplied. &quot;iCAC&quot; (incremental CAC) requires geo-holdout or spend-pause testing and remains a phase-2 item.
     {data.metadata.warnings.length ? <><br /><b>Source check:</b> {data.metadata.warnings.length} workbook control difference{data.metadata.warnings.length === 1 ? '' : 's'} detected. Values remain calculated from the detailed monthly sheets.</> : null}
   </div>;
 }

@@ -1,10 +1,4 @@
-import type { CSSProperties } from 'react';
 import type { CreativePost } from '../../../types/creative';
-
-const gradients = [
-  ['#7c9aff', '#4c37c8'], ['#5eead4', '#0d9488'], ['#f97316', '#c2410c'], ['#f472b6', '#be185d'],
-  ['#fbbf24', '#b45309'], ['#a78bfa', '#6d28d9'], ['#34d399', '#047857'], ['#38bdf8', '#0369a1'],
-];
 
 export function CreativeGallery({ posts }: { posts: CreativePost[] }) {
   return <div className="creative-gallery">
@@ -14,7 +8,7 @@ export function CreativeGallery({ posts }: { posts: CreativePost[] }) {
         <div className="creative-media">
           {post.imageUrl
             ? <img className="creative-image" src={post.imageUrl} alt={title} loading="lazy" />
-            : <div className="creative-placeholder" style={placeholderStyle(post.postId)} aria-label="Creative image not supplied">{initials(title)}</div>}
+            : <div className="creative-placeholder" aria-label="Image not available">Image not available</div>}
           <span className={`creative-type-badge ${post.postType.toLowerCase()}`}>{post.postType.toUpperCase()}</span>
           {post.giveaway ? <span className="creative-giveaway-badge">Giveaway</span> : null}
         </div>
@@ -30,20 +24,21 @@ export function CreativeGallery({ posts }: { posts: CreativePost[] }) {
   </div>;
 }
 
-function placeholderStyle(id: string): CSSProperties {
-  let hash = 0;
-  for (const character of id) hash = ((hash * 31) + character.charCodeAt(0)) >>> 0;
-  const gradient = gradients[hash % gradients.length] ?? gradients[0];
-  return { background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` };
+export function CreativeGalleryBands({ posts }: { posts: CreativePost[] }) {
+  const bands: Array<'Top' | 'Core' | 'Low'> = ['Top', 'Core', 'Low'];
+  return <div className="creative-gallery-bands">
+    {bands.map((band) => {
+      const rows = posts.filter((post) => post.band === band);
+      return <details className={`creative-gallery-band ${band.toLowerCase()}`} open={band === 'Top'} key={band}>
+        <summary><span>{band}</span><small>{rows.length} post{rows.length === 1 ? '' : 's'} · supplied band vs monthly median</small></summary>
+        {rows.length ? <CreativeGallery posts={rows} /> : <div className="creative-account-empty">No {band.toLowerCase()} posts in this period.</div>}
+      </details>;
+    })}
+  </div>;
 }
 
 function compactCaption(value: string | null): string {
   return (value ?? '').replace(/\s+/g, ' ').trim();
-}
-
-function initials(value: string): string {
-  const words = value.replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/).filter(Boolean);
-  return (words.at(-1) ?? '?').slice(0, 2).toUpperCase();
 }
 
 function engagementTone(value: number): string {

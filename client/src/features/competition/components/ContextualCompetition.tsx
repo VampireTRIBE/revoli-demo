@@ -6,6 +6,7 @@ import type { CompetitionDashboard, CompetitionMixRow, CompetitionScreenshot } f
 import { useCompetitionDashboard, useCompetitionOptions } from '../hooks/use-competition-data';
 import { competitionAssetUrl } from '../services/competition-api';
 import { CompetitionSourceLabel } from './CompetitionSourceLabel';
+import { TblReadsStrip } from '../../reads/TblReadsStrip';
 import '../../../styles/reference-competition.css';
 
 export type CompetitionContextView = 'creative' | 'media';
@@ -111,6 +112,7 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
         <button type="button" onClick={context.close} aria-label="Close Competition panel"><X size={16} /> Close</button>
       </div>
     </div>
+    <TblReadsStrip client={competitionReadsClient(context.clientId)} section="Competition" year={context.year} month={context.month} />
     {context.dashboard.isLoading ? <CompetitionState>Loading competition capture...</CompetitionState>
       : context.dashboard.isError ? <CompetitionState error>Competition capture could not be loaded.</CompetitionState>
         : !data ? <CompetitionState>Choose a competitor.</CompetitionState>
@@ -143,12 +145,20 @@ function CreativeCompetitionView({ data }: { data: CompetitionDashboard }) {
 }
 
 function MediaCompetitionView({ data }: { data: CompetitionDashboard }) {
+  const launches = countLabels(data.observations.map((row) => row.startDate?.slice(0, 7) ?? null));
+  const age = [
+    { label: '0-30 days', count: data.observations.filter((row) => row.calculatedDaysRunning <= 30).length },
+    { label: '31-90 days', count: data.observations.filter((row) => row.calculatedDaysRunning > 30 && row.calculatedDaysRunning <= 90).length },
+    { label: '90+ days', count: data.observations.filter((row) => row.calculatedDaysRunning > 90).length },
+  ];
   return <>
     <div className="competition-grid competition-grid-two competition-mt">
       <article className="competition-card competition-summary-card"><h3>Competitor activity</h3><div className="competition-kpis"><div><strong>{formatNumber(data.activity.activeAds)}</strong><span>Active ads at capture</span></div><div><strong>{formatDecimal(data.activity.averageDaysRunning)}</strong><span>Average days running</span></div><div><strong>{data.activity.historicalTrend ? formatTrend(data.activity.historicalTrend) : 'N/A'}</strong><span>History</span></div></div><p>{data.historyNote}</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
       <article className="competition-card competition-summary-card"><h3>Recent start-date activity</h3><div className="competition-kpis"><div><strong>{formatNumber(data.launches.startedInSelectedMonth)}</strong><span>Started during page month</span></div><div><strong>{formatNumber(data.launches.firstObservedAds)}</strong><span>First observed</span></div></div><p>Start date and first-observed date are kept separate. First-capture ads are not all labelled new.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
     </div>
     <section className="competition-card competition-mt"><div className="competition-card-heading"><div><h3>Longest-running ads</h3><p>Top three active ads by date-only days running. Longevity does not prove performance or profitability.</p></div></div><div className="competition-longest-grid">{data.longestRunning.map((row) => <article className="competition-activity-row" key={row.libraryId}><strong>{row.featuredBrandProduct ?? row.libraryId}</strong><dl><div><dt>Library ID</dt><dd>{row.libraryId}</dd></div><div><dt>Start date</dt><dd>{formatDate(row.startDate)}</dd></div><div><dt>Days running</dt><dd>{row.calculatedDaysRunning}</dd></div></dl><CompetitionSourceLabel value={data.sourceLabel} /></article>)}</div><CompetitionSourceLabel value={data.sourceLabel} /></section>
+    <div className="competition-grid competition-grid-two competition-mt"><article className="competition-card"><h3>Launch timeline</h3><div className="competition-launch-groups">{launches.map((row)=><div key={row.label}><span>{formatYearMonth(row.label)}</span><b>{row.count} ads</b></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></article><article className="competition-card"><h3>Age profile</h3><div className="competition-launch-groups">{age.map((row)=><div key={row.label}><span>{row.label}</span><b>{row.count} ads</b></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></article></div>
+    <div className="competition-grid competition-grid-two competition-mt"><MixCard title="Theme mix" rows={data.themeMix} source={data.sourceLabel} /></div>
     <MediaDetailTable data={data} />
   </>;
 }
@@ -162,7 +172,8 @@ function CreativeDetailTable({ data }: { data: CompetitionDashboard }) {
 }
 
 function MediaDetailTable({ data }: { data: CompetitionDashboard }) {
-  return <section className="competition-card competition-details competition-mt"><div className="competition-card-heading"><div><h3>Activity detail</h3><p>Library IDs are counted once within this capture.</p></div></div><div className="competition-table-wrap"><table><thead><tr><th>Library ID</th><th>Start date</th><th className="num">Days</th><th>Status</th><th>Platforms</th><th>Format</th><th>Theme</th><th>Featured brand / product</th></tr></thead><tbody>{data.observations.map((row) => <tr key={row.libraryId}><td>{row.libraryId}</td><td>{formatDate(row.startDate)}</td><td className="num">{row.calculatedDaysRunning}</td><td>{row.status}</td><td>{row.platforms}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel} /></section>;
+  const themes=[...new Set(data.observations.map((row)=>row.theme??'N/A'))].sort();
+  return <section className="competition-card competition-details competition-mt"><div className="competition-card-heading"><div><h3>Activity detail</h3><p>Grouped by analyst theme. Library IDs are counted once within this capture.</p></div></div>{themes.map((theme)=>{ const rows=data.observations.filter((row)=>(row.theme??'N/A')===theme); return <div className="competition-theme-group" key={theme}><h4>{theme} &mdash; {rows.length} ads</h4><div className="competition-table-wrap"><table><thead><tr><th>Start date</th><th>Format</th><th>Platforms</th><th className="num">Days</th><th>Status</th><th>Featured brand / product</th><th>Library ID</th></tr></thead><tbody>{rows.map((row) => <tr key={row.libraryId}><td>{formatDate(row.startDate)}</td><td>{row.format}</td><td>{row.platforms}</td><td className="num">{row.calculatedDaysRunning}</td><td>{row.status}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-library-id">{row.libraryId}</td></tr>)}</tbody></table></div></div>;})}<CompetitionSourceLabel value={data.sourceLabel} /></section>;
 }
 
 function CompetitionImage({ screenshot, label }: { screenshot: CompetitionScreenshot; label: string }) {
@@ -186,8 +197,10 @@ function countLabels(values: Array<string | null>): Array<{ label: string; count
 }
 
 function formatDate(value: string | null): string { return value ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) : 'N/A'; }
+function formatYearMonth(value: string): string { const [year, month] = value.split('-').map(Number); return year && month ? new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1))) : value; }
 function formatMonth(year?: number, month?: number): string { return year && month ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1))) : 'the selected page period'; }
 function formatNumber(value: number | null): string { return value == null ? 'N/A' : value.toLocaleString('en-US'); }
 function formatDecimal(value: number | null): string { return value == null ? 'N/A' : value.toFixed(1); }
 function formatPercent(value: number): string { return `${(value * 100).toFixed(0)}%`; }
 function formatTrend(rows: Array<{ activeAds: number }>): string { if (rows.length < 2) return 'N/A'; const delta = (rows.at(-1)?.activeAds ?? 0) - (rows.at(-2)?.activeAds ?? 0); return `${delta > 0 ? '+' : ''}${delta}`; }
+function competitionReadsClient(clientId: string): string { return clientId === 'union-coop' ? 'Union Coop' : 'Rivoli'; }

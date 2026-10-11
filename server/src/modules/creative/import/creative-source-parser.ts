@@ -11,6 +11,7 @@ import type {
   NormalizedPaidCreativePost,
   PaidCreativeAccountSummary,
   PreparedCreativeBenchmark,
+  PreparedCreativeCut,
   PreparedCreativeImport,
   PreparedCreativePostMetric,
   PreparedCreativeTopPost,
@@ -111,7 +112,10 @@ function parsePreparedCreativeImport(directory: string): PreparedCreativeImport 
     return XLSX.utils.sheet_to_json<T>(worksheet, { defval: null, raw: true });
   };
   const monthParts = (value: unknown) => {
-    const match = /^(\d{4})-(\d{2})$/.exec(String(value ?? '').trim());
+    const raw = String(value ?? '').trim();
+    const allMatch = /^ALL\s+(\d{4})$/i.exec(raw);
+    if (allMatch) return { year: Number(allMatch[1]), month: 0 };
+    const match = /^(\d{4})-(\d{2})$/.exec(raw);
     if (!match) throw new Error(`Invalid Creative prepared month: ${String(value)}`);
     return { year: Number(match[1]), month: Number(match[2]) };
   };
@@ -134,12 +138,15 @@ function parsePreparedCreativeImport(directory: string): PreparedCreativeImport 
       postType: text(row.Type),
       language: text(row.Language),
       giveaway: giveaway(row['Giveaway flag']),
+      band: (['Top', 'Core', 'Low'].includes(text(row['Band (vs monthly median)'])) ? text(row['Band (vs monthly median)']) : 'Core') as 'Top' | 'Core' | 'Low',
+      postUrl: /^https:\/\//i.test(text(row['Post URL'])) ? text(row['Post URL']) : null,
+      followsFromPost: number(row['Follows from post'], 'follows from post'),
       reach: number(row.Reach, 'reach'),
       views: number(row.Views, 'views'),
       activeActions: number(row['Active actions'], 'active actions'),
       activeEngagementRate: number(row['Active engagement'], 'active engagement'),
       frequency: number(row.Frequency, 'frequency'),
-      eligibleForRanking: text(row['Eligible for ranking (reach>=500)']).toUpperCase() === 'YES',
+      eligibleForRanking: text(row['Eligible (reach>=500)'] ?? row['Eligible for ranking (reach>=500)']).toUpperCase() === 'YES',
       theme: text(row.Theme) || 'Untagged',
       caption: text(row['Caption (first 90 chars)']) || null,
       sourceFile: creativePreparedImportSource,
@@ -186,6 +193,26 @@ function parsePreparedCreativeImport(directory: string): PreparedCreativeImport 
     };
   });
 
+  const nullablePreparedNumber = (value: unknown): number | null => {
+    if (value == null || text(value) === '') return null;
+    const parsed = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+  const creativeCuts = rows<Record<string, unknown>>('Creative Cuts (import)').map((row): PreparedCreativeCut => {
+    const period = monthParts(row.Period);
+    return {
+      ...period,
+      cut: text(row.Cut),
+      value: text(row.Value),
+      posts: nullablePreparedNumber(row.Posts),
+      medianActiveEngagementRate: nullablePreparedNumber(row['Median active engagement']),
+      shareOfTotalActions: nullablePreparedNumber(row['Share of total actions']),
+      note: text(row.Note) || null,
+      sourceFile: creativePreparedImportSource,
+      sourceSheet: 'Creative Cuts (import)',
+    };
+  }).filter((row) => row.cut && row.value);
+
   return {
     sourceFile: creativePreparedImportSource,
     account: 'Union Coop',
@@ -193,6 +220,7 @@ function parsePreparedCreativeImport(directory: string): PreparedCreativeImport 
     postMetrics,
     monthlyTopPosts,
     monthlyBenchmarks,
+    creativeCuts,
   };
 }
 

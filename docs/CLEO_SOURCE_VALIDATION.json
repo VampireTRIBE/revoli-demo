@@ -1,0 +1,38 @@
+{
+  "workbook": "UnionCoop-CLEO-Market-Import.xlsx",
+  "capture": "2026-11-02",
+  "sheet_names": [
+    "README - Display Rules",
+    "Market Questions",
+    "Share of Voice by Topic",
+    "Position by Engine",
+    "Visibility Funnel",
+    "Citation Domains",
+    "Language of the Market"
+  ],
+  "data_rows_by_sheet": {
+    "Market Questions": 12,
+    "Share of Voice by Topic": 6,
+    "Position by Engine": 6,
+    "Visibility Funnel": 4,
+    "Citation Domains": 6,
+    "Language of the Market": 11
+  },
+  "all_topics": {
+    "answers": 815,
+    "union_coop_percent": 3,
+    "carrefour_percent": 47,
+    "lulu_percent": 38
+  },
+  "question_results": {
+    "appeared": 3,
+    "wins": 0,
+    "supplied_questions": 12
+  },
+  "funnel": {
+    "answers_analysed": 48,
+    "recommended": 1,
+    "recommended_percent": "2.1%"
+  },
+  "conclusion": "Raw XLSX structure and key values validated. TypeScript parser/runtime tests require npm dependencies."
+}

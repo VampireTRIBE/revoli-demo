@@ -112,12 +112,12 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
         <button type="button" onClick={context.close} aria-label="Close Competition panel"><X size={16} /> Close</button>
       </div>
     </div>
-    <TblReadsStrip client={competitionReadsClient(context.clientId)} section="Competition" year={context.year} month={context.month} />
     {context.dashboard.isLoading ? <CompetitionState>Loading competition capture...</CompetitionState>
       : context.dashboard.isError ? <CompetitionState error>Competition capture could not be loaded.</CompetitionState>
         : !data ? <CompetitionState>Choose a competitor.</CompetitionState>
           : !data.available ? <UnavailableContext data={data} allDates={allDates} onSelectCapture={context.selectCapture} />
             : <>
+              {data.capture.date ? <TblReadsStrip client={competitionReadsClient(context.clientId)} section="Competition" year={Number(data.capture.date.slice(0, 4))} month={Number(data.capture.date.slice(5, 7))} /> : null}
               <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Alternative capture; page reporting period is ${formatMonth(context.year, context.month)}`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
               {view === 'creative' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionView data={data} />}
             </>}
@@ -132,6 +132,12 @@ function CreativeCompetitionView({ data }: { data: CompetitionDashboard }) {
       <MixCard title="Theme mix" rows={data.themeMix} source={data.sourceLabel} />
       <MixCard title="Language mix" rows={data.languageMix} source={data.sourceLabel} />
       <article className="competition-card competition-mix-card"><h3>Featured brands / products</h3><div className="competition-mix-list">{featured.length ? featured.map((row) => <div className="competition-mix-copy" key={row.label}><span>{row.label}</span><strong>{row.count}</strong></div>) : <div className="competition-empty">Data not available</div>}</div><CompetitionSourceLabel value={data.sourceLabel} /></article>
+    </div>
+    <div className="competition-grid competition-grid-two competition-mt">
+      <article className="competition-card competition-summary-card"><h3>Ad language · text vs artwork</h3><p>The available capture has a single general Language field; separate artwork-language and text-language fields have not been supplied. These breakdowns are n/a until the approved import contains both.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
+      <article className="competition-card competition-summary-card"><h3>Prize mechanics · theirs vs ours</h3><p>n/a (capture has no analyst-approved prize-mechanics count and no matching Union Coop giveaway comparison for this window). No giveaways are inferred from ad text.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
+      <article className="competition-card competition-summary-card"><h3>Launch tempo</h3><p>{data.launches.startedInSelectedMonth != null ? `${formatNumber(data.launches.startedInSelectedMonth)} ads with supplied start dates during the page month.` : 'n/a (no verified same-month ad starts).'} Their first observed ads versus our own posts: n/a until the matching captures and output import are provided.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
+      <article className="competition-card competition-summary-card"><h3>Creative lens availability</h3><p>Theme mix above uses analyst-tagged capture fields. Ad text and artwork language, prize mechanics, and same-window brand publishing counts must arrive through approved source columns. No speculative comparison is produced.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
     </div>
     <details className="competition-card competition-context-gallery competition-mt">
       <summary>Creative gallery ({data.screenshots.length})</summary>

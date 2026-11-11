@@ -52,7 +52,7 @@ export function getCreativeOptions(): CreativeOptions {
     ?? latestYear?.months.filter((month) => month.month > 0).at(-1);
   return {
     years,
-    brands: creativeBrands.map((brand) => ({
+    brands: creativeBrands.filter((brand) => !['souq-al-bahar', 'souq-al-jubair'].includes(brand.id)).map((brand) => ({
       id: brand.id,
       label: brand.label,
       postLevelAvailable: brand.postLevelAvailable,
@@ -116,8 +116,9 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   const available = brand.postLevelAvailable && organic.eligiblePostCount > 0;
   const unavailableMessage = brand.postLevelAvailable
     ? `No eligible Instagram Posts or Reels were published for ${brand.label} in the selected period.`
-    : `${brand.label} supplies daily account totals only. Post-level reach, shares, saves, comments, captions, and links are required for this gallery and its calculations.`;
-  const scoresEnabled = creativeScoringMode === 'html-reference' && available;
+    : brand.accountLevelAvailable
+      ? `${brand.label} supplies daily account observations only. Post-level reach, shares, saves, comments, captions, and links are required for this gallery and its calculations.`
+      : `${brand.label}: no approved post-level import supplied. Source identity must be verified before publishing metrics.`;
   const paidScopeSupported = brand.paidPostLevelAvailable
     && selected.year === Number(paidMetaSource.reportingPeriodStart.slice(0, 4))
     && selected.month === 0;
@@ -188,9 +189,9 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
       watchTimeCoverage: available ? organic.watchTimeCoverage : { populatedReels: 0, totalReels: 0 },
       score: {
         overall: null,
-        attention: scoresEnabled ? organic.score.attention : null,
-        activeEngagement: scoresEnabled ? organic.score.activeEngagement : null,
-        provisional: scoresEnabled,
+        attention: null,
+        activeEngagement: null,
+        provisional: false,
       },
       posts: available ? rankedPosts : [],
       preparedInsights: {
@@ -233,9 +234,9 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
         paidCtr: paid.paidCtr,
         score: {
           overall: null,
-          attention: creativeScoringMode === 'html-reference' && paidAvailable ? paid.attentionScore : null,
+          attention: null,
           activeEngagement: null,
-          provisional: creativeScoringMode === 'html-reference' && paidAvailable,
+          provisional: false,
         },
         records: paid.records,
         videos: paid.videos,

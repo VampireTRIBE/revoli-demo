@@ -288,3 +288,10 @@ They do not support verified paid attribution or the full approved six-component
 - Raw workbooks are not sent to the browser.
 - The server returns aggregated dashboard data.
 - Import logs contain operational events, not complete source datasets or credentials.
+
+
+## Creative colour matching (5 Nov 2026)
+
+The Creative route now uses the November 2 visual-refresh palette: graphite `#2a332f`, paper `#f4f5f3`, white cards, neutral borders, status green/red and amber for AWAITING. Styles are in `client/src/styles/creative-palette.css`, imported after the global light theme. The Creative page, embedded Meta Ad Library panel and Union Coop CLEO block use the same palette. Media and Consumer remain on their original colour scheme.
+
+This follow-up only changes Creative presentation; it does not address the outstanding verified import dependencies or the prior incomplete npm build.

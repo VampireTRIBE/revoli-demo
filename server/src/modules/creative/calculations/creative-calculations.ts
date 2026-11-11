@@ -1,4 +1,3 @@
-import { creativeBenchmarks } from '../config/creative-source.config.js';
 import type { CreativePostView, NormalizedCreativePost, NormalizedPaidCreativePost } from '../types/creative.types.js';
 
 export function scoreOf(value: number | null, benchmark: { bad: number; good: number }): number | null {
@@ -40,21 +39,7 @@ export function calculateOrganic(posts: NormalizedCreativePost[]) {
   const activeEngagementRate = actionReach > 0 ? activeActions / actionReach : null;
   const frequency = summedPostReach > 0 && views.length === eligible.length ? totalViews / summedPostReach : null;
 
-  let attentionWeightedScore = 0;
-  let attentionReach = 0;
-  for (const post of postViews) {
-    const benchmark = post.attentionBasis === 'watch-time'
-      ? creativeBenchmarks.organicWatchSeconds
-      : creativeBenchmarks.organicFrequency;
-    const score = scoreOf(post.attentionValue, benchmark);
-    if (score != null && post.reach != null) {
-      attentionWeightedScore += score * post.reach;
-      attentionReach += post.reach;
-    }
-  }
-  const attention = attentionReach > 0 ? Math.round(attentionWeightedScore / attentionReach) : null;
-  const activeEngagement = scoreOf(activeEngagementRate, creativeBenchmarks.organicEngagementRate);
-  const overall = attention != null && activeEngagement != null ? Math.round(0.5 * attention + 0.5 * activeEngagement) : null;
+  // Verified baselines have not been signed. Do not compute any component or composite score.
   const reels = eligible.filter((post) => /^reel$/i.test(post.postType));
 
   return {
@@ -68,7 +53,7 @@ export function calculateOrganic(posts: NormalizedCreativePost[]) {
       populatedReels: reels.filter((post) => post.averageWatchTimeSeconds != null && post.averageWatchTimeSeconds > 0).length,
       totalReels: reels.length,
     },
-    score: { overall, attention, activeEngagement },
+    score: { overall: null, attention: null, activeEngagement: null },
     posts: postViews,
   };
 }
@@ -100,7 +85,7 @@ export function calculatePaidCreative(records: NormalizedPaidCreativePost[]) {
     totalPaidComments: sumWhenComplete((record) => record.paidComments),
     totalSpendAed: sumWhenComplete((record) => record.spendAed),
     paidCtr,
-    attentionScore: scoreOf(paidCtr, creativeBenchmarks.paidCtr),
+    attentionScore: null,
     records: bySpend,
     videos: bySpend.filter((record) => record.postType === 'Video' && (record.spendAed ?? 0) > 80),
     statics: bySpend.filter((record) => record.postType === 'Static' && (record.spendAed ?? 0) > 80),

@@ -1,0 +1,369 @@
+/*
+ * Bizcom Engine / Creative visual palette
+ * Source: Creative Section All Changes, 2 Nov 2026, Part 8.
+ * GP Inc. graphite, paper grey and white. Positive/negative statuses may
+ * use green/red; amber is reserved for pending/awaiting conditions.
+ * All overrides are scoped to /creative. Media and Consumer remain unchanged.
+ */
+.reference-shell:has(.creative-page) {
+  --creative-ink: #222927;
+  --creative-muted: #5f6b66;
+  --creative-soft: #87928d;
+  --creative-border: #d8dedb;
+  --creative-border-strong: #bac4bf;
+  --creative-paper: #f4f5f3;
+  --creative-panel: #ffffff;
+  --creative-elevated: #f8f9f7;
+  --creative-charcoal: #2a332f;
+  --creative-green: #246f51;
+  --creative-red: #ad4146;
+  --creative-amber: #906318;
+  --creative-amber-border: #e8cc92;
+  --creative-amber-paper: #fff8ea;
+  background: var(--creative-paper);
+  color: var(--creative-ink);
+}
+.reference-shell:has(.creative-page) .reference-top h1,
+.reference-shell:has(.creative-page) .reference-sub strong { color: var(--creative-ink); }
+.reference-shell:has(.creative-page) .reference-sub { color: var(--creative-muted); }
+.reference-shell:has(.creative-page) .reference-logo { box-shadow: none; }
+.reference-shell:has(.creative-page) .reference-badge.live {
+  background: #e7efea; border-color: #adc5b5; color: #276048;
+}
+.reference-shell:has(.creative-page) .reference-tab {
+  background: var(--creative-panel);
+  border-color: var(--creative-border);
+  box-shadow: none;
+  color: var(--creative-muted);
+}
+.reference-shell:has(.creative-page) .reference-tab:hover:not(:disabled) {
+  border-color: var(--creative-border-strong);
+  background: var(--creative-elevated);
+  color: var(--creative-ink);
+}
+.reference-shell:has(.creative-page) .reference-tab.active {
+  border-color: var(--creative-charcoal);
+  background: var(--creative-charcoal);
+  color: #fff;
+}
+.reference-shell:has(.creative-page) .reference-pill {
+  background: var(--creative-elevated);
+  color: var(--creative-muted);
+}
+
+.creative-page {
+  /* Override the broad blue/teal light theme only inside Creative. */
+  --bg: #f4f5f3;
+  --ink: #222927;
+  --muted: #5f6b66;
+  --line: #d8dedb;
+  --card: #ffffff;
+  --card-2: #f8f9f7;
+  --accent: #303d37;
+  --accent-2: #56625c;
+  --blue: #48534e;
+  --teal: #3e6251;
+  --good: #246f51;
+  --warn: #906318;
+  --bad: #ad4146;
+  --shadow: none;
+  padding: 20px 22px 36px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.creative-page :is(button, a, select, input, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.creative-page .creative-heading h2,
+.creative-page .creative-slot-header h3,
+.creative-page .creative-section-heading h3,
+.creative-page .creative-summary-head strong,
+.creative-page .competition-context-heading h3 { color: var(--ink); }
+.creative-page :is(.creative-card,.creative-summary-cell,.creative-summary-head,.creative-competition-strip,.tbl-reads,
+  .competition-context-panel,.competition-card,.competition-kpis > div,.competition-activity-row,
+  .competition-gallery-card,.competition-creative,.competition-table-wrap,.competition-longest-grid > article) {
+  border-color: var(--line);
+  background: var(--card);
+  box-shadow: none;
+  color: var(--ink);
+}
+.creative-page :is(.creative-kpi-label,.creative-kpi-detail,.creative-source-note,.creative-support,
+  .creative-post-stat,.creative-post-meta small,.creative-top-meta small,.creative-top-meta p,
+  .creative-top-meta > span,.creative-card h3,.creative-paid-source span,.creative-paid-source small,
+  .creative-account-heading p,.creative-account-summary-grid small,.creative-section-heading > span,
+  .creative-section-heading p,.creative-slot-header > span,.creative-slot-header p,
+  .competition-context-heading p,.competition-muted,.competition-source,.competition-summary-card p,
+  .competition-card-heading p,.competition-kpis span,.competition-context-capture small,
+  .competition-activity-row dt,.competition-creative dt,.competition-creative small,
+  .competition-mix-copy small) { color: var(--muted); }
+.creative-page :is(.creative-kpi-value,.creative-paid-source strong,.creative-post-name,.creative-top-meta strong,
+  .competition-card h3,.competition-kpis strong,.competition-creative h4,.competition-mix-copy,
+  .competition-activity-row > strong,.competition-activity-row dd,.competition-context-capture strong) {
+  color: var(--ink);
+}
+
+/* Output, Attention, Engagement and What Worked all use the same quiet surfaces. */
+.creative-page .creative-summary-head { padding: 14px 18px; border-radius: 10px; }
+.creative-page .creative-depth {
+  border-color: var(--creative-border-strong, #bac4bf);
+  background: var(--card-2);
+  color: var(--ink);
+}
+.creative-page .creative-slot { border-color: var(--line); }
+.creative-page .creative-card { border-radius: 10px; }
+.creative-page .creative-verdict,
+.creative-page .creative-note,
+.creative-page .creative-note.accent {
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--muted);
+  box-shadow: none;
+}
+.creative-page :is(.creative-verdict,.creative-note) b { color: var(--ink); }
+.creative-page .creative-summary-cell.organic,
+.creative-page .creative-summary-cell.paid { border-color: var(--line); }
+.creative-page .creative-summary-cell :is(.title,.score,.detail) { color: var(--muted); }
+.creative-page .creative-summary-cell .score strong { color: var(--ink); }
+.creative-page .creative-subtabs button {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  box-shadow: none;
+}
+.creative-page .creative-subtabs button:hover:not(.active) {
+  border-color: #9ea9a3;
+  background: var(--card-2);
+  color: var(--ink);
+}
+.creative-page .creative-subtabs button.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.creative-page .creative-account-heading > span {
+  background: var(--card-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.creative-page :is(.creative-post-card,.creative-account-summary-grid article,.creative-cuts-grid article,
+  .creative-gallery-band,.creative-band-summary > div,.creative-top-image,.creative-placeholder-panel) {
+  background: var(--card-2);
+  border-color: var(--line);
+  box-shadow: none;
+}
+.creative-page .creative-post-card:hover { border-color: #9da9a3; }
+.creative-page .creative-post-stat.creative-date { border-color: var(--line); }
+.creative-page .creative-gallery-band > summary { background: var(--card-2); }
+.creative-page .creative-gallery-band.top > summary,
+.creative-page .creative-gallery-band.core > summary,
+.creative-page .creative-gallery-band.low > summary { background: var(--card-2); }
+.creative-page .creative-placeholder[aria-label='Image not available'] {
+  background: #eef0ed;
+  color: var(--muted);
+}
+.creative-page .creative-type-badge,
+.creative-page .creative-type-badge.reel,
+.creative-page .creative-giveaway-badge,
+.creative-page .creative-giveaway-inline {
+  border: 1px solid #bdc6c0;
+  background: rgba(44, 54, 49, .92);
+  color: #fff;
+  text-shadow: none;
+}
+.creative-page .creative-giveaway-inline { background: #e8ece8; color: var(--ink); }
+.creative-page .creative-top-meta a,
+.creative-page .creative-why-section a,
+.creative-page .creative-details a {
+  color: #315e4b;
+  text-underline-offset: 3px;
+}
+.creative-page .creative-cut-row { border-color: var(--line); }
+.creative-page .creative-cut-row strong { color: var(--ink); }
+.creative-page .creative-mini-trend span { background: #edf0ec; color: var(--muted); }
+.creative-page .creative-mini-trend polyline { stroke: var(--accent); }
+.creative-page :is(.creative-score-track,.competition-mix-track) { background: #e3e7e3; }
+.creative-page :is(.creative-scorebar.good,.creative-post-stat strong.good) { color: var(--good); }
+.creative-page :is(.creative-scorebar.bad,.creative-post-stat strong.bad) { color: var(--bad); }
+.creative-page :is(.creative-scorebar.warn,.creative-post-stat strong.warn) { color: var(--warn); }
+.creative-page .creative-scorebar.good span { background: var(--good); }
+.creative-page .creative-scorebar.bad span { background: var(--bad); }
+.creative-page .creative-scorebar.warn span { background: #bb8528; }
+
+/* Amber is a data status, not decorative colour. */
+.creative-page .creative-awaiting,
+.creative-page .creative-unavailable-section > div,
+.creative-page .creative-account-empty,
+.creative-page .creative-placeholder-panel,
+.creative-page .competition-unavailable,
+.creative-page .competition-empty,
+.creative-page .competition-state {
+  border: 1px dashed #e8cc92;
+  border-radius: 10px;
+  background: #fff8ea;
+  color: #80571c;
+  box-shadow: none;
+}
+.creative-page .creative-loading { border-color: var(--line); background: var(--card-2); color: var(--muted); }
+.creative-page .creative-error,
+.creative-page .competition-state.error {
+  border-color: #e2b4b7;
+  background: #fff1f0;
+  color: var(--bad);
+}
+.creative-page .creative-top-meta .creative-pending-line { color: var(--warn); }
+.creative-page .creative-method,
+.creative-page .competition-method {
+  border: 1px dashed #c4ccc7;
+  border-radius: 10px;
+  background: var(--card-2);
+  color: var(--muted);
+  box-shadow: none;
+}
+.creative-page .creative-method summary,
+.creative-page .competition-method summary { color: var(--ink); }
+.creative-page .creative-method p,
+.creative-page .competition-method p { color: var(--muted); }
+.creative-page .creative-method p b,
+.creative-page .competition-method b { color: var(--ink); }
+.creative-page :is(.creative-method th,.competition-details th,.creative-account-summary-grid th) {
+  background: #edf0ed;
+  border-color: var(--line);
+  color: #4a5950;
+}
+.creative-page :is(.creative-method td,.competition-details td,.creative-account-summary-grid td) {
+  border-color: #e8ebe8;
+  color: var(--ink);
+}
+.creative-page .competition-details tbody tr:hover { background: #f4f6f3; }
+
+/* Filters and dropdown: eliminate inherited blue/teal gradients. */
+.creative-page :is(.period-filters label,.competition-context-dropdown > span,
+  .competition-context-actions label > span) { color: var(--muted); }
+.creative-page :is(.period-filters select,.competition-context-trigger,.competition-context-actions select,
+  .competition-context-actions button,.competition-alternative) {
+  color-scheme: light;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: none;
+}
+.creative-page :is(.period-filters select,.competition-context-actions select):is(:focus,:hover),
+.creative-page .competition-context-trigger:is(:hover,.open,:focus-visible),
+.creative-page .competition-context-actions button:is(:hover,:focus-visible) {
+  border-color: #9ca9a1;
+  background: var(--card-2);
+  box-shadow: none;
+}
+.creative-page .competition-context-trigger svg { color: var(--muted); }
+.creative-page .competition-context-menu {
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(24,35,27,.13);
+}
+.creative-page .competition-context-menu button { color: var(--ink); }
+.creative-page .competition-context-menu button small { color: var(--muted); }
+.creative-page .competition-context-menu button:is(:hover,:focus-visible) {
+  border-color: var(--line);
+  background: var(--card-2);
+}
+.creative-page .competition-context-menu button.selected {
+  border-color: var(--creative-border-strong, #bac4bf);
+  background: #eaeeea;
+  box-shadow: inset 3px 0 0 var(--accent);
+  color: var(--ink);
+}
+.creative-page .competition-context-menu button.selected small { color: var(--muted); }
+
+/* Every embedded competition surface shares the Creative page palette. */
+.creative-page .competition-context-panel {
+  border: 1px solid var(--line);
+  background: #f8f9f7;
+  box-shadow: none;
+}
+.creative-page .competition-context-capture,
+.creative-page .competition-capture-banner {
+  border: 1px solid var(--line);
+  background: #f1f3f0;
+  color: var(--muted);
+}
+.creative-page .competition-context-capture span,
+.creative-page .competition-capture-banner span { color: var(--muted); }
+.creative-page .competition-capture-banner button,
+.creative-page .competition-capture-banner button span {
+  border-color: var(--line);
+  background: #e9eee9;
+  color: var(--ink);
+}
+.creative-page .competition-kpis > div,
+.creative-page .competition-activity-row,
+.creative-page .competition-creative,
+.creative-page .competition-gallery-card,
+.creative-page .competition-table-wrap,
+.creative-page .competition-launch-groups > div > span {
+  border-color: var(--line);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: none;
+}
+.creative-page :is(.competition-image,.competition-image-placeholder) {
+  border-color: var(--line);
+  background: #f1f3f0;
+}
+.creative-page .competition-creative dl div { border-color: var(--line); }
+.creative-page .competition-creative dd,
+.creative-page .competition-launch-groups b { color: var(--ink); }
+.creative-page :is(.competition-badge,.competition-format) {
+  border-color: var(--line);
+  background: #edf0ed;
+  color: var(--ink);
+}
+.creative-page .competition-mix-track span { background: #697971; }
+.creative-page .competition-search { border-color: var(--line); background: #fff; color: var(--muted); }
+.creative-page .competition-search input { color: var(--ink); }
+.creative-page .competition-search:focus-within { border-color: #9ca9a1; box-shadow: none; }
+.creative-page .competition-details a { color: #315e4b; }
+.creative-page .competition-id { color: var(--muted) !important; }
+.creative-page .competition-burst {
+  border-color: #e8cc92;
+  background: #fff8ea;
+  color: #80571c;
+}
+.creative-page .competition-burst b { color: #80571c; }
+.creative-page .competition-unavailable strong { color: var(--warn); }
+
+/* CLEO remains an explicitly unscored inset, but not a second colour system. */
+.creative-page .cleo-market {
+  --cleo-ink: var(--ink);
+  --cleo-muted: var(--muted);
+  --cleo-border: var(--line);
+  border-color: #aab4ad;
+  background: #eff1ee;
+  color: var(--ink);
+}
+.creative-page .cleo-card { border-color: var(--line); background: #fff; box-shadow: none; }
+.creative-page :is(.cleo-heading h3,.cleo-card-heading h4,.cleo-number,.cleo-scroll tbody th) { color: var(--ink); }
+.creative-page :is(.cleo-heading p,.cleo-eyebrow,.cleo-overline,.cleo-card-heading span,
+  .cleo-card p,.cleo-scroll th,.cleo-scroll td,.cleo-stage-list small,.cleo-phrases small) { color: var(--muted); }
+.creative-page .cleo-capture select { border-color: var(--line); background: #fff; color: var(--ink); }
+.creative-page .cleo-scroll th,
+.creative-page .cleo-scroll td,
+.creative-page .cleo-stage-list > div,
+.creative-page .cleo-source { border-color: #e7ebe6; }
+.creative-page .cleo-scroll thead th { background: #edf0ed; color: #4a5950; }
+.creative-page .cleo-phrases > div { background: var(--card-2); border-color: var(--line); }
+.creative-page .cleo-awaiting { border-color: #e8cc92; background: #fff8ea; color: #80571c; }
+.creative-page .cleo-footer { background: var(--creative-charcoal, #2a332f); color: #fff; }
+.creative-page .cleo-footer :is(span,p) { color: #d9e0db; }
+
+@media (max-width: 640px) {
+  .creative-page { padding: 12px; border-radius: 12px; }
+  .creative-page .creative-summary-head { align-items: flex-start; }
+  .reference-shell:has(.creative-page) { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .creative-page, .creative-page .creative-post-card { animation: none; transition: none; }
+}

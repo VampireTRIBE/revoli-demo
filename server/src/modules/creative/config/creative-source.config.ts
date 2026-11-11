@@ -1,7 +1,6 @@
 import type { CreativeScoringMode } from '../types/creative.types.js';
 
-export const creativeScoringMode: CreativeScoringMode =
-  process.env.CREATIVE_SCORING_MODE === 'disabled' ? 'disabled' : 'html-reference';
+export const creativeScoringMode: CreativeScoringMode = 'disabled';
 
 export const CREATIVE_TIMEZONE = 'UTC';
 
@@ -34,6 +33,14 @@ export const creativeBrands = [
     postLevelAvailable: false,
     paidPostLevelAvailable: false,
     accountLevelAvailable: true,
+  },
+  {
+    id: 'souq-al-haraj', label: 'Souq Al Haraj', account: null,
+    aliases: ['souq al haraj'], postLevelAvailable: false, paidPostLevelAvailable: false, accountLevelAvailable: false,
+  },
+  {
+    id: 'souq-al-jubail', label: 'Souq Al Jubail', account: null,
+    aliases: ['souq al jubail'], postLevelAvailable: false, paidPostLevelAvailable: false, accountLevelAvailable: false,
   },
   {
     id: 'pocari-sweat',

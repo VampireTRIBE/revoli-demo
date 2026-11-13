@@ -7,6 +7,7 @@ import './styles/index.css';
 import './styles/theme-light.css';
 // Creative-only palette is intentionally last to override legacy module colours.
 import './styles/creative-palette.css';
+import './styles/geo.css';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } } });
 

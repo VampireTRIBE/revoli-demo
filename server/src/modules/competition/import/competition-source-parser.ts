@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import XLSX from 'xlsx';
+import { parseEditCaptureTwo } from './edit-capture-two-parser.js';
 import { dateOnlyDifference } from '../calculations/competition-calculations.js';
 import {
   competitionConfigs,
@@ -46,6 +47,11 @@ export function parseCompetitionSources(): CompetitionSourceDataset {
   const captures: CompetitionCapture[] = [];
 
   for (const file of files) {
+    if (/^EDIT-AdLibrary-Capture2-03Nov2026\.xlsx$/i.test(path.basename(file))) {
+      const edit = competitionConfigs.find((config) => config.id === 'edit-by-ahmed-seddiqi');
+      if (edit) captures.push(parseEditCaptureTwo(file, edit));
+      continue;
+    }
     const matchedConfigs = competitionConfigs.filter((config) => config.workbookPattern.test(path.basename(file)));
     if (!matchedConfigs.length) continue;
     const workbook = XLSX.readFile(file, { cellDates: false, raw: false });

@@ -1,0 +1,47 @@
+/* CEO Media five-slot arrangement, restrained Creative/GEO-compatible palette */
+.reference-media-page{color:#282d35;background:#f6f7f6;font-family:Inter,'IBM Plex Sans',system-ui,sans-serif;padding:12px 18px 32px;border-radius:12px}
+.reference-media-page .reference-media-heading h2{color:#252b32;display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.reference-media-page .reference-card,.reference-media-page .reference-note,.reference-media-page .reference-method{background:#fff;border:1px solid #dce1e5;color:#303640;box-shadow:none}
+.reference-media-page .reference-card h3{color:#454c55}
+.reference-media-page .reference-kpi-value{color:#262b33}
+.reference-media-page .reference-kpi-label,.reference-media-page .reference-kpi-detail{color:#646d77}
+.reference-media-page .reference-subtab,.reference-media-page select,.reference-media-page input{background:#fff;color:#323b46;border:1px solid #d9dfe5}
+.reference-media-page .reference-subtab.active{background:#323942;color:#fff;border-color:#323942}
+.reference-media-page .reference-kpi-card{min-height:140px}
+.reference-media-page .reference-mt{margin-top:12px}
+.media-depth-badge{font-size:10px;font-weight:700;color:#6d5838;border:1px solid #e5ce9a;background:#fff3d8;padding:5px 8px;border-radius:6px}
+.media-ceo-slot{margin-top:24px;display:grid;gap:10px}
+.media-ceo-slot-header{display:flex;align-items:center;gap:10px;border-bottom:1px solid #dadde1;padding-bottom:8px}
+.media-ceo-slot-header span{font-size:11px;color:#7c858e;font-variant-numeric:tabular-nums;font-weight:750}
+.media-ceo-slot-header h3{margin:0;color:#2c3239;font-size:17px;font-weight:800;letter-spacing:-.02em}
+.media-ceo-source-note{font-size:11px;color:#65707b;margin:4px 0 0}
+.media-attribution-note{font-size:11px;line-height:1.5;margin:0!important;padding:10px 14px}
+.media-alignment-v2{padding:18px!important}
+.media-inout-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.media-inout-kpis article{padding:12px;border:1px solid #e5e7eb;border-radius:9px;display:grid;gap:5px}
+.media-inout-kpis span{font-size:10px;color:#747d87;text-transform:uppercase;font-weight:650;letter-spacing:.04em}
+.media-inout-kpis strong{font-size:23px;color:#272d33;font-variant-numeric:tabular-nums}
+.media-inout-kpis small{font-size:10px;color:#7b838a}
+.media-alignment-v2 h3{margin:4px 0 8px!important;font-size:14px!important}
+.media-alignment-v2>p{font-size:11px;line-height:1.5;color:#68727b}
+.media-aligned-chart{border-top:1px solid #e9ebee;padding:12px 6px 7px}
+.media-aligned-chart h4{font-size:12px;color:#4b545e;margin:0 0 10px}
+.media-alignment-footnote{border-top:1px solid #e3e6e9;padding-top:11px}
+.media-awaiting{border-style:dashed!important;background:#fffaf2!important}
+.media-awaiting h3{color:#866322!important}.media-awaiting p{font-size:12px;color:#6e7177;line-height:1.5}
+.media-campaign-results{display:grid;gap:12px}.media-campaign-results>b{font-size:11px;color:#484f59;text-transform:uppercase;letter-spacing:.03em}
+.media-see-all{padding:9px 15px;margin-top:13px;border:1px solid #5b626b;border-radius:7px;color:#303842;background:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.media-see-all:hover{background:#eceff0}
+.reference-media-page .reference-table-wrap table th{color:#49515a;background:#f2f4f5}
+.reference-media-page .reference-table-wrap table td{color:#303640;border-color:#ebedef}
+.reference-media-page .reference-kpi-trend{color:#757c87}
+.reference-media-page .competition-context-panel{background:#fff;border:1px solid #d6dbe0;color:#303640}
+.reference-media-page .competition-context-heading h3{color:#27303b}
+.reference-media-page .competition-context-heading p{color:#64707b}
+.reference-media-page .competition-context-capture{background:#f2f4f3;border:1px solid #e0e4e7}
+.reference-media-page .competition-context-capture span{color:#434b54}
+.reference-media-page .competition-context-capture strong{color:#222831}
+.reference-media-page .competition-context-actions label>span{color:#565e66}
+.reference-media-page .competition-context-actions button,.reference-media-page .competition-context-actions select{color:#37404a;background:#fff;border-color:#d8dfe4}
+@media(max-width:850px){.media-inout-kpis{grid-template-columns:1fr 1fr}.reference-media-page .reference-media-heading{grid-template-columns:1fr}.reference-media-page .reference-media-toolbar{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:630px){.reference-media-page{padding:12px 10px}.media-inout-kpis{grid-template-columns:1fr}.media-ceo-slot-header h3{font-size:15px}.reference-media-page .reference-media-toolbar{grid-template-columns:1fr}.reference-media-page .reference-media-grid.two{grid-template-columns:1fr}}

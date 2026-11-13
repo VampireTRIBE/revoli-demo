@@ -18,7 +18,7 @@ export const campaignQuerySchema = periodQuerySchema.and(z.object({
   stage: z.string().trim().min(1).optional(),
   campaignType: z.string().trim().min(1).optional(),
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(1000).default(20),
   sort: z.enum(['spend', 'campaign']).default('spend'),
   order: z.enum(['asc', 'desc']).default('desc'),
 }));

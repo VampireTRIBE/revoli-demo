@@ -6,6 +6,11 @@ This repository implements the **Creative, Competition, and Media tabs**. The su
 
 The application calculates paid impressions, Blended CTR, and directional platform, campaign, Segment, and Brand ROAS from the available sheet data. Brand ROAS uses exact Brand data, then mapped Segment, then overall-period fallback; Segment ROAS uses exact Segment then overall-period fallback. ROAS is not presented as verified paid attribution. The application does not fabricate new-customer CAC, traffic quality, plan adherence, or an official Media score when the required inputs are absent.
 
+
+## GEO (Generative Engine Optimization)
+
+The application now has a standalone [GEO dashboard](docs/GEO_DASHBOARD_IMPLEMENTATION.md) at `/geo`, populated at runtime from the approved Union Coop CLEO workbook in `spreadsheets data/creative-tab/`. This unscored page shows AI voice, topic shares, citation positions, visibility funnel, tracked market questions and search language. Start the server with `npm run dev` and open `http://localhost:5173/geo`. Only Union Coop is available until further approved brand imports arrive.
+
 ## Documentation
 
 - [Creative, Competition, and Media implementation guide](BIZCOM_TABS_IMPLEMENTATION.md)
@@ -295,3 +300,17 @@ They do not support verified paid attribution or the full approved six-component
 The Creative route now uses the November 2 visual-refresh palette: graphite `#2a332f`, paper `#f4f5f3`, white cards, neutral borders, status green/red and amber for AWAITING. Styles are in `client/src/styles/creative-palette.css`, imported after the global light theme. The Creative page, embedded Meta Ad Library panel and Union Coop CLEO block use the same palette. Media and Consumer remain on their original colour scheme.
 
 This follow-up only changes Creative presentation; it does not address the outstanding verified import dependencies or the prior incomplete npm build.
+
+## Creative + Media + EDIT competition capture 2 (November 2026)
+
+See [`docs/CREATIVE_MEDIA_CAPTURE2_IMPLEMENTATION.md`](docs/CREATIVE_MEDIA_CAPTURE2_IMPLEMENTATION.md) for all 41 marker statuses, source mapping, API examples, missing approved inputs and actual validation results.
+
+The Media tab now uses five CEO slots with a November EDIT 68-ad register, historical comparison, and a real 15-image, four-row competition wall. The new workbook is in `spreadsheets data/compititaion-tab/` and the PNG assets are under `server/data/competition-assets/edit-by-ahmed-seddiqi/2026-11-03/`. Original October assets, Creative, Consumer and GEO are preserved.
+
+Run `python tools/validate_edit_capture2.py` for a dependency-free audit, then in a machine with npm registry access run `npm ci`, `npm test`, `npm run lint`, `npm run build`, and `npm run dev`. Missing GA4 v4 and Souqs v2 imports are shown as unavailable rather than filled with estimated data.
+
+## 12 November 2026: Media color alignment and source-accuracy review
+
+The Media dashboard now uses the Creative/GEO graphite and paper-grey palette, with color changes scoped to `/media`. The `Net site revenue` card was corrected to **Reported site item revenue** because the current source is the reconciled Media workbook, not the missing GA4 v4 net-revenue import. The Media heading now reports **PARTIAL SOURCE COVERAGE**.
+
+See `docs/MEDIA_CREATIVE_COLOR_AND_ACCURACY_AUDIT_2026-11-12.md` for independently checked Capture 2 figures, outstanding data dependencies and tests that could not run. This archive is **not** fully validated for deployment.

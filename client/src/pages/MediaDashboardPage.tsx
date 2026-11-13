@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from 'react';
-import { useQueries } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import type { MediaFilter, Overview } from '../types/media';
 import { CampaignSection } from '../features/media/components/CampaignSection';
@@ -13,8 +12,10 @@ import { useBrands, useOverview, usePeriods, usePlatforms, useSegments } from '.
 import { formatNumber } from '../features/media/utils/formatters';
 import { CompetitionDropdown, ContextualCompetitionPanel, useContextualCompetition } from '../features/competition/components/ContextualCompetition';
 import { TblReadsStrip } from '../features/reads/TblReadsStrip';
-import { mediaApi } from '../features/media/services/media-api';
 import '../styles/reference-media.css';
+import '../styles/media-ceo.css';
+// Import last so nested Competition and filter styles cannot restore the old blue theme.
+import '../styles/media-palette.css';
 
 export function MediaDashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,7 +38,7 @@ export function MediaDashboardPage() {
   const brandData = useBrands(brandFilter);
   const segments = useMemo(() => segmentData.data?.segments ?? [], [segmentData.data]);
   const brands = useMemo(() => brandData.data?.brands ?? [], [brandData.data]);
-  const competitionContext = useContextualCompetition('rivoli-shop', filter.year, filter.month, searchParams.get('competition') || undefined);
+  const competitionContext = useContextualCompetition('rivoli-shop', filter.year, filter.month, searchParams.get('competition') || 'edit-by-ahmed-seddiqi');
 
   useEffect(() => {
     if (!periods.data || searchParams.has('year')) return;
@@ -67,9 +68,6 @@ export function MediaDashboardPage() {
 
   const overview = useOverview(filter);
   const platforms = usePlatforms(filter);
-  const trendPeriods = useMemo(() => periods.data?.years.find((row) => row.year === filter.year)?.months.filter((row) => !row.partial) ?? [], [filter.year, periods.data]);
-  const trendQueries = useQueries({ queries: trendPeriods.map((period) => ({ queryKey: ['media','overview','trend',filter.year,period.month,filter.segment,filter.brand], queryFn: () => mediaApi.overview({ ...filter, month: period.month }) })) });
-  const trend = trendQueries.flatMap((query, index) => query.data ? [{ month: trendPeriods[index]?.label ?? '', data: query.data }] : []);
   const onFilterChange = (year?: number, month?: number) => {
     setSearchParams(toSearchParams({ year, month }));
   };
@@ -84,7 +82,7 @@ export function MediaDashboardPage() {
 
   return <section className="reference-media-page">
     <div className="reference-media-heading">
-      <h2>Media Performance <span className="reference-badge live">IMPORTED &middot; META + GOOGLE ADS</span></h2>
+      <h2>Media Performance <span className="reference-badge media-coverage-badge">PARTIAL SOURCE COVERAGE</span> <span className="media-depth-badge">Data depth: Partial</span></h2>
       <div className="reference-media-controls"><div className="reference-media-toolbar">{periods.data ? <MediaPeriodFilters
         periods={periods.data}
         year={filter.year}
@@ -105,14 +103,33 @@ export function MediaDashboardPage() {
       </div> : null}</div>
     </div>
     <TblReadsStrip client="Rivoli" section="Media" year={filter.year} month={filter.month ?? 0} />
-    <ContextualCompetitionPanel context={competitionContext} view="media" />
-
-    {overview.isLoading ? <div className="reference-media-grid four">{Array.from({ length: 4 }, (_, index) => <div className="reference-card" key={index}><LoadingSkeleton rows={3} /></div>)}</div> : overview.isError ? <ErrorState /> : overview.data ? <OverviewCards data={overview.data} trend={trend} selectedMonth={filter.month} /> : <EmptyState />}
-    {platforms.isLoading ? <div className="reference-card reference-mt"><LoadingSkeleton /></div> : platforms.isError ? <ErrorState /> : platforms.data ? <PlatformComparisonTable data={platforms.data} /> : null}
-    <CampaignSection filter={filter} />
-    <MediaConsumerAlignment year={filter.year} />
-    {overview.data ? <AttributionNote data={overview.data} /> : null}
-    {overview.data ? <ScoreMethod data={overview.data} /> : null}
+    <div className="media-ceo-slot" aria-label="Slot 1: What went in, what came out">
+      <div className="media-ceo-slot-header"><span>01</span><h3>What went in, what came out</h3></div>
+      <MediaConsumerAlignment year={filter.year} overview={overview.data} scopedSelection={Boolean(filter.segment?.length || filter.brand?.length)} />
+      {overview.data ? <AttributionNote data={overview.data}/> : null}
+    </div>
+    <div className="media-ceo-slot" aria-label="Slot 2: What a customer costs">
+      <div className="media-ceo-slot-header"><span>02</span><h3>What a customer costs</h3></div>
+      {overview.isLoading ? <LoadingSkeleton rows={3} /> : overview.isError ? <ErrorState/> : overview.data ? <OverviewCards data={overview.data}/> : <EmptyState/>}
+      {platforms.isLoading ? <div className="reference-card reference-mt"><LoadingSkeleton /></div> : platforms.isError ? <ErrorState/> : platforms.data ? <PlatformComparisonTable data={platforms.data}/> : null}
+      <p className="media-ceo-source-note">Google interaction rate and Meta link CTR are separate definitions. No cross-platform rate is combined or used as ROAS.</p>
+    </div>
+    <div className="media-ceo-slot" aria-label="Slot 3: Where traffic and money come from">
+      <div className="media-ceo-slot-header"><span>03</span><h3>Where traffic and money come from</h3></div>
+      <section className="reference-card media-awaiting"><h3>GA4 channel revenue · AWAITING APPROVED IMPORT</h3>
+        <p>The required Rivoli-Consumer-GA4-Import-v4.xlsx (September and October, 17-channel reconciliation) is not present. Paid vs organic sessions and revenue, Unassigned refunds, and AI Assistant traffic are n/a until the approved workbook arrives.</p>
+        <p><b>Data owner:</b> GA4 team. Existing Consumer data and Media spending are not substituted for channel revenue.</p>
+      </section>
+    </div>
+    <div className="media-ceo-slot" aria-label="Slot 4: What worked, what to stop">
+      <div className="media-ceo-slot-header"><span>04</span><h3>What worked, what to stop</h3></div>
+      <CampaignSection filter={filter}/>
+    </div>
+    <div className="media-ceo-slot" aria-label="Slot 5: The competition">
+      <div className="media-ceo-slot-header"><span>05</span><h3>The competition</h3></div>
+      <ContextualCompetitionPanel context={competitionContext} view="media" />
+    </div>
+    {overview.data ? <ScoreMethod data={overview.data}/> : null}
   </section>;
 }
 
@@ -136,20 +153,13 @@ function displayFilterLabel(value: string): string {
 }
 
 function AttributionNote({ data }: { data: Overview }) {
-  const metrics = data.metrics;
-  const comparison = metrics.platformClaims.value != null && metrics.platformClaims.value > metrics.sitePurchases
-    ? 'exceed'
-    : 'do not equal';
-
-  return <div className="reference-note reference-mt">
-    <b>Attribution caveat:</b> platform-reported conversions ({formatNumber(metrics.platformClaims.value)}) {comparison} actual site purchases ({formatNumber(metrics.sitePurchases)}) in the selected window &mdash; platforms may claim overlapping credit. Revenue coverage uses site revenue divided by advertising spend and is not platform ROAS. Campaign- and platform-level ROAS are not displayed because matching conversion value is not supplied. &quot;iCAC&quot; (incremental CAC) requires geo-holdout or spend-pause testing and remains a phase-2 item.
-    {data.metadata.warnings.length ? <><br /><b>Source check:</b> {data.metadata.warnings.length} workbook control difference{data.metadata.warnings.length === 1 ? '' : 's'} detected. Values remain calculated from the detailed monthly sheets.</> : null}
-  </div>;
+  const { platformClaims, sitePurchases } = data.metrics;
+  return <div className="reference-note media-attribution-note"><b>Attribution:</b> Platform-reported conversions {formatNumber(platformClaims.value)} vs {formatNumber(sitePurchases)} site purchases in this selection; overlapping credit is possible. Revenue coverage is not ROAS.</div>;
 }
 
 function ScoreMethod({ data }: { data: Overview }) {
-  return <details className="reference-method" open>
-    <summary>How this score is computed</summary>
+  return <details className="reference-method">
+    <summary>Unscored · baselines pending</summary>
     <p><b>{data.metrics.scoreLabel}</b></p>
     <p>No numeric Media score, benchmark bar, or performance colour is produced until signed baselines are supplied. Valid underlying metrics remain visible and do not feed an overall score.</p>
   </details>;

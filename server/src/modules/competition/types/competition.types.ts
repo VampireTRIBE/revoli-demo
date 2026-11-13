@@ -20,6 +20,20 @@ export interface CompetitionScreenshot {
   associationVerified: boolean;
 }
 
+export interface CompetitionGalleryEntry {
+  row: number;
+  title: string;
+  slot: number;
+  libraryId: string;
+  caption: string;
+  metaLine: string;
+  chip: string;
+  thumbnailFile: string;
+  assetUrl: string;
+  startDate: string;
+  daysRunning: number;
+}
+
 export interface CompetitionObservation {
   competitorId: string;
   competitor: string;
@@ -44,6 +58,10 @@ export interface CompetitionObservation {
   language: string | null;
   screenshotRef: string | null;
   screenshot: CompetitionScreenshot | null;
+  campaignPlatform?: string | null;
+  newSincePreviousCapture?: boolean;
+  offerCode?: string | null;
+  celebrity?: string | null;
   sourceFile: string;
   sourceSheet: string;
   sourceRow: number;
@@ -59,6 +77,9 @@ export interface CompetitionCapture {
   sourceFile: string;
   observations: CompetitionObservation[];
   screenshots: CompetitionScreenshot[];
+  gallery?: CompetitionGalleryEntry[];
+  importedThemeMix?: MixRow[];
+  launchesSincePreviousCapture?: number;
   audit: {
     sourceRows: number;
     acceptedRows: number;
@@ -128,14 +149,18 @@ export interface CompetitionDashboard {
     historicalTrend: Array<{ captureDate: string; activeAds: number }> | null;
     firstObservedAds: number | null;
     noLongerObservedAds: number | null;
+    netActiveChange: number | null;
   };
   launches: {
     startedInSelectedMonth: number | null;
     startedOnSeptember28Or29: number | null;
     firstObservedAds: number | null;
+    sincePreviousCapture: number | null;
     groups: Array<{ startDate: string; count: number }>;
   };
   longestRunning: CompetitionObservation[];
+  gallery: CompetitionGalleryEntry[];
+  campaignPlatformMix: MixRow[];
   formatMix: MixRow[];
   languageMix: MixRow[];
   themeMix: MixRow[];

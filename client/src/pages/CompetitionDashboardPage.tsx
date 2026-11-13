@@ -2,6 +2,7 @@ import { ExternalLink, Images, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CompetitionFilters } from '../features/competition/components/CompetitionFilters';
+import { MediaCompetitionPanel } from '../features/competition/components/MediaCompetitionPanel';
 import { CompetitionSourceLabel } from '../features/competition/components/CompetitionSourceLabel';
 import { useCompetitionDashboard, useCompetitionOptions } from '../features/competition/hooks/use-competition-data';
 import { competitionAssetUrl, type CompetitionFilter } from '../features/competition/services/competition-api';
@@ -55,6 +56,7 @@ export function CompetitionDashboardPage() {
     </div>
     {dashboard.isLoading || !dashboard.data ? <StateBox>Loading competition capture...</StateBox> : dashboard.isError ? <StateBox error>Competition capture could not be loaded.</StateBox> : !dashboard.data.available ? <UnavailableDashboard data={dashboard.data} /> : <>
       <CaptureBanner data={dashboard.data} onOpenGallery={() => setGalleryOpen(true)} />
+      {dashboard.data.gallery.length ? <MediaCompetitionPanel data={dashboard.data} /> : <>
       <div className="competition-grid competition-grid-two competition-mt">
         <ActivityCard data={dashboard.data} />
         <LaunchesCard data={dashboard.data} />
@@ -66,6 +68,7 @@ export function CompetitionDashboardPage() {
       </div>
       <MixCard title="Theme mix" rows={dashboard.data.themeMix} source={dashboard.data.sourceLabel} wide />
       <AdDetails data={dashboard.data} />
+      </>}
       <details className="competition-method">
         <summary>How this capture is calculated and validated</summary>
         <div className="competition-method-grid">

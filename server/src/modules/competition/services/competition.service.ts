@@ -93,7 +93,7 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
   const matchingCaptures = allCompetitorCaptures.filter((capture) => capture.captureDate.startsWith(reportingPrefix));
   const selectedCapture = filter.captureDate
     ? allCompetitorCaptures.find((capture) => capture.captureDate === filter.captureDate)
-    : matchingCaptures.at(-1);
+    : matchingCaptures.at(-1) ?? latestCompetitorCapture;
   const base = {
     sourceLabel: COMPETITION_SOURCE_LABEL,
     filter: { year, month, competitor: selectedCompetitor.id, captureDate: selectedCapture?.captureDate ?? null },
@@ -142,20 +142,24 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
       averageDaysRunning: averageDays(active),
       historicalTrend,
       firstObservedAds: firstObservedIds?.length ?? null,
+      netActiveChange: previous ? active.length - activeObservations(previous).length : null,
       noLongerObservedAds: noLongerIds?.length ?? null,
     },
     launches: {
       startedInSelectedMonth: active.filter((row) => row.startDate.startsWith(selectedPeriodPrefix)).length,
       startedOnSeptember28Or29: active.filter((row) => ['2026-09-28', '2026-09-29'].includes(row.startDate)).length,
       firstObservedAds: firstObservedIds?.length ?? null,
+      sincePreviousCapture: selectedCapture.launchesSincePreviousCapture ?? null,
       groups: [...launchCounts.entries()].map(([startDate, count]) => ({ startDate, count })).sort((left, right) => right.startDate.localeCompare(left.startDate)),
     },
+    gallery: selectedCapture.gallery ?? [],
+    campaignPlatformMix: mixBy(active, (ad) => ad.campaignPlatform ?? null),
     longestRunning: [...active]
       .sort((left, right) => right.calculatedDaysRunning - left.calculatedDaysRunning || left.libraryId.localeCompare(right.libraryId))
       .slice(0, 3),
     formatMix: mixBy(active, (row) => row.formatGroup),
     languageMix: mixBy(active, (row) => row.language),
-    themeMix: mixBy(active, (row) => row.themeGroup),
+    themeMix: selectedCapture.importedThemeMix ?? mixBy(active, (row) => row.themeGroup),
     observations: [...active].sort((left, right) => right.startDate.localeCompare(left.startDate) || left.libraryId.localeCompare(right.libraryId)),
     screenshots: selectedCapture.screenshots,
     audit: selectedCapture.audit,
@@ -165,14 +169,16 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
   };
 }
 
-function unavailableDashboard(base: Omit<CompetitionDashboard, 'available' | 'availabilityMessage' | 'activity' | 'launches' | 'longestRunning' | 'formatMix' | 'languageMix' | 'themeMix' | 'observations' | 'screenshots' | 'audit' | 'historyNote'>): CompetitionDashboard {
+function unavailableDashboard(base: Omit<CompetitionDashboard, 'available' | 'availabilityMessage' | 'activity' | 'launches' | 'longestRunning' | 'gallery' | 'campaignPlatformMix' | 'formatMix' | 'languageMix' | 'themeMix' | 'observations' | 'screenshots' | 'audit' | 'historyNote'>): CompetitionDashboard {
   return {
     ...base,
     available: false,
     availabilityMessage: 'Data not received',
-    activity: { activeAds: null, averageDaysRunning: null, historicalTrend: null, firstObservedAds: null, noLongerObservedAds: null },
-    launches: { startedInSelectedMonth: null, startedOnSeptember28Or29: null, firstObservedAds: null, groups: [] },
+    activity: { activeAds: null, averageDaysRunning: null, historicalTrend: null, firstObservedAds: null, noLongerObservedAds: null, netActiveChange: null },
+    launches: { startedInSelectedMonth: null, startedOnSeptember28Or29: null, firstObservedAds: null, sincePreviousCapture: null, groups: [] },
     longestRunning: [],
+    gallery: [],
+    campaignPlatformMix: [],
     formatMix: [],
     languageMix: [],
     themeMix: [],
@@ -184,7 +190,7 @@ function unavailableDashboard(base: Omit<CompetitionDashboard, 'available' | 'av
 }
 
 export function findCaptureAsset(competitorId: string, captureDate: string, assetFile: string): { directory: string; file: string } | null {
-  if (!/^[a-z0-9-]+$/.test(competitorId) || !/^\d{4}-\d{2}-\d{2}$/.test(captureDate) || !/^screenshot-\d+\.(png|jpe?g|webp)$/i.test(assetFile)) return null;
+  if (!/^[a-z0-9-]+$/.test(competitorId) || !/^\d{4}-\d{2}-\d{2}$/.test(captureDate) || !/^(?:screenshot-\d+|r[1-4]_[a-z0-9_]+)\.(png|jpe?g|webp)$/i.test(assetFile)) return null;
   const capture = competitionSourceDataset().captures.find((item) => item.competitorId === competitorId && item.captureDate === captureDate);
   if (!capture?.screenshots.some((screenshot) => screenshot.assetFile === assetFile)) return null;
   const sourceDirectory = resolveCompetitionAssetDirectory().replace(/\\/g, '/');

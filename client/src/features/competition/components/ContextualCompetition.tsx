@@ -6,6 +6,7 @@ import type { CompetitionDashboard, CompetitionMixRow, CompetitionScreenshot } f
 import { useCompetitionDashboard, useCompetitionOptions } from '../hooks/use-competition-data';
 import { competitionAssetUrl } from '../services/competition-api';
 import { CompetitionSourceLabel } from './CompetitionSourceLabel';
+import { MediaCompetitionPanel } from './MediaCompetitionPanel';
 import { TblReadsStrip } from '../../reads/TblReadsStrip';
 import '../../../styles/reference-competition.css';
 
@@ -118,8 +119,8 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
           : !data.available ? <UnavailableContext data={data} allDates={allDates} onSelectCapture={context.selectCapture} />
             : <>
               {data.capture.date ? <TblReadsStrip client={competitionReadsClient(context.clientId)} section="Competition" year={Number(data.capture.date.slice(0, 4))} month={Number(data.capture.date.slice(5, 7))} /> : null}
-              <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Alternative capture; page reporting period is ${formatMonth(context.year, context.month)}`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
-              {view === 'creative' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionView data={data} />}
+              <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Competition capture is independent of the ${formatMonth(context.year, context.month)} Media reporting period`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
+              {view === 'creative' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionPanel data={data} />}
             </>}
   </section>;
 }
@@ -150,36 +151,12 @@ function CreativeCompetitionView({ data }: { data: CompetitionDashboard }) {
   </>;
 }
 
-function MediaCompetitionView({ data }: { data: CompetitionDashboard }) {
-  const launches = countLabels(data.observations.map((row) => row.startDate?.slice(0, 7) ?? null));
-  const age = [
-    { label: '0-30 days', count: data.observations.filter((row) => row.calculatedDaysRunning <= 30).length },
-    { label: '31-90 days', count: data.observations.filter((row) => row.calculatedDaysRunning > 30 && row.calculatedDaysRunning <= 90).length },
-    { label: '90+ days', count: data.observations.filter((row) => row.calculatedDaysRunning > 90).length },
-  ];
-  return <>
-    <div className="competition-grid competition-grid-two competition-mt">
-      <article className="competition-card competition-summary-card"><h3>Competitor activity</h3><div className="competition-kpis"><div><strong>{formatNumber(data.activity.activeAds)}</strong><span>Active ads at capture</span></div><div><strong>{formatDecimal(data.activity.averageDaysRunning)}</strong><span>Average days running</span></div><div><strong>{data.activity.historicalTrend ? formatTrend(data.activity.historicalTrend) : 'N/A'}</strong><span>History</span></div></div><p>{data.historyNote}</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
-      <article className="competition-card competition-summary-card"><h3>Recent start-date activity</h3><div className="competition-kpis"><div><strong>{formatNumber(data.launches.startedInSelectedMonth)}</strong><span>Started during page month</span></div><div><strong>{formatNumber(data.launches.firstObservedAds)}</strong><span>First observed</span></div></div><p>Start date and first-observed date are kept separate. First-capture ads are not all labelled new.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
-    </div>
-    <section className="competition-card competition-mt"><div className="competition-card-heading"><div><h3>Longest-running ads</h3><p>Top three active ads by date-only days running. Longevity does not prove performance or profitability.</p></div></div><div className="competition-longest-grid">{data.longestRunning.map((row) => <article className="competition-activity-row" key={row.libraryId}><strong>{row.featuredBrandProduct ?? row.libraryId}</strong><dl><div><dt>Library ID</dt><dd>{row.libraryId}</dd></div><div><dt>Start date</dt><dd>{formatDate(row.startDate)}</dd></div><div><dt>Days running</dt><dd>{row.calculatedDaysRunning}</dd></div></dl><CompetitionSourceLabel value={data.sourceLabel} /></article>)}</div><CompetitionSourceLabel value={data.sourceLabel} /></section>
-    <div className="competition-grid competition-grid-two competition-mt"><article className="competition-card"><h3>Launch timeline</h3><div className="competition-launch-groups">{launches.map((row)=><div key={row.label}><span>{formatYearMonth(row.label)}</span><b>{row.count} ads</b></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></article><article className="competition-card"><h3>Age profile</h3><div className="competition-launch-groups">{age.map((row)=><div key={row.label}><span>{row.label}</span><b>{row.count} ads</b></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></article></div>
-    <div className="competition-grid competition-grid-two competition-mt"><MixCard title="Theme mix" rows={data.themeMix} source={data.sourceLabel} /></div>
-    <MediaDetailTable data={data} />
-  </>;
-}
-
 function MixCard({ title, rows, source }: { title: string; rows: CompetitionMixRow[]; source: string }) {
   return <article className="competition-card competition-mix-card"><h3>{title}</h3><div className="competition-mix-list">{rows.length ? rows.map((row) => <div key={row.label}><div className="competition-mix-copy"><span>{row.label}</span><strong>{row.count} <small>({formatPercent(row.percentage)})</small></strong></div><div className="competition-mix-track"><span style={{ width: `${row.percentage * 100}%` }} /></div></div>) : <div className="competition-empty">Data not available</div>}</div><CompetitionSourceLabel value={source} /></article>;
 }
 
 function CreativeDetailTable({ data }: { data: CompetitionDashboard }) {
   return <section className="competition-card competition-details competition-mt"><div className="competition-card-heading"><div><h3>Creative detail</h3><p>Original analyst labels remain unchanged.</p></div></div><div className="competition-table-wrap"><table><thead><tr><th>Library ID</th><th>Start date</th><th>Format</th><th>Theme</th><th>Language</th><th>Featured brand / product</th><th>Ad text</th><th>Destination</th></tr></thead><tbody>{data.observations.map((row) => <tr key={row.libraryId}><td>{row.libraryId}</td><td>{formatDate(row.startDate)}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td><td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> Open</a> : 'N/A'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel} /></section>;
-}
-
-function MediaDetailTable({ data }: { data: CompetitionDashboard }) {
-  const themes=[...new Set(data.observations.map((row)=>row.theme??'N/A'))].sort();
-  return <section className="competition-card competition-details competition-mt"><div className="competition-card-heading"><div><h3>Activity detail</h3><p>Grouped by analyst theme. Library IDs are counted once within this capture.</p></div></div>{themes.map((theme)=>{ const rows=data.observations.filter((row)=>(row.theme??'N/A')===theme); return <div className="competition-theme-group" key={theme}><h4>{theme} &mdash; {rows.length} ads</h4><div className="competition-table-wrap"><table><thead><tr><th>Start date</th><th>Format</th><th>Platforms</th><th className="num">Days</th><th>Status</th><th>Featured brand / product</th><th>Library ID</th></tr></thead><tbody>{rows.map((row) => <tr key={row.libraryId}><td>{formatDate(row.startDate)}</td><td>{row.format}</td><td>{row.platforms}</td><td className="num">{row.calculatedDaysRunning}</td><td>{row.status}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-library-id">{row.libraryId}</td></tr>)}</tbody></table></div></div>;})}<CompetitionSourceLabel value={data.sourceLabel} /></section>;
 }
 
 function CompetitionImage({ screenshot, label }: { screenshot: CompetitionScreenshot; label: string }) {
@@ -203,10 +180,8 @@ function countLabels(values: Array<string | null>): Array<{ label: string; count
 }
 
 function formatDate(value: string | null): string { return value ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) : 'N/A'; }
-function formatYearMonth(value: string): string { const [year, month] = value.split('-').map(Number); return year && month ? new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1))) : value; }
 function formatMonth(year?: number, month?: number): string { return year && month ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1))) : 'the selected page period'; }
 function formatNumber(value: number | null): string { return value == null ? 'N/A' : value.toLocaleString('en-US'); }
 function formatDecimal(value: number | null): string { return value == null ? 'N/A' : value.toFixed(1); }
 function formatPercent(value: number): string { return `${(value * 100).toFixed(0)}%`; }
-function formatTrend(rows: Array<{ activeAds: number }>): string { if (rows.length < 2) return 'N/A'; const delta = (rows.at(-1)?.activeAds ?? 0) - (rows.at(-2)?.activeAds ?? 0); return `${delta > 0 ? '+' : ''}${delta}`; }
 function competitionReadsClient(clientId: string): string { return clientId === 'union-coop' ? 'Union Coop' : 'Rivoli'; }

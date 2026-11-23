@@ -92,3 +92,28 @@ body,.app-shell,.reference-shell,.reference-wrap { background:var(--v2-paper) !i
 .app-shell .consumer-page .consumer-card strong,.app-shell .consumer-page .consumer-panel h3 {color:var(--v2-ink) !important;}
 .app-shell .consumer-page .consumer-period span {color:var(--v2-amber) !important;}
 @media(max-width:640px){.v2-client-heading{align-items:stretch;gap:8px}.v2-union-media .reference-media-heading{align-items:stretch;gap:12px}}
+
+/* Missing months remain physical gaps, rather than disappearing from trends. */
+.v2-sparkbars i.missing { background:transparent !important; border:1px dashed var(--v2-line); opacity:.5; height:3px !important; }
+.media-cost-overview { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+@media(max-width:800px){.media-cost-overview{grid-template-columns:1fr !important;}}
+
+/* V2 shared light tokens also apply to legacy Media Import and secondary screens. */
+:root {
+  color-scheme: light;
+  --bg:#F2F2EF; --card:#FFFFFF; --card-2:#F8F8F6;
+  --line:#E2E2DE; --ink:#141413; --muted:#5A646E;
+  --accent:#141413; --accent-2:#5A646E;
+  --good:#1E8E5A; --bad:#C2362B; --warn:#B45309; --radius:6px;
+}
+.app-shell .positive, .app-shell .v2-delta.positive { color:var(--v2-up) !important; }
+.app-shell .negative, .app-shell .v2-delta.negative { color:var(--v2-down) !important; }
+.app-shell .status-verified, .app-shell .status-complete, .app-shell .status-derived,
+.app-shell .status-platform-claimed { color:var(--v2-muted); background:var(--v2-paper); border-color:var(--v2-line); }
+.app-shell .status-unavailable, .app-shell .status-partial,
+.app-shell .status-directional, .app-shell .status-provisional { color:var(--v2-amber); background:#FCF8F1; border-color:#E6D8BE; }
+.app-shell .period-filters select, .app-shell .campaign-controls select {
+  background-color:#fff; color:var(--v2-ink); border-color:var(--v2-line); color-scheme:light;
+}
+.app-shell .period-filters select:focus, .app-shell .campaign-controls select:focus { border-color:var(--v2-ink); background-color:#fff; box-shadow:0 0 0 2px #E2E2DE; }
+.app-shell .period-filters select option, .app-shell .campaign-controls select option {background:#fff;color:var(--v2-ink);}

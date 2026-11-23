@@ -6,6 +6,13 @@ const editFormatGroups: Record<string, string> = {
   image: 'Image',
   'image (product tile)': 'Image',
   'catalog / carousel': 'Catalog / carousel',
+  'search rsa': 'Search',
+  'search template': 'Search',
+  'local pin': 'Local/Maps',
+  'local list ad': 'Local/Maps',
+  'local template': 'Local/Maps',
+  'shopping': 'Shopping',
+  'display': 'Display',
 };
 
 export const competitionConfigs: CompetitionConfig[] = [

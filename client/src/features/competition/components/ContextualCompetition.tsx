@@ -7,7 +7,6 @@ import { useCompetitionDashboard, useCompetitionOptions } from '../hooks/use-com
 import { competitionAssetUrl } from '../services/competition-api';
 import { CompetitionSourceLabel } from './CompetitionSourceLabel';
 import { MediaCompetitionPanel } from './MediaCompetitionPanel';
-import { TblReadsStrip } from '../../reads/TblReadsStrip';
 import '../../../styles/reference-competition.css';
 
 export type CompetitionContextView = 'creative' | 'media';
@@ -109,7 +108,7 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
   const showCaptureSelector = allDates.length > 1 || Boolean(data && !data.available && allDates.length);
   return <section className="competition-context-panel competition-mt" aria-label={`${view === 'creative' ? 'Creative' : 'Media'} Competition context`}>
     <div className="competition-context-heading">
-      <div><h3>{view === 'creative' ? 'Creative Competition' : 'Media Competition'}</h3><p>{data?.competitor.label ?? 'Selected competitor'}{data?.competitor.metaPage ? ` · Meta page ${data.competitor.metaPage}` : ''}</p></div>
+      <div><h3>{view === 'creative' ? 'Creative Competition' : 'Media Competition'}</h3><p>{data?.competitor.label ?? 'Selected competitor'}{context.channel === 'Meta' && data?.competitor.metaPage ? ` · Meta page ${data.competitor.metaPage}` : ''}</p></div>
       <div className="competition-context-actions">
         {context.clientId === 'rivoli-shop' ? <div className="v2-channel-switch" role="group" aria-label="Competition capture channel">
           <button type="button" className={context.channel==='Meta'?'selected':''} aria-pressed={context.channel==='Meta'} onClick={()=>context.selectChannel('Meta')}>Meta</button>
@@ -128,7 +127,7 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
         : !data ? <CompetitionState>Choose a competitor.</CompetitionState>
           : !data.available ? <UnavailableContext data={data} allDates={allDates} onSelectCapture={context.selectCapture} />
             : <>
-              {data.signedHighlights?.length ? <div className="v2-competition-highlights"><strong>Highlights this month · {data.capture.date?.slice(0,7)}</strong>{data.signedHighlights.map((line,i)=><p key={i}>{line}</p>)}</div> : data.capture.date ? <TblReadsStrip client={competitionReadsClient(context.clientId)} section="Competition" year={Number(data.capture.date.slice(0, 4))} month={Number(data.capture.date.slice(5, 7))} /> : null}
+              {data.signedHighlights?.length ? <div className="v2-competition-highlights"><strong>Highlights this month · {data.capture.date?.slice(0,7)}</strong>{data.signedHighlights.map((line,i)=><p key={i}>{line}</p>)}</div> : null}
               <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Competition capture is independent of the ${formatMonth(context.year, context.month)} Media reporting period`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
               {view === 'creative' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionPanel data={data} />}
             </>}
@@ -194,4 +193,3 @@ function formatMonth(year?: number, month?: number): string { return year && mon
 function formatNumber(value: number | null): string { return value == null ? 'N/A' : value.toLocaleString('en-US'); }
 function formatDecimal(value: number | null): string { return value == null ? 'N/A' : value.toFixed(1); }
 function formatPercent(value: number): string { return `${(value * 100).toFixed(0)}%`; }
-function competitionReadsClient(clientId: string): string { return clientId === 'union-coop' ? 'Union Coop' : 'Rivoli'; }

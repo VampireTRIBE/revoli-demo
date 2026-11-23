@@ -25,7 +25,11 @@ export function AppLayout() {
   const isCreative = location.pathname.startsWith('/creative');
   const isGeo = location.pathname.startsWith('/search');
   const isConsumer = location.pathname.startsWith('/consumer');
-  const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
+  const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'souq-al-haraj': 'Souq Al Haraj', 'souq-al-jubail': 'Souq Al Jubail', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
+  const requestedClient = searchParams.get('client');
+  const consumerClient = requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
+  const mediaClient = requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
+  const displayedClient = isCreative ? creativeClient : isGeo ? 'Union Coop' : isConsumer ? consumerClient : mediaClient;
   const [openedAt] = useState(() => new Date().toLocaleString('en-US'));
 
   return <div className="app-shell reference-shell">
@@ -34,7 +38,7 @@ export function AppLayout() {
         <NavLink to="/media" className="reference-logo" aria-label="Open Media dashboard"><GpLogo /></NavLink>
         <div>
           <h1>The GP Inc. Bizcom Engine <span className="reference-badge live">PROOF OF CONCEPT</span></h1>
-          <div className="reference-sub">Client: <strong>{isCreative ? creativeClient : isGeo ? 'Union Coop' : 'Rivoli'}</strong> {isCreative ? 'Uploaded creative data' : isGeo ? 'Imported CLEO market data' : isConsumer ? 'Imported consumer data' : 'Imported media data'} &middot; opened {openedAt}</div>
+          <div className="reference-sub">Client: <strong>{displayedClient}</strong> {isCreative ? 'Uploaded creative data' : isGeo ? 'Imported CLEO market data' : isConsumer ? 'Imported consumer data' : 'Imported media data'} &middot; opened {openedAt}</div>
         </div>
       </header>
 

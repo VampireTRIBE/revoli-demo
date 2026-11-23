@@ -1,3 +1,13 @@
+# November 23, 2026 source update
+
+This project now includes the approved EDIT Google Ads Transparency Center capture in `spreadsheets data/compititaion-tab/`. Select Rivoli > Competition > EDIT > Google to view the **30 logged creatives**, four sample format groups, verified payer distribution and **approximately 200 Google-reported ads** as a separate population figure. The new capture does not include ad Library IDs, exact starts, or signed Highlights.
+
+The latest changes also correct Media objective inference, mislabeled new-customer CAC, selected-client header text, missing-period spark bars, duplicated pending Highlights and selected KPI animations. See `docs/BIZCOM_NOV23_IMPLEMENTATION_AND_ACCURACY.md`, `docs/BIZCOM_NOV23_REQUIREMENT_STATUS.md` and `docs/BIZCOM_NOV23_TEST_RESULTS.md`.
+
+**Compilation and browser runtime are not certified:** npm dependencies could not be installed in the execution environment. Run `npm ci`, `npm test`, `npm run lint`, and `npm run build` locally before deployment.
+
+---
+
 # BizCom Engine Analytics
 
 BizCom Engine Media Analytics is a source-backed monthly media reporting application for Rivoli. It imports the agreed Excel or ZIP package, validates and normalizes the data, reconciles important totals, stores imported history in MongoDB, calculates supported analytics on the server, and presents them through a responsive React dashboard.

@@ -11,6 +11,7 @@ import { useCreativeDashboard, useCreativeOptions } from '../features/creative/h
 import { CompetitionDropdown, ContextualCompetitionPanel, useContextualCompetition } from '../features/competition/components/ContextualCompetition';
 import { TblReadsStrip } from '../features/reads/TblReadsStrip';
 import { DeltaLine, SectionAnatomy, SparkBars } from '../components/v2/Reporting';
+import { CountUpValue } from '../components/v2/CountUpValue';
 import { CleoMarketPanel } from '../features/creative/cleo/CleoMarketPanel';
 import type { CreativeDashboard } from '../types/creative';
 import '../styles/reference-creative.css';
@@ -278,7 +279,7 @@ function MetaPaid({ data }: { data: CreativeDashboard }) {
 }
 
 function CreativeSourceMetric({ label, value, detail }: { label: string; value: string; detail?: string }) {
-  return <div className="creative-card creative-paid-source"><span>{label}</span><strong>{value}</strong>{detail ? <small>{detail}</small> : null}</div>;
+  return <div className="creative-card creative-paid-source"><span>{label}</span><strong><CountUpValue value={value}/></strong>{detail ? <small>{detail}</small> : null}</div>;
 }
 
 function MetaUnavailable({ message }: { message: string }) {

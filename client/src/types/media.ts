@@ -49,7 +49,7 @@ export interface Periods {
 }
 export interface PlatformData { platforms: { platform: string; spend: number | null; spendShare: number | null; impressions: number | null; interactions: number | null; clicks: number | null; ctr: number | null; ctrLabel: string; platformClaims: number | null; claimShare: number | null; claimedCac: number | null; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL' | 'UNAVAILABLE'; roasBasis: string }[]; metadata: Metadata }
 export interface Campaign {
-  platform: string; campaign: string; brand: string; brandScope: string; segment: string; stage: string; campaignType: string; mappingSource: string; confidence: string; spend: number; claims?: number; impressions?: number; interactions?: number; clicks?: number; calculationBasis?: string; ctr: number | null; ctrLabel: string; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL' | 'UNAVAILABLE'; roasBasis: string;
+  platform: string; campaign: string; brand: string; brandScope: string; segment: string; stage: string; campaignType: string; objective?: 'Conversion' | 'Traffic' | 'Awareness' | null; mappingSource: string; confidence: string; spend: number; claims?: number; impressions?: number; interactions?: number; clicks?: number; calculationBasis?: string; ctr: number | null; ctrLabel: string; directionalRevenue: number | null; roas: number | null; roasStatus: 'DIRECTIONAL' | 'UNAVAILABLE'; roasBasis: string;
 }
 export interface CampaignData {
   campaigns: Campaign[];

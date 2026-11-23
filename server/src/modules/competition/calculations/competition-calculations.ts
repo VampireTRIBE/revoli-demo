@@ -25,7 +25,11 @@ export function mixBy<T>(rows: T[], selector: (row: T) => string | null): MixRow
 export function activeObservations(capture: CompetitionCapture): CompetitionObservation[] {
   const unique = new Map<string, CompetitionObservation>();
   for (const row of capture.observations) {
-    if (row.status.trim().toLowerCase() === 'active' && !unique.has(row.libraryId)) unique.set(row.libraryId, row);
+    // Google Transparency Center captures are logged samples. An overview card
+    // does not expose an Active status, so include observed records without
+    // making any claim that they are active in the wider reported population.
+    const inCapture = capture.channel === 'Google' || row.status.trim().toLowerCase() === 'active';
+    if (inCapture && !unique.has(row.libraryId)) unique.set(row.libraryId, row);
   }
   return [...unique.values()];
 }

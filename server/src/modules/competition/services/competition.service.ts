@@ -134,7 +134,10 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     : null;
   const selectedPeriodPrefix = reportingPrefix;
   const launchCounts = new Map<string, number>();
-  for (const row of active) launchCounts.set(row.startDate, (launchCounts.get(row.startDate) ?? 0) + 1);
+  for (const row of active) {
+    if (row.startDateAvailable === false) continue; // Google overview has no per-ad start date.
+    launchCounts.set(row.startDate, (launchCounts.get(row.startDate) ?? 0) + 1);
+  }
 
   return {
     ...base,
@@ -152,8 +155,8 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
       noLongerObservedAds: selectedChannel === 'Google' ? null : noLongerIds?.length ?? null,
     },
     launches: {
-      startedInSelectedMonth: active.filter((row) => row.startDate.startsWith(selectedPeriodPrefix)).length,
-      startedOnSeptember28Or29: active.filter((row) => ['2026-09-28', '2026-09-29'].includes(row.startDate)).length,
+      startedInSelectedMonth: selectedChannel === 'Google' ? null : active.filter((row) => row.startDateAvailable !== false && row.startDate.startsWith(selectedPeriodPrefix)).length,
+      startedOnSeptember28Or29: selectedChannel === 'Google' ? null : active.filter((row) => ['2026-09-28', '2026-09-29'].includes(row.startDate)).length,
       firstObservedAds: selectedChannel === 'Google' ? null : firstObservedIds?.length ?? null,
       sincePreviousCapture: selectedChannel === 'Google' ? null : selectedCapture.launchesSincePreviousCapture ?? null,
       groups: [...launchCounts.entries()].map(([startDate, count]) => ({ startDate, count })).sort((left, right) => right.startDate.localeCompare(left.startDate)),

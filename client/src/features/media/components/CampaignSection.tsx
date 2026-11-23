@@ -7,13 +7,10 @@ import { EmptyState, ErrorState } from './StateCard';
 import { LoadingSkeleton } from './LoadingSkeleton';
 
 type Objective = 'Conversion' | 'Traffic' | 'Awareness' | 'Not supplied';
-/** No objective is inferred from the campaign's outcome: it must be documented by the imported type. */
+/** Business objective must be an approved imported field, never inferred from naming. */
 function objective(row: Campaign): Objective {
-  const field = `${row.campaignType} ${row.stage}`.toLowerCase();
-  if (/conversions?|purchase(s)?|sales|acquisition/.test(field)) return 'Conversion';
-  if (/traffic|visits|clicks|landing page/.test(field)) return 'Traffic';
-  if (/awareness|views|reach|impressions|video views/.test(field)) return 'Awareness';
-  return 'Not supplied';
+  return row.objective === 'Conversion' || row.objective === 'Traffic' || row.objective === 'Awareness'
+    ? row.objective : 'Not supplied';
 }
 function cost(row:Campaign, category:Objective): number | null {
   if(category==='Conversion') return row.claims!=null&&row.claims>0 ? row.spend/row.claims : null;

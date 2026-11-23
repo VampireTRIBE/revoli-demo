@@ -57,7 +57,7 @@ function reportedPopulation(book:XLSX.WorkBook):number|null {
   if(!sheet)return null;
   const cells=XLSX.utils.sheet_to_json<unknown[]>(sheet,{header:1,defval:'',raw:false}).flat().map(text).join(' ');
   const expressions=[
-    /google\s+reports?\s*(?:approximately|about|around)?\s*[~≈]?\s*(\d[\d,]*)\s+ads/i,
+    /(?:google|transparency\s+center)\s+reports?\s*(?:approximately|about|around)?\s*[~≈]?\s*(\d[\d,]*)\s+ads/i,
     /reported\s+(?:ads|total|population|count)\s*[:=]?\s*[~≈]?\s*(\d[\d,]*)/i,
     /[~≈]\s*(\d[\d,]*)\s+reported\s+(?:ads|creatives)/i,
   ];
@@ -125,8 +125,8 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
         suppliedDaysRunning:suppliedDays,calculatedDaysRunning:calculatedDays,daysRunningDiscrepancy:start&&suppliedDays!=null?calculatedDays!==suppliedDays:false,
         status:get(r,'Status')||'(not captured)',platforms:get(r,'Platforms','Surface','Google surface')||'not captured',format,formatGroup:groupCompetitionFormat(config,format),
         theme:theme||null,themeGroup:groupCompetitionTheme(config,theme||null),featuredBrandProduct:get(r,'Featured brand / product','Brand','Product')||null,
-        adText:get(r,'Ad text (short)','Ad text')||null,clickDestination:get(r,'Click destination','Destination')||null,language:get(r,'Language')||null,
-        screenshotRef:get(r,'Screenshot ref','Screenshot batch')||null,screenshot:null,payerVerified:get(r,'Payer (verified)','Verified payer')||null,
+        adText:get(r,'Ad text (short)','Creative / copy (short)','Ad text')||null,clickDestination:get(r,'Click destination','Destination')||null,language:get(r,'Language')||null,
+        screenshotRef:get(r,'Screenshot ref','Screenshot batch','Shot')||null,screenshot:null,payerVerified:get(r,'Payer (verified)','Verified payer')||null,
         newSincePreviousCapture:/^yes$/i.test(newFlag),sourceFile:filename,sourceSheet:sheetName,sourceRow:index+2});
     }
     if(!observations.length)continue;

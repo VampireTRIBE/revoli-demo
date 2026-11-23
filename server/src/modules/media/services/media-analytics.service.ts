@@ -300,6 +300,8 @@ function aggregateCampaignRows(rows: CampaignRecord[]): CampaignRecord[] {
       month: current.month === row.month ? current.month : undefined,
       periodKey: current.periodKey === row.periodKey ? current.periodKey : undefined,
       spend: current.spend + row.spend,
+      // An aggregate with conflicting or absent approved objectives is not ranked.
+      objective: current.objective && current.objective === row.objective ? current.objective : null,
       claims: addOptional(current.claims, row.claims),
       impressions: addOptional(current.impressions, row.impressions),
       interactions: addOptional(current.interactions, row.interactions),

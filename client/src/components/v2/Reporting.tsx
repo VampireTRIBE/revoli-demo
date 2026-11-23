@@ -24,11 +24,18 @@ export function SectionAnatomy({number,label,question,definition,children,client
     {source ? <p className="v2-section-source">{source}</p> : null}
   </section>;
 }
-export function SparkBars({values}: {values:number[]}) {
-  if(values.length < 2)return null;
-  const recent=values.slice(-8).filter(Number.isFinite);
-  const top=Math.max(1,...recent.map((v)=>Math.max(0,v)));
-  return <div className="v2-sparkbars" title={`${recent.length} actual available reporting periods`} aria-hidden="true">{recent.map((v,i)=><i key={i} className={i===recent.length-1?'current':''} style={{height:`${Math.max(3,Math.round(Math.max(0,v)/top*100))}%`}}/>)}</div>;
+export function SparkBars({values}: {values:Array<number|null|undefined>}) {
+  // Preserve period positions. Filtering missing values would falsely connect
+  // separated observations and suggest data existed for a missing month.
+  const recent=values.slice(-8);
+  const actual=recent.filter((v):v is number=>v!=null&&Number.isFinite(v));
+  if(actual.length<2)return null;
+  const top=Math.max(1,...actual.map((v)=>Math.max(0,v)));
+  const lastActual=recent.reduce((index,v,i)=>v!=null&&Number.isFinite(v)?i:index,-1);
+  return <div className="v2-sparkbars" title={`${actual.length} verified periods; blank positions indicate missing observations`} aria-hidden="true">{recent.map((v,i)=>
+    v==null||!Number.isFinite(v) ? <i key={i} className="missing"/> :
+    <i key={i} className={i===lastActual?'current':''} style={{height:`${Math.max(3,Math.round(Math.max(0,v)/top*100))}%`}}/>
+  )}</div>;
 }
 export function DeltaLine({previous,current,period,partial=false,kind='relative'}:{previous:number|null;current:number|null;period:string;partial?:boolean;kind?:'relative'|'points'}) {
   if(partial||previous==null||current==null||!Number.isFinite(previous)||!Number.isFinite(current)||(kind==='relative'&&previous===0))return null;

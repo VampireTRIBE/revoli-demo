@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import '../styles/header.css';
 
-const scoreTabs = ['Tech', 'UI/UX', 'SEO'];
+
 
 function GpLogo() {
   return <svg viewBox="0 0 200 200" role="img" aria-label="The GP Inc. logo">
@@ -23,7 +23,7 @@ export function AppLayout() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const isCreative = location.pathname.startsWith('/creative');
-  const isGeo = location.pathname.startsWith('/geo');
+  const isGeo = location.pathname.startsWith('/search');
   const isConsumer = location.pathname.startsWith('/consumer');
   const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
   const [openedAt] = useState(() => new Date().toLocaleString('en-US'));
@@ -39,13 +39,8 @@ export function AppLayout() {
       </header>
 
       <nav className="reference-tabs" aria-label="BizCom Engine modules">
-        <button type="button" className="reference-tab" disabled>Overview</button>
-        {scoreTabs.map((tab) => <button type="button" className="reference-tab" disabled key={tab}><span>{tab}</span><span className="reference-pill">&ndash;</span></button>)}
-        <NavLink end to="/creative" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Creative</span></NavLink>
-        <NavLink end to="/geo" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>GEO</span></NavLink>
-        <NavLink end to="/media" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Media</span></NavLink>
-        <NavLink end to="/consumer" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Consumer</span></NavLink>
-        <button type="button" className="reference-tab" disabled>Business</button>
+        {[['Overview', '/overview'], ['Tech','/tech'], ['UI/UX','/ui-ux'], ['Search','/search'], ['Creative','/creative'], ['Media','/media'], ['Consumer','/consumer'], ['Business','/business']].map(([label, to]) =>
+          <NavLink key={to} to={to} className={({isActive}) => `reference-tab${isActive ? ' active' : ''}`}><span>{label}</span></NavLink>)}
       </nav>
 
       <main><Outlet /></main>

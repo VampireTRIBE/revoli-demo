@@ -39,6 +39,9 @@ export interface CompetitionObservation {
   newSincePreviousCapture?: boolean;
   offerCode?: string | null;
   celebrity?: string | null;
+  channel?: 'Meta' | 'Google';
+  startDateAvailable?: boolean;
+  payerVerified?: string | null;
   sourceFile: string;
   sourceSheet: string;
   sourceRow: number;
@@ -53,7 +56,10 @@ export interface CompetitionOptions {
 export interface CompetitionDashboard {
   available: boolean;
   availabilityMessage: 'Data not received' | null;
-  sourceLabel: 'Source: Meta Ad Library. Activity, not spend.';
+  sourceLabel: string;
+  channel: 'Meta' | 'Google';
+  sample: { logged: number; reported: number | null; sampleOnly: boolean } | null;
+  signedHighlights: string[];
   filter: { year: number; month: number; competitor: string; captureDate: string | null };
   competitor: { id: string; label: string; clientId: string; clientLabel: string; metaPage: string; website: string | null };
   capture: { date: string | null; availableDates: string[]; allAvailableDates: string[]; matchesReportingPeriod: boolean; sourceFile: string | null; firstCapture: boolean };

@@ -1,0 +1,33 @@
+{
+  "modified": [
+    "client/src/App.tsx",
+    "client/src/features/competition/components/ContextualCompetition.tsx",
+    "client/src/features/competition/components/MediaCompetitionPanel.tsx",
+    "client/src/features/competition/services/competition-api.ts",
+    "client/src/features/media/components/CampaignSection.tsx",
+    "client/src/features/media/components/MediaConsumerAlignment.tsx",
+    "client/src/layouts/AppLayout.tsx",
+    "client/src/main.tsx",
+    "client/src/pages/ConsumerDashboardPage.tsx",
+    "client/src/pages/CreativeDashboardPage.tsx",
+    "client/src/pages/MediaDashboardPage.tsx",
+    "client/src/types/competition.ts",
+    "server/src/modules/competition/controllers/competition.controller.ts",
+    "server/src/modules/competition/import/competition-source-parser.ts",
+    "server/src/modules/competition/services/competition.service.ts",
+    "server/src/modules/competition/types/competition.types.ts",
+    "server/src/modules/reads/services/reads.service.ts"
+  ],
+  "added": [
+    "client/src/components/v2/Reporting.tsx",
+    "client/src/pages/PlaceholderPage.tsx",
+    "client/src/pages/SearchDashboardPage.tsx",
+    "client/src/styles/bizcom-v2.css",
+    "docs/BIZCOM_ENGINE_V2_SOURCE_VALIDATION.json",
+    "docs/requirements/REFERENCE_FILES.md",
+    "scripts/__pycache__/verify_bizcom_sources.cpython-313.pyc",
+    "scripts/verify_bizcom_sources.py",
+    "server/src/modules/competition/import/capture-v2-parser.ts",
+    "server/tests/competition-v2-import.test.ts"
+  ]
+}

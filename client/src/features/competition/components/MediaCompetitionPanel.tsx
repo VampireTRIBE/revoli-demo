@@ -41,29 +41,19 @@ export function MediaCompetitionPanel({ data }: { data: CompetitionDashboard }) 
   const current = data.activity.historicalTrend?.at(-1);
   const previous = data.activity.historicalTrend?.at(-2);
   const hasHistory = Boolean(current && previous);
-  const age = [
+  const age = data.channel === 'Google' ? [] : [
     { label: '0–30 days', count: data.observations.filter((ad) => ad.calculatedDaysRunning <= 30).length },
     { label: '31–90 days', count: data.observations.filter((ad) => ad.calculatedDaysRunning > 30 && ad.calculatedDaysRunning <= 90).length },
     { label: '90+ days', count: data.observations.filter((ad) => ad.calculatedDaysRunning > 90).length },
   ];
   const launchWaves = useMemo((): Array<[string, number]> => {
-    if (data.launches.sincePreviousCapture != null) {
-      // The dates and three waves are specified by the analyst's Delta vs Capture 1 sheet.
-      // Counts are always derived from the register's approved new-since-capture flags.
-      const waves = [
-        { label: '27–28 Oct · brand films and jewellery', dates: ['2026-10-27', '2026-10-28'] },
-        { label: '30 Oct · GUESS, Gc and Movado', dates: ['2026-10-30'] },
-        { label: '2 Nov · Diwali and product launches', dates: ['2026-11-02'] },
-      ];
-      return waves.map((wave): [string, number] => [wave.label, data.observations.filter((ad) => ad.newSincePreviousCapture && wave.dates.includes(ad.startDate)).length]);
-    }
-    const months = new Map<string, number>();
+    const days = new Map<string, number>();
     for (const ad of data.observations) {
-      const key = ad.startDate.slice(0, 7);
-      months.set(key, (months.get(key) ?? 0) + 1);
+      if (ad.startDateAvailable === false) continue;
+      days.set(ad.startDate,(days.get(ad.startDate)??0)+1);
     }
-    return [...months.entries()].sort(([a], [b]) => b.localeCompare(a));
-  }, [data.observations, data.launches.sincePreviousCapture]);
+    return [...days.entries()].sort(([a],[b])=>a.localeCompare(b));
+  }, [data.observations]);
   const options = (values: Array<string | null | undefined>) => [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
   const filtered = data.observations.filter((ad) => {
     const query = search.trim().toLowerCase();
@@ -82,18 +72,19 @@ export function MediaCompetitionPanel({ data }: { data: CompetitionDashboard }) 
   const maxTheme = Math.max(1, ...data.themeMix.map((entry) => entry.count));
   const campaignCount = data.campaignPlatformMix.reduce((sum, entry) => sum + entry.count, 0);
   return <div className="media-competition-v2">
-    <div className="media-comp-kpis" aria-label="EDIT competitor capture statistics">
-      <article className="media-comp-card"><span>Active ads at capture</span><strong>{number(data.activity.activeAds)}</strong><small>{hasHistory ? `${number(previous!.activeAds)} on ${formatDate(previous!.captureDate)} · net ${data.activity.netActiveChange != null && data.activity.netActiveChange > 0 ? '+' : ''}${number(data.activity.netActiveChange)}` : 'First available capture'}</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
+    <div className="media-comp-kpis" aria-label={`${data.competitor.label} ${data.channel} competitor capture statistics` }>
+      <article className="media-comp-card"><span>{data.channel === 'Google' ? 'Creatives logged in sample' : 'Active ads at capture'}</span><strong>{number(data.channel === 'Google' ? data.sample?.logged ?? null : data.activity.activeAds)}</strong><small>{hasHistory ? `${number(previous!.activeAds)} on ${formatDate(previous!.captureDate)} · net ${data.activity.netActiveChange != null && data.activity.netActiveChange > 0 ? '+' : ''}${number(data.activity.netActiveChange)}` : 'First available capture'}</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
       <article className="media-comp-card"><span>Started since last capture</span><strong>{number(data.launches.sincePreviousCapture)}</strong><small>{data.launches.sincePreviousCapture == null ? 'n/a (no approved launch comparison)' : 'Analyst-marked launches, not net active change'}</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
-      <article className="media-comp-card"><span>Average days running</span><strong>{data.activity.averageDaysRunning == null ? 'n/a' : data.activity.averageDaysRunning.toFixed(1)}</strong><small>Active Library IDs only</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
-      <article className="media-comp-card"><span>Longest running</span><strong>{data.longestRunning.length ? Math.max(...data.longestRunning.map((ad) => ad.calculatedDaysRunning)) : 'n/a'} <small>days</small></strong><small>Longevity is an activity signal, not performance</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
+      <article className="media-comp-card"><span>Average days running</span><strong>{data.activity.averageDaysRunning == null ? 'n/a' : data.activity.averageDaysRunning.toFixed(1)}</strong><small>{data.channel === 'Google' ? 'Not captured by Google sample' : 'Active Library IDs only'}</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
+      <article className="media-comp-card"><span>Longest running</span><strong>{data.longestRunning.length ? Math.max(...data.longestRunning.map((ad) => ad.calculatedDaysRunning)) : 'n/a'} <small>days</small></strong><small>{data.channel === 'Google' ? 'Per-ad start dates not supplied' : 'Longevity is an activity signal, not performance'}</small><CompetitionSourceLabel value={data.sourceLabel} /></article>
     </div>
+    {data.channel === 'Google' && data.sample?.sampleOnly ? <div className="v2-search-await"><span className="v2-awaiting-dot"/><span>Google capture is a logged sample{data.sample.reported != null ? `: ${data.sample.logged} logged from ${data.sample.reported} reported` : `: ${data.sample.logged} logged, reported population unverified`}. Sample statistics are not population metrics.</span></div> : null}
     <div className="media-comp-split">
       <section className="media-comp-card"><h3>History · active ads by capture</h3>{data.activity.historicalTrend?.length ? <div className="media-comp-history">{data.activity.historicalTrend.map((entry) => <div key={entry.captureDate}><span>{formatDate(entry.captureDate)}</span><b>{entry.activeAds} ads</b><div className="media-comp-bar"><i style={{width: `${100 * entry.activeAds / Math.max(1,...(data.activity.historicalTrend ?? []).map((row) => row.activeAds))}%`}}/></div></div>)}</div> : <p className="media-comp-muted">Historical comparison requires a second capture.</p>}<CompetitionSourceLabel value={data.sourceLabel}/></section>
-      <section className="media-comp-card"><h3>Age profile</h3><div className="media-comp-history">{age.map((entry) => <div key={entry.label}><span>{entry.label}</span><b>{entry.count} ads</b><div className="media-comp-bar"><i style={{width:`${entry.count / maxAge * 100}%`}} /></div></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></section>
+      {data.channel === 'Meta' ? <section className="media-comp-card"><h3>Age profile</h3><div className="media-comp-history">{age.map((entry) => <div key={entry.label}><span>{entry.label}</span><b>{entry.count} ads</b><div className="media-comp-bar"><i style={{width:`${entry.count / maxAge * 100}%`}} /></div></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></section> : <section className="media-comp-card"><h3>Capture scope</h3><p>{data.sample?.reported == null ? `${data.sample?.logged ?? 0} logged records (sample). Reported total: n/a (not verified in import).` : `${data.sample.reported} reported by Google; ${data.sample.logged} logged in sample.`}</p><CompetitionSourceLabel value={data.sourceLabel}/></section>}
     </div>
     {data.gallery.length ? <section className="media-comp-wall" aria-label="The competitor's wall">
-      <div className="media-comp-wall-header"><h3>The competitor's wall</h3><p>Analyst's selection of {data.gallery.length} from {number(data.activity.activeAds)} active ads. Source: Meta Ad Library. Activity, not spend - performance is not knowable.</p></div>
+      <div className="media-comp-wall-header"><h3>The competitor's wall</h3><p>Analyst's selection of {data.gallery.length} from {number(data.activity.activeAds)} active ads. {data.sourceLabel} Performance is not knowable.</p></div>
       {[1,2,3,4].map((rowNumber) => <div className="media-comp-wall-row" key={rowNumber}>
         <h4>{group[rowNumber]?.[0]?.title ?? `Gallery row ${rowNumber}`} <small>{group[rowNumber]?.length ?? 0} ads</small></h4>
         <div className="media-comp-wall-grid">{(group[rowNumber] ?? []).map((entry) => <article className="media-comp-wall-item" key={entry.libraryId}>
@@ -104,7 +95,7 @@ export function MediaCompetitionPanel({ data }: { data: CompetitionDashboard }) 
         </button> : null}</div>
       </div>)}
       <CompetitionSourceLabel value={data.sourceLabel}/>
-    </section> : <section className="media-comp-card"><h3>The competitor's wall</h3><p>Gallery n/a: no approved analyst-selected thumbnails for this capture.</p><CompetitionSourceLabel value={data.sourceLabel}/></section>}
+    </section> : <section className="media-comp-card"><h3>The competitor's wall</h3><p className="v2-gallery-awaiting">AWAITING · No approved analyst-selected thumbnails were supplied for this capture. Owner: TBL.</p><CompetitionSourceLabel value={data.sourceLabel}/></section>}
     <div className="media-comp-split">
       <section className="media-comp-card"><h3>Launch timeline</h3><p>Month of ad start in the selected register, not measured performance.</p><div className="media-comp-history">{launchWaves.map(([month, count]) => <div key={month}><span>{month}</span><b>{count} ads</b></div>)}</div><CompetitionSourceLabel value={data.sourceLabel}/></section>
       <section className="media-comp-card"><h3>Theme mix</h3>{campaignCount ? <p className="media-comp-campaign-tag">Campaign platform · {data.campaignPlatformMix.map((row)=>`${row.label}: ${row.count}`).join(" · ")} of {data.observations.length} ads</p> : <p className="media-comp-muted">Campaign platform: n/a (not supplied for this capture)</p>}
@@ -124,8 +115,8 @@ export function MediaCompetitionPanel({ data }: { data: CompetitionDashboard }) 
       <div className="media-comp-register-content">
         <div className="media-comp-register-heading">
           <div>
-            <h2 id="media-comp-register-title">EDIT ad register · {data.observations.length} ads</h2>
-            <p>Captured {data.capture.date ? formatDate(data.capture.date) : 'n/a'} · Source: Meta Ad Library. Activity, not spend.</p>
+            <h2 id="media-comp-register-title">{data.competitor.label} · {data.channel} register · {data.observations.length} logged ads</h2>
+            <p>Captured {data.capture.date ? formatDate(data.capture.date) : 'n/a'} · {data.sourceLabel}</p>
           </div>
           <button type="button" className="media-comp-register-close" onClick={closeRegister} aria-label="Close full ad register">Close ×</button>
         </div>
@@ -133,11 +124,11 @@ export function MediaCompetitionPanel({ data }: { data: CompetitionDashboard }) 
         <label>Search <input value={search} onChange={(event)=>setSearch(event.target.value)} placeholder="Library ID, brand or theme" /></label>
         <label>Theme <select value={theme} onChange={(event)=>setTheme(event.target.value)}><option value="">All themes</option>{options(data.observations.map((ad)=>ad.theme)).map((value)=><option key={value}>{value}</option>)}</select></label>
         <label>Format <select value={format} onChange={(event)=>setFormat(event.target.value)}><option value="">All formats</option>{options(data.observations.map((ad)=>ad.format)).map((value)=><option key={value}>{value}</option>)}</select></label>
-        <label>Platform <select value={platform} onChange={(event)=>setPlatform(event.target.value)}><option value="">All platforms</option>{['FB','IG','MS','TH'].map((value)=><option key={value}>{value}</option>)}</select></label>
-        <label>Start date <select value={startDate} onChange={(event)=>setStartDate(event.target.value)}><option value="">All dates</option>{options(data.observations.map((ad)=>ad.startDate)).map((value)=><option key={value}>{value}</option>)}</select></label>
+        <label>{data.channel === 'Google' ? 'Surface' : 'Platform'} <select value={platform} onChange={(event)=>setPlatform(event.target.value)}><option value="">All platforms</option>{[...new Set(data.observations.map((ad)=>ad.platforms))].filter(Boolean).map((value)=><option key={value}>{value}</option>)}</select></label>
+        <label>Start date <select value={startDate} onChange={(event)=>setStartDate(event.target.value)}><option value="">All dates</option>{options(data.observations.filter((ad) => ad.startDateAvailable !== false).map((ad)=>ad.startDate)).map((value)=><option key={value}>{value}</option>)}</select></label>
         <label>Campaign platform <select value={campaignPlatform} onChange={(event)=>setCampaignPlatform(event.target.value)}><option value="">All campaigns</option>{options(data.observations.map((ad)=>ad.campaignPlatform)).map((value)=><option key={value}>{value}</option>)}</select></label>
       </div><p>{filtered.length} matching ads from {data.observations.length} registered</p>
-      <div className="media-comp-table-scroll"><table><thead><tr><th>Library ID</th><th>Start date</th><th>Days</th><th>Theme</th><th>Format</th><th>Platforms</th><th>Campaign platform</th><th>Featured brand/product</th></tr></thead><tbody>{filtered.map((ad)=><tr key={ad.libraryId}><td>{ad.libraryId}</td><td>{formatDate(ad.startDate)}</td><td>{ad.calculatedDaysRunning}</td><td>{ad.theme ?? 'n/a'}</td><td>{ad.format}</td><td>{ad.platforms}</td><td>{ad.campaignPlatform ?? 'n/a'}</td><td>{ad.featuredBrandProduct ?? 'n/a'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel}/>
+      <div className="media-comp-table-scroll"><table><thead><tr><th>Library ID</th><th>Start date</th><th>Days</th><th>Theme</th><th>Format</th><th>Platforms</th><th>Campaign platform</th><th>Featured brand/product</th></tr></thead><tbody>{filtered.map((ad)=><tr key={ad.libraryId}><td>{ad.libraryId.startsWith('not-captured-') ? '(not captured)' : ad.libraryId}</td><td>{ad.startDateAvailable === false ? 'n/a' : formatDate(ad.startDate)}</td><td>{ad.startDateAvailable === false ? 'n/a' : ad.calculatedDaysRunning}</td><td>{ad.theme ?? 'n/a'}</td><td>{ad.format}</td><td>{ad.platforms}</td><td>{ad.campaignPlatform ?? 'n/a'}</td><td>{ad.featuredBrandProduct ?? 'n/a'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel}/>
       </div>
     </dialog>
   </div>;

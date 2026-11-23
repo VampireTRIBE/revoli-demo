@@ -314,3 +314,17 @@ Run `python tools/validate_edit_capture2.py` for a dependency-free audit, then i
 The Media dashboard now uses the Creative/GEO graphite and paper-grey palette, with color changes scoped to `/media`. The `Net site revenue` card was corrected to **Reported site item revenue** because the current source is the reconciled Media workbook, not the missing GA4 v4 net-revenue import. The Media heading now reports **PARTIAL SOURCE COVERAGE**.
 
 See `docs/MEDIA_CREATIVE_COLOR_AND_ACCURACY_AUDIT_2026-11-12.md` for independently checked Capture 2 figures, outstanding data dependencies and tests that could not run. This archive is **not** fully validated for deployment.
+
+## V2 November 18 source update
+
+The current source supports `/search?panel=ai` with the original GEO/CLEO dashboard; `/geo` redirects to AI search. Search Classic currently awaits approved source data. Media contains the November section labels and objective-aware campaign register, while `/media?client=union-coop` gives a truthful awaiting-data reference layout. Consumer has an explicit Union Coop comment-data awaiting view. Competition accepts Meta or Google channel parameters and includes a version-aware import adapter for new per-competitor register workbooks.
+
+**Status:** Source-only candidate. Complete npm installation, build, tests, and browser validation remain pending. Read `docs/BIZCOM_ENGINE_V2_IMPLEMENTATION.md`, `docs/BIZCOM_ENGINE_V2_SOURCE_AUDIT.md`, and `docs/BIZCOM_ENGINE_V2_TEST_RESULTS.md` before deployment.
+
+To verify the included original approved images and workbook structure without Node modules: `python scripts/verify_bizcom_sources.py`.
+
+### November 19, 2026 Creative repair and four-document audit
+
+The Organic Creative crash caused by unbound `client`, `year`, and `month` variables in `CreativeSlot` has been fixed. The Creative API error path and month-scoped prepared trend rendering were corrected; a route-level error boundary was added. Run `npm run verify:creative` after `npm ci` to execute the lightweight runtime contract regression. Full browser/runtime verification requires an installed node_modules tree.
+
+A detailed gap audit of all four November 18 PDFs is available in `docs/BIZCOM_FOUR_PDF_REQUIREMENTS_AUDIT_2026-11-19.md`. Missing approved imports remain in awaiting states and are **not** treated as completed features.

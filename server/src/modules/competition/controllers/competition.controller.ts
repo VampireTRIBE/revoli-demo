@@ -7,6 +7,7 @@ const querySchema = z.object({
   month: z.coerce.number().int().min(1).max(12).optional(),
   competitor: z.string().trim().min(1).optional(),
   captureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  channel: z.enum(['Meta','Google']).optional(),
 });
 
 const optionsQuerySchema = z.object({ clientId: z.string().trim().min(1).optional() });

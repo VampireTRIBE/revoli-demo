@@ -26,8 +26,8 @@ const comparedFields = [
 
 export function resolveCreativeSourceDirectory(): string {
   const candidates = [
-    resolve(process.cwd(), 'spreadsheets data/creative-tab'),
-    resolve(process.cwd(), '../spreadsheets data/creative-tab'),
+    resolve(process.cwd(), 'spreadsheets data/creative'),
+    resolve(process.cwd(), '../spreadsheets data/creative'),
   ];
   const found = candidates.find(existsSync);
   if (!found) throw new Error(`Creative source directory not found. Checked: ${candidates.join(', ')}`);
@@ -37,8 +37,8 @@ export function resolveCreativeSourceDirectory(): string {
 export function parseCreativeSources(directory = resolveCreativeSourceDirectory()): CreativeSourceDataset {
   const selectedPath = resolve(directory, ...instagramSourcePrecedence.selected.split('/'));
   const comparedPath = resolve(directory, ...instagramSourcePrecedence.comparisonOnly.split('/'));
-  const selectedRows = recordsFromFile(selectedPath);
-  const comparedRows = recordsFromFile(comparedPath);
+  const selectedRows = existsSync(selectedPath) ? recordsFromFile(selectedPath) : [];
+  const comparedRows = existsSync(comparedPath) ? recordsFromFile(comparedPath) : [];
   const conflicts = compareExports(selectedRows, comparedRows);
   const conflictFieldCounts = Object.fromEntries(comparedFields.map((field) => [field, conflicts.filter((row) => row.fields.includes(field)).length]));
   const posts = normalizeInstagram(selectedRows, relative(directory, selectedPath).replaceAll('\\', '/'));
@@ -181,7 +181,10 @@ function parsePreparedCreativeImport(directory: string): PreparedCreativeImport 
     const period = monthParts(row.Month);
     return {
       ...period,
-      eligiblePosts: number(row['Eligible posts'], 'eligible posts'),
+      publishedOutput: number(row['Posts published (output, incl Stories)'], 'published output'),
+      stories: number(row.Stories, 'stories'),
+      partial: text(row['Partial flag']).toUpperCase() === 'PARTIAL',
+      eligiblePosts: number(row['Eligible posts (Post/Reel)'] ?? row['Eligible posts'], 'eligible posts (Post/Reel)'),
       rankingEligiblePosts: number(row['Eligible >=500 reach'], 'ranking eligible posts'),
       medianActiveEngagementRate: number(row['Median active engagement'], 'median active engagement'),
       meanActiveEngagementRate: number(row['Mean active engagement'], 'mean active engagement'),

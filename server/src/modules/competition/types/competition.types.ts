@@ -41,6 +41,7 @@ export interface CompetitionObservation {
   clientLabel: string;
   metaPage: string;
   libraryId: string;
+  libraryIdAvailable?: boolean;
   captureDate: string;
   startDate: string;
   suppliedDaysRunning: number | null;

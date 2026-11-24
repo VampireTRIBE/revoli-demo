@@ -7,8 +7,8 @@ import { activeObservations } from '../src/modules/competition/calculations/comp
 import { getCompetitionDashboard, clearCompetitionSourceCache } from '../src/modules/competition/services/competition.service.js';
 
 const source = [
-  path.resolve(process.cwd(), '../spreadsheets data/compititaion-tab/EDIT-Google-Capture1-18Nov2026.xlsx'),
-  path.resolve(process.cwd(), 'spreadsheets data/compititaion-tab/EDIT-Google-Capture1-18Nov2026.xlsx'),
+  path.resolve(process.cwd(), '../spreadsheets data/competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx'),
+  path.resolve(process.cwd(), 'spreadsheets data/competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx'),
 ].find(existsSync);
 const config = competitionConfigs.find((row) => row.id === 'edit-by-ahmed-seddiqi');
 

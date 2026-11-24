@@ -2,6 +2,7 @@ export type CreativeScoringMode = 'disabled' | 'html-reference';
 
 export interface CreativeOptions {
   years: Array<{ year: number; months: Array<{ month: number; label: string; partial: boolean; coverageEnd: string }> }>;
+  brandYears?: Record<string, Array<{ year: number; months: Array<{ month: number; label: string; partial: boolean; coverageEnd: string }> }>>;
   brands: Array<{ id: string; label: string; postLevelAvailable: boolean; paidPostLevelAvailable: boolean; accountLevelAvailable: boolean }>;
   defaultSelection: { year: number; month: number; brand: string } | null;
   timezone: string;
@@ -125,6 +126,9 @@ export interface CreativePost {
 export interface PreparedCreativeBenchmark {
   year: number;
   month: number;
+  publishedOutput: number;
+  stories: number;
+  partial: boolean;
   eligiblePosts: number;
   rankingEligiblePosts: number;
   medianActiveEngagementRate: number;
@@ -267,6 +271,9 @@ export interface CreativeDashboard {
 export interface CreativeMonthlyKpi {
   year: number;
   month: number;
+  publishedOutput: number | null;
+  stories: number | null;
+  partial: boolean;
   posts: number;
   reels: number;
   reach: number;

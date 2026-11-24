@@ -85,7 +85,7 @@ export function parseSouqSources(directory: string): ParsedSouqSources {
     }
   }
 
-  const sourceFolder = resolve(directory, 'SOUQ Al Jubair and Bahar');
+  const sourceFolder = resolve(directory, 'souqs', 'SOUQ Al Jubair and Bahar');
   if (existsSync(sourceFolder)) {
     for (const name of readdirSync(sourceFolder).filter((item) => item.toLowerCase().endsWith('.csv'))) {
       const sourceFile = relative(directory, resolve(sourceFolder, name)).replaceAll('\\', '/');

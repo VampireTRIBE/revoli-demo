@@ -10,7 +10,7 @@ const SHEETS = ['README - Display Rules', 'Market Questions', 'Share of Voice by
 type RawRow = Record<string, unknown>;
 
 export function resolveCleoDirectory(): string {
-  const candidates = [resolve(process.cwd(), 'spreadsheets data', 'creative-tab'), resolve(process.cwd(), '..', 'spreadsheets data', 'creative-tab')];
+  const candidates = [resolve(process.cwd(), 'spreadsheets data', 'search', 'union-coop'), resolve(process.cwd(), '..', 'spreadsheets data', 'search', 'union-coop')];
   const found = candidates.find(existsSync);
   if (!found) throw new Error(`CLEO source directory not found. Checked: ${candidates.join(', ')}`);
   return found;

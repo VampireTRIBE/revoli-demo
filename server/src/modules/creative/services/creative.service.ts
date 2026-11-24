@@ -50,9 +50,64 @@ export function getCreativeOptions(): CreativeOptions {
   const latestYear = years[0];
   const defaultMonth = latestYear?.months.filter((month) => month.month > 0 && !month.partial).at(-1)
     ?? latestYear?.months.filter((month) => month.month > 0).at(-1);
+  // Publish a separate reporting-period selection for each brand. The default
+  // Union Coop month must not hide Pocari's whole-export paid data or dates
+  // supplied by the Souq account CSV files.
+  const brandYears: NonNullable<CreativeOptions['brandYears']> = {};
+  for (const brand of creativeBrands) {
+    // Pocari's paid account totals cover a whole export, not individual months.
+    // Offering January-October as comparable monthly values would be false.
+    if (brand.id === 'pocari-sweat') {
+      const year = Number(paidMetaSource.reportingPeriodStart.slice(0, 4));
+      brandYears[brand.id] = [{ year, months: [{ month: 0, label: 'All months (paid export)', partial: false, coverageEnd: paidMetaSource.reportingPeriodEnd }] }];
+      continue;
+    }
+    const brandDates = [
+      ...dataset.posts.filter((post) => post.brandId === brand.id).map((post) => post.publishedAt.slice(0, 10)),
+      ...dataset.accountDailyMetrics.filter((row) => row.brandId === brand.id).map((row) => row.date),
+      ...(brand.id === 'union-coop' ? (dataset.preparedImport?.postMetrics.map((row) => row.publishedAtDubai.slice(0, 10)) ?? []) : []),
+    ].filter((date) => /^20\d{2}-\d{2}-\d{2}$/.test(date)).sort();
+    const yearMonths = new Map<number, Set<number>>();
+    for (const date of brandDates) {
+      const year = Number(date.slice(0, 4));
+      const month = Number(date.slice(5, 7));
+      if (month < 1 || month > 12) continue;
+      if (!yearMonths.has(year)) yearMonths.set(year, new Set());
+      yearMonths.get(year)?.add(month);
+    }
+    const optionsForBrand: CreativeOptions['years'] = [...yearMonths.entries()]
+      .sort(([a], [b]) => b - a)
+      .map(([year, months]) => ({
+        year,
+        months: [
+          { month: 0, label: 'All months', partial: false, coverageEnd: brandDates.at(-1) ?? '' },
+          ...[...months].sort((a, b) => a - b).map((month) => {
+            const lastDate = latestDateInPeriod(brandDates, year, month);
+            const day = Number(lastDate.slice(8, 10));
+            // The prepared Union Coop workbook explicitly flags partial months.
+            // The last published post date is not evidence that a reporting month was partial.
+            const approvedBenchmark = brand.id === 'union-coop'
+              ? dataset.preparedImport?.monthlyBenchmarks?.find((row) => row.year === year && row.month === month)
+              : undefined;
+            return {
+              month,
+              label: new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, 1))),
+              partial: approvedBenchmark ? approvedBenchmark.partial : day < new Date(Date.UTC(year, month, 0)).getUTCDate(),
+              coverageEnd: lastDate,
+            };
+          }),
+        ],
+      }));
+    // Keep uncovered brands selectable, but do not imply that they have data.
+    brandYears[brand.id] = optionsForBrand.length ? optionsForBrand : [{
+      year: latestYear?.year ?? 2026,
+      months: [{ month: 0, label: 'All months (no verified data)', partial: false, coverageEnd: '' }],
+    }];
+  }
   return {
     years,
-    brands: creativeBrands.filter((brand) => !['souq-al-bahar', 'souq-al-jubair'].includes(brand.id)).map((brand) => ({
+    brandYears,
+    brands: creativeBrands.map((brand) => ({
       id: brand.id,
       label: brand.label,
       postLevelAvailable: brand.postLevelAvailable,
@@ -84,6 +139,9 @@ function buildPreparedMonthlyKpis(prepared: PreparedCreativeImport | null, year:
     const actions = posts.reduce((total, post) => total + post.activeActions, 0);
     return {
       year, month,
+      publishedOutput: benchmark?.publishedOutput ?? null,
+      stories: benchmark?.stories ?? null,
+      partial: benchmark?.partial ?? false,
       posts: posts.filter((post) => post.eligibleForRanking && post.postType.toLowerCase() === 'post').length,
       reels: posts.filter((post) => post.eligibleForRanking && post.postType.toLowerCase() === 'reel').length,
       reach, views, actions,
@@ -110,7 +168,8 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   };
   const brand = creativeBrands.find((candidate) => candidate.id === selected.brand) ?? creativeBrands[0];
   const dataset = sourceDataset();
-  const period = options.years.find((entry) => entry.year === selected.year)?.months.find((month) => month.month === selected.month);
+  const brandPeriods = options.brandYears?.[selected.brand] ?? options.years;
+  const period = brandPeriods.find((entry) => entry.year === selected.year)?.months.find((month) => month.month === selected.month);
   const filteredPosts = dataset.posts.filter((post) =>
     post.brandId === brand.id && post.year === selected.year && (selected.month === 0 || post.month === selected.month));
   const organic = calculateOrganic(filteredPosts);
@@ -148,12 +207,14 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   const accountDailyMetrics = summarizeAccountMetrics(filteredAccountRows);
   const accountSummaries = dataset.accountSummarySections.filter((section) => section.brandId === brand.id);
   const accountLevelAvailable = brand.accountLevelAvailable && (accountDailyMetrics.length > 0 || accountSummaries.length > 0);
-  const available = brand.postLevelAvailable && organic.eligiblePostCount > 0;
+  const available = brand.postLevelAvailable && (organic.eligiblePostCount > 0 || preparedPeriodPosts.length > 0);
   const unavailableMessage = brand.postLevelAvailable
     ? `No eligible Instagram Posts or Reels were published for ${brand.label} in the selected period.`
     : brand.accountLevelAvailable
       ? `${brand.label} supplies daily account observations only. Post-level reach, shares, saves, comments, captions, and links are required for this gallery and its calculations.`
-      : `${brand.label}: no approved post-level import supplied. Source identity must be verified before publishing metrics.`;
+      : brand.id === 'souq-al-haraj' || brand.id === 'souq-al-jubail'
+        ? `AWAITING · No Creative export identified as ${brand.label} is supplied. Existing Souq CSVs are labelled Souq Al Bahar and Souq Al Jubair. These sources cannot be reassigned to ${brand.label} without approved identity confirmation.`
+        : `${brand.label}: no approved post-level import supplied. Source identity must be verified before publishing metrics.`;
   const paidScopeSupported = brand.paidPostLevelAvailable
     && selected.year === Number(paidMetaSource.reportingPeriodStart.slice(0, 4))
     && selected.month === 0;
@@ -187,7 +248,7 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   return {
     filter: selected,
     periodLabel,
-    partial: period?.partial ?? false,
+    partial: period?.partial ?? (prepared?.monthlyBenchmarks.some((row) => row.year === selected.year && row.month === selected.month && row.partial) ?? false),
     timezone: CREATIVE_TIMEZONE,
     sourceLabel: prepared ? 'Uploaded Buffer and Meta exports plus prepared Union Coop Creative workbook' : 'Uploaded Buffer and Meta CSV exports',
     scoringMode: creativeScoringMode,

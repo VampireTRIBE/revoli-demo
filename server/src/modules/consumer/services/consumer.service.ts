@@ -16,7 +16,7 @@ function monthParts(value: unknown): { year: number; month: number } | null {
   return { year: Number(match[2]), month: months.indexOf(match[1]!.toLowerCase()) + 1 };
 }
 function sourcePath(): string {
-  const candidates = [resolve(process.cwd(), 'spreadsheets data/consumer-tab', SOURCE_FILE), resolve(process.cwd(), '../spreadsheets data/consumer-tab', SOURCE_FILE)];
+  const candidates = [resolve(process.cwd(), 'spreadsheets data/consumer/rivoli', SOURCE_FILE), resolve(process.cwd(), '../spreadsheets data/consumer/rivoli', SOURCE_FILE)];
   const path = candidates.find(existsSync); if (!path) throw new Error(`Consumer workbook not found. Checked: ${candidates.join(', ')}`); return path;
 }
 function load() {

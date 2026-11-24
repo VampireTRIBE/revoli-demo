@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { http } from '../../../api/http';
 import type { ConsumerDashboard } from '../../../types/consumer';
-import type { MediaMonthlyHistory, Overview } from '../../../types/media';
+import type { Ga4V4, MediaMonthlyHistory, Overview } from '../../../types/media';
 import { MediaHistory } from './MediaHistory';
 import { CountUpValue } from '../../../components/v2/CountUpValue';
 import { formatAED, formatNumber, formatRatio } from '../utils/formatters';
@@ -12,19 +12,24 @@ async function loadConsumerAlignment(year: number): Promise<ConsumerDashboard> {
   return (await http.get<{ data: ConsumerDashboard }>('/consumer/dashboard', { params: { year, month: 0 } })).data.data;
 }
 
-export function MediaConsumerAlignment({ year, month, overview, history, scopedSelection = false }: { year?: number; month?: number; overview?: Overview; history?:MediaMonthlyHistory; scopedSelection?: boolean }) {
+export function MediaConsumerAlignment({ year, month, overview, history, ga4, scopedSelection = false }: { year?: number; month?: number; overview?: Overview; history?:MediaMonthlyHistory; ga4?:Ga4V4; scopedSelection?: boolean }) {
   const query = useQuery({ queryKey: ['consumer', 'media-alignment', year], queryFn: () => loadConsumerAlignment(year!), enabled: Boolean(year) });
   if (!year) return <div className="reference-card">Select a reporting year to see spend and purchasers.</div>;
   if (query.isLoading) return <div className="reference-card">Loading spend and purchaser alignment...</div>;
   if (query.isError || !query.data) return <div className="reference-card">Consumer alignment unavailable. Verify the Consumer API and imported workbook.</div>;
+  // GA4 v4 is authoritative for first-time purchasers and complete September/
+  // October months. The older Consumer import remains a separate legacy source.
   const entriesByMonth = new Map(query.data.aligned.map((row) => [row.month, row]));
+  const ga4Purchasers = new Map((ga4?.available ? ga4.summaries : []).filter((row)=>row.year===year).map((row)=>[row.month,row.firstTimePurchasers]));
   const partialMonths = new Set(query.data.series.filter((row) => row.partial).map((row) => row.month));
   const included = year === 2026 ? Array.from({length:10},(_,index)=>index+1) : query.data.aligned.map((row)=>row.month);
   const rows = included.map((month) => {
     const record = entriesByMonth.get(month);
+    const hasGa4 = ga4Purchasers.has(month);
+    const verifiedPurchasers = hasGa4 ? ga4Purchasers.get(month) : record?.firstTimePurchasers;
     return {
       month: new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(year,month-1,1))),
-      spend: record?.mediaSpendAed ?? null, ftp: record?.firstTimePurchasers ?? null, partial: partialMonths.has(month),
+      spend: record?.mediaSpendAed ?? null, ftp: verifiedPurchasers ?? null, partial: !hasGa4 && partialMonths.has(month),
     };
   });
   return <section className="reference-card media-alignment-v2">
@@ -47,6 +52,6 @@ export function MediaConsumerAlignment({ year, month, overview, history, scopedS
         <Line dataKey="ftp" type="linear" connectNulls={false} stroke="#596677" strokeWidth={2} dot={{r:2}} isAnimationActive={false}/>
       </LineChart></ResponsiveContainer>
     </div>
-    <p className="media-alignment-footnote">{rows.filter((row)=>row.spend==null).length} month(s) have unavailable spend; {rows.filter((row)=>row.ftp==null).length} lack purchaser figures; {rows.filter((row)=>row.partial).length} carry partial reporting status. The new GA4 v4 September/October channel import is not supplied.</p>
+    <p className="media-alignment-footnote">{rows.filter((row)=>row.spend==null).length} month(s) have unavailable spend; {rows.filter((row)=>row.ftp==null).length} lack purchaser figures; {rows.filter((row)=>row.partial).length} carry partial reporting status. {ga4?.available ? 'GA4 v4 September/October first-time-purchaser figures are used where imported. Old Consumer cohort metrics remain separately sourced.' : 'GA4 v4 first-time purchaser data is awaiting import.'}</p>
   </section>;
 }

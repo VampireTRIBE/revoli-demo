@@ -8,8 +8,8 @@ let sourceCache: MediaDataset | null = null;
 
 function sourceDirectory(): string {
   const candidates = [
-    resolve(process.cwd(), 'spreadsheets data/media-tab'),
-    resolve(process.cwd(), '../spreadsheets data/media-tab'),
+    resolve(process.cwd(), 'spreadsheets data/media/rivoli'),
+    resolve(process.cwd(), '../spreadsheets data/media/rivoli'),
   ];
   const found = candidates.find((candidate) => existsSync(candidate));
   if (!found) throw new Error(`Source data directory not found. Checked: ${candidates.join(', ')}`);

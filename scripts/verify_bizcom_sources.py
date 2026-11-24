@@ -45,8 +45,8 @@ def records(rows, id_header='Library ID'):
     return [r for r in rows[headerindex+1:] if r.get(col,'').strip().isdigit()]
 
 def verify():
-    competition=ROOT/'spreadsheets data'/'compititaion-tab'/'EDIT-AdLibrary-Capture2-03Nov2026.xlsx'
-    cleo=ROOT/'spreadsheets data'/'creative-tab'/'UnionCoop-CLEO-Market-Import.xlsx'
+    competition=ROOT/'spreadsheets data'/'competition'/'rivoli'/'EDIT-AdLibrary-Capture2-03Nov2026.xlsx'
+    cleo=ROOT/'spreadsheets data'/'search'/'union-coop'/'UnionCoop-CLEO-Market-Import.xlsx'
     book=workbook_sheets(competition)
     ads=records(book.get('Ad Register',[]))
     gallery=records(book.get('Gallery - The Wall',[]))

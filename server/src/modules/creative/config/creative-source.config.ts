@@ -4,7 +4,7 @@ export const creativeScoringMode: CreativeScoringMode = 'disabled';
 
 export const CREATIVE_TIMEZONE = 'UTC';
 
-export const creativePreparedImportSource = 'UnionCoop-Creative-WhyItWorked-Import.xlsx';
+export const creativePreparedImportSource = 'union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx';
 
 export const creativeBrands = [
   {
@@ -53,7 +53,7 @@ export const creativeBrands = [
   },
 ] as const;
 
-const souqFolder = 'SOUQ Al Jubair and Bahar/';
+const souqFolder = 'souqs/SOUQ Al Jubair and Bahar/';
 const jubairIdentity = 'The filename explicitly names Souq Al Jubair or the known Juabir spelling variant.';
 const baharIdentity = 'SAB is mapped to Souq Al Bahar because the same source set contains explicitly named Souq Al Bahar files with the same 21 April to 22 September reporting window.';
 
@@ -81,16 +81,16 @@ export const souqSourceMappings = [
 ] as const;
 
 export const instagramSourcePrecedence = {
-  selected: 'Buffer insights Union Coop/UC buffer Instagram/posts.csv',
-  comparisonOnly: 'Buffer insights Union Coop/UC Instagram Buffer/posts.csv',
+  selected: 'union-coop/Buffer insights Union Coop/UC buffer Instagram/posts.csv',
+  comparisonOnly: 'union-coop/Buffer insights Union Coop/UC Instagram Buffer/posts.csv',
   rule: 'Use the configured UC buffer Instagram complete export. The alternate complete export is comparison-only because both contain the same Post IDs; never concatenate them or choose the largest metric.',
 };
 
 export const paidMetaSource = {
-  detail: 'buffer-posts-analytics-csv/posts-20260101-to-20261001.csv',
-  summary: 'buffer-posts-analytics-csv/posts-summary-20260101-to-20261001.csv',
-  performanceSummary: 'buffer-posts-analytics-csv/performance-statistics-20260101-to-20261001.csv',
-  averagePerformanceSummary: 'buffer-posts-analytics-csv/average-performance-statistics-20260101-to-20261001.csv',
+  detail: 'pocari-sweat/buffer-posts-analytics-csv/posts-20260101-to-20261001.csv',
+  summary: 'pocari-sweat/buffer-posts-analytics-csv/posts-summary-20260101-to-20261001.csv',
+  performanceSummary: 'pocari-sweat/buffer-posts-analytics-csv/performance-statistics-20260101-to-20261001.csv',
+  averagePerformanceSummary: 'pocari-sweat/buffer-posts-analytics-csv/average-performance-statistics-20260101-to-20261001.csv',
   brandId: 'pocari-sweat',
   reportingPeriodStart: '2026-01-01',
   reportingPeriodEnd: '2026-10-01',

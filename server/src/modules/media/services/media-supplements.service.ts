@@ -48,31 +48,56 @@ function sheetRows(book: XLSX.WorkBook, sheet: string): Array<Record<string, unk
 }
 export interface Ga4Channel {year:number;month:number;channel:string;sessions:number|null;revenueAed:number|null;}
 export interface Ga4Summary {year:number;month:number;netRevenueAed:number|null;firstTimePurchasers:number|null;refundsAed:number|null;}
+/** Import the GA4 v4 workbook by its approved sheet schema, preserving signed
+ * channel revenue (including unattributed refunds in Unassigned). Never use
+ * item-revenue exports or daily Total purchasers as first-time purchasers. */
 export function getGa4V4(year?: number, month?: number) {
   const sourceFile = 'Rivoli-Consumer-GA4-Import-v4.xlsx';
-  const file = workbookPath(sourceFile,['media-tab','consumer-tab','']);
-  const missing = {available:false,sourceFile,channels:[] as Ga4Channel[],summaries:[] as Ga4Summary[],reason:'Approved GA4 v4 import has not been supplied. September/October channel and net-revenue figures are not inferred from the older site-item workbook.'};
+  const file = workbookPath(sourceFile, ['media/rivoli','consumer/rivoli']);
+  const missing = {available:false,sourceFile,channels:[] as Ga4Channel[],summaries:[] as Ga4Summary[],reason:'Rivoli GA4 v4 import has not been supplied.'};
   if (!file) return missing;
   const book = XLSX.readFile(file, {cellDates:true});
-  const channels: Ga4Channel[] = [];
-  const summaries: Ga4Summary[] = [];
-  for (const sheet of book.SheetNames) {
-    for (const row of sheetRows(book,sheet)) {
-      const date = parseMonth(getValue(row,'Month','Period','Reporting month','Year-Month'));
-      if (!date) continue;
-      const channel = String(getValue(row,'Channel','Default channel group','Session default channel group','Channel group') ?? '').trim();
-      const sessions = numberOrNull(getValue(row,'Sessions','Session count'));
-      const revenueAed = numberOrNull(getValue(row,'Net revenue (AED)','Revenue (AED)','Revenue','Total revenue'));
-      if (channel && (sessions!==null||revenueAed!==null)) channels.push({...date,channel,sessions,revenueAed});
-      if (!channel) {
-        const ftp = numberOrNull(getValue(row,'First-time purchasers','First time purchasers','New purchasers'));
-        const refunds = numberOrNull(getValue(row,'Refunds (AED)','Refunds AED','Refunds'));
-        if (ftp!==null||revenueAed!==null||refunds!==null) summaries.push({...date,netRevenueAed:revenueAed,firstTimePurchasers:ftp,refundsAed:refunds});
-      }
+  if (!book.Sheets['Monthly Series'] || !book.Sheets['Channel Revenue']) return {
+    ...missing,reason:'The GA4 v4 workbook must contain Monthly Series and Channel Revenue sheets.'
+  };
+  const summaries:Ga4Summary[]=[];
+  const channels:Ga4Channel[]=[];
+  for (const row of sheetRows(book,'Monthly Series')) {
+    const date=parseMonth(getValue(row,'Month'));
+    if (!date) continue;
+    summaries.push({...date,
+      netRevenueAed:numberOrNull(getValue(row,'Net revenue (AED)')),
+      firstTimePurchasers:numberOrNull(getValue(row,'First-time purchasers')),
+      refundsAed:null, // Refunds are already embedded in net revenue, not a separate verified total.
+    });
+  }
+  for (const row of sheetRows(book,'Channel Revenue')) {
+    const date=parseMonth(getValue(row,'Month'));
+    const channel=String(getValue(row,'Channel')??'').trim();
+    if (!date||!channel) continue;
+    // Signed revenue: Unassigned is negative when it contains unattributed refunds.
+    const rawRevenue=getValue(row,'Net revenue (AED)');
+    const normalized=String(rawRevenue??'').replace(/[ ,]/g,'');
+    const revenueAed=normalized!==''&&Number.isFinite(Number(normalized)) ? Number(normalized) : null;
+    channels.push({...date,channel,
+      sessions:numberOrNull(getValue(row,'Sessions')),
+      revenueAed,
+    });
+  }
+  if (!summaries.length || !channels.length) return {
+    ...missing,reason:'The GA4 v4 workbook is present, but has no valid monthly summary or channel rows.'
+  };
+  // Reconciliation against the monthly NET summary prevents accidental publication
+  // of an incomplete channel set or double-counted refunds.
+  for (const summary of summaries) {
+    const relevant=channels.filter((item)=>item.year===summary.year&&item.month===summary.month);
+    if (!relevant.length || summary.netRevenueAed===null) continue;
+    const sum=relevant.reduce((total,item)=>total+(item.revenueAed??0),0);
+    if (relevant.some((item)=>item.revenueAed===null) || Math.abs(sum-summary.netRevenueAed)>1) {
+      return {...missing,reason:`GA4 ${summary.year}-${String(summary.month).padStart(2,'0')} channel/net revenue reconciliation failed: channel sum ${sum}, monthly net ${summary.netRevenueAed}.`};
     }
   }
-  if (!channels.length && !summaries.length) return {...missing,reason:`${sourceFile} is present but has no recognized dated channel/summary fields. Verify the workbook schema before publishing.`};
-  const within = (row: {year:number;month:number}) => (!year||row.year===year)&&(!month||row.month===month);
+  const within=(row:{year:number;month:number})=>(!year||row.year===year)&&(!month||row.month===month);
   return {available:true,sourceFile,channels:channels.filter(within),summaries:summaries.filter(within),reason:null};
 }
 
@@ -80,7 +105,7 @@ export interface CoopBurst {year:number;month:number;name:string;platform:string
 export interface CoopReach {year:number;month:number;date:string;pageReach:number;paidConfirmed:boolean;}
 export function getUnionCoopMedia(year?:number,month?:number) {
   const sourceFile = 'UnionCoop-Media-Burst-Import.xlsx';
-  const file = workbookPath(sourceFile,['media-tab','']);
+  const file = workbookPath(sourceFile,['media/union-coop']);
   const missing = {available:false,sourceFile,bursts:[] as CoopBurst[],dailyReach:[] as CoopReach[],reason:'Verified Union Coop media burst and paid/organic reach exports have not been supplied.'};
   if (!file) return missing;
   const book = XLSX.readFile(file,{cellDates:true});

@@ -206,6 +206,9 @@ export interface PreparedCreativeTopPost {
 export interface PreparedCreativeBenchmark {
   year: number;
   month: number;
+  publishedOutput: number;
+  stories: number;
+  partial: boolean;
   eligiblePosts: number;
   rankingEligiblePosts: number;
   medianActiveEngagementRate: number;
@@ -268,6 +271,7 @@ export interface CreativePeriodOption {
 
 export interface CreativeOptions {
   years: Array<{ year: number; months: CreativePeriodOption[] }>;
+  brandYears?: Record<string, Array<{ year: number; months: CreativePeriodOption[] }>>;
   brands: Array<{ id: string; label: string; postLevelAvailable: boolean; paidPostLevelAvailable: boolean; accountLevelAvailable: boolean }>;
   defaultSelection: { year: number; month: number; brand: string } | null;
   timezone: string;
@@ -403,6 +407,9 @@ export interface CreativeDashboard {
 export interface CreativeMonthlyKpi {
   year: number;
   month: number;
+  publishedOutput: number | null;
+  stories: number | null;
+  partial: boolean;
   posts: number;
   reels: number;
   reach: number;

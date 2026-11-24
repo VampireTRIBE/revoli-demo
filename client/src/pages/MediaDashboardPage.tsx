@@ -114,7 +114,7 @@ export function MediaDashboardPage() {
     </div>
     <TblReadsStrip client="Rivoli" section="Media" year={filter.year} month={filter.month ?? 0} />
     <SectionAnatomy number={1} label="Spend and return" question="What went in, what came out" definition="Platform spend (all ad accounts) beside site revenue. Coverage, not ROAS." client="Rivoli" readSection="Media" year={filter.year} month={filter.month} source="Google Ads + Meta workbook exports; reconciled site import. Source coverage must be checked per month.">
-      <MediaConsumerAlignment year={filter.year} month={filter.month} overview={overview.data} history={history.data} scopedSelection={Boolean(filter.segment?.length || filter.brand?.length)} />
+      <MediaConsumerAlignment year={filter.year} month={filter.month} overview={overview.data} history={history.data} ga4={ga4.data} scopedSelection={Boolean(filter.segment?.length || filter.brand?.length)} />
       {overview.data ? <AttributionNote data={overview.data}/> : null}
     </SectionAnatomy>
     <SectionAnatomy number={2} label="Acquisition cost" question="What a customer costs" definition="Spend ÷ first-time site purchasers. Platform-claimed purchases shown separately, labelled." client="Rivoli" readSection="Media" year={filter.year} month={filter.month}>

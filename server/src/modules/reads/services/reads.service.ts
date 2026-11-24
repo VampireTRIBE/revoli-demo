@@ -8,7 +8,7 @@ let selectedSource = 'TBL-Reads-Import.xlsx';
 let cache: TblRead[] | null = null;
 
 function sourcePath(): string {
-  const candidates = SOURCE_FILES.flatMap((name)=>[resolve(process.cwd(), 'spreadsheets data', name), resolve(process.cwd(), '..', 'spreadsheets data', name)]);
+  const candidates = SOURCE_FILES.flatMap((name)=>[resolve(process.cwd(), 'spreadsheets data', 'highlights', 'tbl', name), resolve(process.cwd(), '..', 'spreadsheets data', 'highlights', 'tbl', name)]);
   const path = candidates.find(existsSync);
   if (path) selectedSource = SOURCE_FILES.find((name)=>path.endsWith(name)) ?? selectedSource;
   if (!path) throw new Error(`TBL Reads workbook not found. Checked: ${candidates.join(', ')}`);

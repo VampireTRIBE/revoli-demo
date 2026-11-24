@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=(filename)=>fs.readFileSync(path.join(root,filename),'utf8');
 const checks=[
-  ['Creative prepared workbook imported', fs.existsSync(path.join(root,'spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xlsx'))],
+  ['Creative prepared workbook imported', fs.existsSync(path.join(root,'spreadsheets data/creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx'))],
   ['Creative monthly KPI aggregation uses source post metrics', read('server/src/modules/creative/services/creative.service.ts').includes('buildPreparedMonthlyKpis(prepared, selected.year)')],
   ['Creative KPI history display', read('client/src/pages/CreativeDashboardPage.tsx').includes('creativeHistory(data,')],
   ['Creative Top3 displays imported factors rather than unsigned prose', read('client/src/pages/CreativeDashboardPage.tsx').includes('Imported factors:')],

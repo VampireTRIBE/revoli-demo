@@ -13,7 +13,12 @@
     "lint": "npm run lint --workspace server && npm run lint --workspace client",
     "verify:creative": "node scripts/verify_creative_render_contract.cjs",
     "verify:media-creative": "node scripts/verify_media_creative_nov24.cjs",
-    "verify:competition-visual": "node scripts/verify_competition_visual_nov24.cjs"
+    "verify:competition-visual": "node scripts/verify_competition_visual_nov24.cjs",
+    "verify:spreadsheets": "node scripts/verify_spreadsheet_layout.cjs",
+    "verify:creative-brands": "node scripts/verify_creative_brand_coverage.cjs && node scripts/verify_creative_brand_options.cjs",
+    "verify:nov24-imports": "node scripts/verify_nov24_import_paths.cjs",
+    "verify:creative-v2": "node scripts/verify_creative_runtime_v2.cjs && node scripts/verify_creative_render_contract.cjs && node scripts/verify_creative_brand_options.cjs",
+    "verify:creative-media-runtime": "npm run test --workspace server -- creative-media-regression.test.ts"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

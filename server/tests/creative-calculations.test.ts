@@ -5,7 +5,7 @@ import { getCreativeDashboard, getCreativeOptions } from '../src/modules/creativ
 
 describe('Creative source normalization and calculations', () => {
   it('selects one Instagram export and reports duplicate conflicts', () => {
-    expect(resolveCreativeSourceDirectory().replaceAll('\\', '/')).toMatch(/spreadsheets data\/creative-tab$/);
+    expect(resolveCreativeSourceDirectory().replaceAll('\\', '/')).toMatch(/spreadsheets data\/creative$/);
     const dataset = parseCreativeSources();
     expect(dataset.posts).toHaveLength(1324);
     expect(new Set(dataset.posts.map((post) => post.postId)).size).toBe(1324);
@@ -17,6 +17,12 @@ describe('Creative source normalization and calculations', () => {
     expect(dataset.preparedImport?.monthlyTopPosts).toHaveLength(30);
     expect(dataset.preparedImport?.monthlyBenchmarks).toHaveLength(10);
     expect(dataset.preparedImport?.creativeCuts).toHaveLength(138);
+    expect(dataset.preparedImport?.monthlyBenchmarks.find((row) => row.month === 8)).toMatchObject({
+      publishedOutput: 271, stories: 219, eligiblePosts: 52, partial: false,
+    });
+    expect(dataset.preparedImport?.monthlyBenchmarks.find((row) => row.month === 9)?.partial).toBe(true);
+    expect(getCreativeOptions().brandYears?.['union-coop']?.[0]?.months.find((row) => row.month === 8)?.partial).toBe(false);
+    expect(getCreativeOptions().brandYears?.['union-coop']?.[0]?.months.find((row) => row.month === 9)?.partial).toBe(true);
   });
 
   it('uses prepared August medians, Top 3, giveaway flags, and ranking eligibility', () => {
@@ -30,7 +36,11 @@ describe('Creative source normalization and calculations', () => {
     });
     expect(dashboard.organic.preparedInsights.typical?.medianActiveEngagementRate).toBeCloseTo(0.0044, 3);
     expect(dashboard.organic.preparedInsights.typical?.medianFrequency).toBeCloseTo(1.39, 1);
-    expect(dashboard.organic.preparedInsights.topPosts).toHaveLength(3);
+    expect(dashboard.organic.preparedInsights.topPosts).toHaveLength(3); 
+    expect(dashboard.organic.preparedInsights.monthlyKpis.find((row) => row.month === 8)).toMatchObject({
+      publishedOutput: 271, stories: 219, partial: false,
+    });
+    expect(getCreativeDashboard({ year: 2026, month: 9, brand: 'union-coop' }).partial).toBe(true);
     expect(dashboard.organic.preparedInsights.topPosts[0]).toMatchObject({
       rank: 1,
       postId: '6a888dcd89955d07050cf927',
@@ -117,5 +127,45 @@ describe('Creative source normalization and calculations', () => {
     const publicationMonth = getCreativeDashboard({ year: 2026, month: 3, brand: 'pocari-sweat' });
     expect(publicationMonth.paid.meta.available).toBe(false);
     expect(publicationMonth.paid.meta.message).toContain('Select All months');
+  });
+});
+
+describe('Creative brand availability and honest source identity', () => {
+  it('exposes the source-labelled Souq brands and their actual daily CSV observations', () => {
+    const options = getCreativeOptions();
+    const brandIds = options.brands.map((brand) => brand.id);
+    for (const id of ['souq-al-bahar', 'souq-al-jubair', 'souq-al-haraj', 'souq-al-jubail', 'pocari-sweat']) {
+      expect(brandIds).toContain(id);
+    }
+    for (const id of ['souq-al-bahar', 'souq-al-jubair']) {
+      expect(options.brandYears?.[id]?.[0]?.year).toBe(2026);
+      expect(options.brandYears?.[id]?.[0]?.months.some((month) => month.month === 8)).toBe(true);
+      const dashboard = getCreativeDashboard({ year: 2026, month: 8, brand: id });
+      expect(dashboard.accountLevel.available).toBe(true);
+      expect(dashboard.accountLevel.dailyMetrics.length).toBeGreaterThan(0);
+      expect(dashboard.organic.available).toBe(false); // Account exports are not post-level exports.
+      expect(dashboard.accountLevel.dailyMetrics.every((metric) => metric.observedDays > 0)).toBe(true);
+    }
+  });
+
+  it('selects the valid whole-export period for Pocari, and does not invent monthly spend', () => {
+    const options = getCreativeOptions();
+    expect(options.brandYears?.['pocari-sweat']).toEqual([
+      expect.objectContaining({ year: 2026, months: [expect.objectContaining({ month: 0 })] }),
+    ]);
+    expect(options.brandYears?.['pocari-sweat']?.[0]?.months).toHaveLength(1);
+    const dashboard = getCreativeDashboard({ brand: 'pocari-sweat', year: 2026, month: 0 });
+    expect(dashboard.paid.meta.available).toBe(true);
+    expect(dashboard.paid.meta.detailRecordCount).toBe(5);
+  });
+
+  it('does not silently reassign Souq Al Jubair or Bahar observations to Haraj/Jubail', () => {
+    for (const brand of ['souq-al-haraj', 'souq-al-jubail']) {
+      const dashboard = getCreativeDashboard({ brand, year: 2026, month: 0 });
+      expect(dashboard.accountLevel.available).toBe(false);
+      expect(dashboard.organic.available).toBe(false);
+      expect(dashboard.organic.availabilityMessage).toContain('Souq Al Jubair');
+      expect(dashboard.organic.availabilityMessage).toContain('identity confirmation');
+    }
   });
 });

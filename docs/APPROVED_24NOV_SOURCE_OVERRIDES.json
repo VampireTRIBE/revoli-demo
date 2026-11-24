@@ -1,0 +1,8 @@
+{
+  "creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx": {
+    "sha256": "139a8e7ba0e5931175baef4e4c4447480e664f13a268913c9633f8219e5db040",
+    "bytes": 87112,
+    "source": "Bizcom-Engine-Imports-All-24Nov2026.zip",
+    "supersedesSha256": "676e0378f65ed73e42361700c660ab556a67079aeb263366b9a72d010003449d"
+  }
+}

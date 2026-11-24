@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { parseMediaSources } from '../src/modules/media/import/source-parser.js';
 import { reconcileImport } from '../src/modules/media/import/reconciliation.js';
 
-const sourceDirectory = resolve(process.cwd(), '../spreadsheets data/media-tab');
+const sourceDirectory = resolve(process.cwd(), '../spreadsheets data/media/rivoli');
 const sourcePaths = readdirSync(sourceDirectory)
   .filter((name) => !name.startsWith('~$') && name.toLowerCase().endsWith('.xlsx'))
   .map((name) => resolve(sourceDirectory, name));

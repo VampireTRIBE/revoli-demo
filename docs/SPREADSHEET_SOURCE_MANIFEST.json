@@ -1,0 +1,576 @@
+[
+  {
+    "old": "Rivoli-Consumer-Import (1).xlsx",
+    "new": "consumer/rivoli/archived-imports/Rivoli-Consumer-Import (1).xlsx",
+    "sha256": "2d28275cb5e91c06f4dc6c0ae9c813cf5e2a2d50f0172f5f6ed9b72940141ee6",
+    "bytes": 9504,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "TBL-Reads-Import-Template-and-First-Fill (1).xlsx",
+    "new": "highlights/tbl/TBL-Reads-Import-Template-and-First-Fill (1).xlsx",
+    "sha256": "87c98c09d9eb2ed1febfd5d40da82aa8bef7ec25536445aa780af304f32e34f7",
+    "bytes": 8200,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "TBL-Reads-Import.xlsx",
+    "new": "highlights/tbl/TBL-Reads-Import.xlsx",
+    "sha256": "87c98c09d9eb2ed1febfd5d40da82aa8bef7ec25536445aa780af304f32e34f7",
+    "bytes": 8200,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "UnionCoop-Creative-WhyItWorked-Import (2).xlsx",
+    "new": "creative/union-coop/archived-imports/UnionCoop-Creative-WhyItWorked-Import (2).xlsx",
+    "sha256": "676e0378f65ed73e42361700c660ab556a67079aeb263366b9a72d010003449d",
+    "bytes": 87537,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "UnionCoop-Creative-WhyItWorked-Import.xlsx",
+    "new": "creative/union-coop/archived-imports/from-root/UnionCoop-Creative-WhyItWorked-Import.xlsx",
+    "sha256": "3a1157557044c172fb4225898eb0a59d85669377f173754d487b38b1f16f90a9",
+    "bytes": 72096,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "compititaion-tab/Competition-Capture-EDIT-Byedit-01-Oct-2026.xlsx",
+    "new": "competition/rivoli/Competition-Capture-EDIT-Byedit-01-Oct-2026.xlsx",
+    "sha256": "1b6bc117220a6dbb8f01b54a3ffb4cdb371db62cfadf4723c92c6691583f89ee",
+    "bytes": 1673926,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "compititaion-tab/Competition-Placement-Media-Tab.png",
+    "new": "docs/reference-assets/Competition-Placement-Media-Tab.png",
+    "sha256": "975c700de098c68fc539d29ce4be636f1cffa9f4e04ac1db867acfb6f5e8ef5f",
+    "bytes": 230379,
+    "kind": ".png"
+  },
+  {
+    "old": "compititaion-tab/EDIT-AdLibrary-Capture2-03Nov2026.xlsx",
+    "new": "competition/rivoli/EDIT-AdLibrary-Capture2-03Nov2026.xlsx",
+    "sha256": "409bb8c01a6cfce04adcf0c13738d7218744caf9fce0939d7eec52cfbf28bc98",
+    "bytes": 18316,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "compititaion-tab/EDIT-Google-Capture1-18Nov2026.xlsx",
+    "new": "competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx",
+    "sha256": "791c608d55871d8e8b5e0f65b02b5182cdba8b1ffd291a3c70386b88c9fbc8e4",
+    "bytes": 11114,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "consumer-tab/Rivoli-Consumer-Import.xlsx",
+    "new": "consumer/rivoli/Rivoli-Consumer-Import.xlsx",
+    "sha256": "2d28275cb5e91c06f4dc6c0ae9c813cf5e2a2d50f0172f5f6ed9b72940141ee6",
+    "bytes": 9504,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/UC Instagram Buffer/posts.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/UC Instagram Buffer/posts.csv",
+    "sha256": "8210f81148b09d235e5df0c338eabb03fad0876ac8b915c15801fd388b8c3637",
+    "bytes": 433386,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/UC Instagram Buffer/summary.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/UC Instagram Buffer/summary.csv",
+    "sha256": "9d7af89e415f361b4c9187b9bbb7521fc8225bf43996bdc34638c05e9542bcbe",
+    "bytes": 541,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/UC Instagram Buffer/timeseries.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/UC Instagram Buffer/timeseries.csv",
+    "sha256": "66603051c85a316faa0093cac592aefae80b03e35a5da6d766206196f5f3e16c",
+    "bytes": 7681,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/UC buffer Instagram/posts.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/UC buffer Instagram/posts.csv",
+    "sha256": "93dde3b8909eb1e310a75c0d1cfe75352e3ec5d24528ec7200543d21f1a28566",
+    "bytes": 433381,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/UC buffer Instagram/summary.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/UC buffer Instagram/summary.csv",
+    "sha256": "85f3bda69b1872c82854b3399a52e41fb39fc38363cbb6e99e36e613419cee3c",
+    "bytes": 542,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/UC buffer Instagram/timeseries.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/UC buffer Instagram/timeseries.csv",
+    "sha256": "0b4ad11b5a33ed2de55a78723df97b9e1de732c35f6c12d0aaa4dc91c5f968d6",
+    "bytes": 8432,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/average-performance-statistics-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/average-performance-statistics-20260101-to-20260923.csv",
+    "sha256": "3d8dcd2006d5d171c62421bfff7f4191cc9733e3e690ab32c8e7447b44b5fc10",
+    "bytes": 51,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/demographic-cities-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/demographic-cities-20260101-to-20260923.csv",
+    "sha256": "01112995ebac471226b003ee526c117fca1348aea5555f57b4a682d8614d160f",
+    "bytes": 4422,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/demographic-countries-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/demographic-countries-20260101-to-20260923.csv",
+    "sha256": "42dff487929c921483ef25df6cc656376e36eb8c3bd4c1f272dfae6c9815e82e",
+    "bytes": 842,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/demographic-gender-age-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/demographic-gender-age-20260101-to-20260923.csv",
+    "sha256": "ec9ef8315281aeab8b483025132546146e3a82703df576084ea8dde0dd6eb6d3",
+    "bytes": 29,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/metrics-insights-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/metrics-insights-20260101-to-20260923.csv",
+    "sha256": "a70e641645313fbe7d30b41cb690fa144546b421b61714d644e79e1032a8bd47",
+    "bytes": 5085,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/performance-statistics-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/performance-statistics-20260101-to-20260923.csv",
+    "sha256": "4c775f8342603ba62b0a57398f032fdad6b85218c1846c54f48cbee2cadbdf6e",
+    "bytes": 68,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/posts-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/posts-20260101-to-20260923.csv",
+    "sha256": "b5be800fc30a19ad462c62cc00abde94a7f248b1ec9978048b15c8a0fb7a3ff2",
+    "bytes": 2806,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/posts-hashtags-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/posts-hashtags-20260101-to-20260923.csv",
+    "sha256": "cc74580e4077522f47bed74c6b6d84259b74fe3fc4cb723cbaab35443014e3fb",
+    "bytes": 10750,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Facebook/posts-summary-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Facebook/posts-summary-20260101-to-20260923.csv",
+    "sha256": "a62cecfa46cbfbb61425f25201540d5b211e0b8677b4719b0a2dc3416bfa4cca",
+    "bytes": 71,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Tik Tok Buffer/posts.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Tik Tok Buffer/posts.csv",
+    "sha256": "33c65d3b20ffecebbb2b543550306c5d49d0b5cf7dab856f80a1ef63fcc2e783",
+    "bytes": 155753,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Tik Tok Buffer/summary.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Tik Tok Buffer/summary.csv",
+    "sha256": "aefbe9f5b5ad380b28b95ec7fb596d697651d75e6d2f1c4b714bda1423b1d1a8",
+    "bytes": 462,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/Union Coop Tik Tok Buffer/timeseries.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/Union Coop Tik Tok Buffer/timeseries.csv",
+    "sha256": "c17e284c1bcfdd905eee00ad773179293dd3fd4a31d5c304d753e43cc54a83e0",
+    "bytes": 5818,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/average-performance-statistics-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/average-performance-statistics-20260101-to-20260923.csv",
+    "sha256": "924edb6fece29e23093d22160bfe5c0858cd6a326c54e8fa74965fc7c8321f22",
+    "bytes": 86,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/demographic-cities-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/demographic-cities-20260101-to-20260923.csv",
+    "sha256": "72328e868d7e36679bfd95419db06e7fd74177f0c2a7643479d058760c5584e9",
+    "bytes": 2516,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/demographic-countries-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/demographic-countries-20260101-to-20260923.csv",
+    "sha256": "ff38ab1aedce6e6c49250dddbe1de6ddf4f8ce6b3c2b9c67dcd53c79055df1c6",
+    "bytes": 793,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/demographic-gender-age-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/demographic-gender-age-20260101-to-20260923.csv",
+    "sha256": "a01900833a9dab9fba95d64135323e35b85f44e61c3a4eff1462d69ba4439009",
+    "bytes": 666,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/metrics-insights-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/metrics-insights-20260101-to-20260923.csv",
+    "sha256": "63982c6a35c361688efe1ae9e4b947b406af0a03997187d534b32da5ed1f4b7c",
+    "bytes": 5095,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/performance-statistics-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/performance-statistics-20260101-to-20260923.csv",
+    "sha256": "9bb422177125d51b7d727947ce3c07d62427c53f3e8b4ea517b1d721f0cd0c8a",
+    "bytes": 87,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/posts-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/posts-20260101-to-20260923.csv",
+    "sha256": "5ab806a42e9836fa01e795a35f216bf73dae145f7aecb31d9ef7a72ad76b1867",
+    "bytes": 3724,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/posts-hashtags-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/posts-hashtags-20260101-to-20260923.csv",
+    "sha256": "623ad8fb13ec34d12a2cc647dccb0a4d878493a327fd1ff8e9df8bd9c5aa29aa",
+    "bytes": 6203,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/posts-summary-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/posts-summary-20260101-to-20260923.csv",
+    "sha256": "3d162255675841897bb1e2307a8c1c2beb67fef08391bfd19aa8f5bbff697e17",
+    "bytes": 88,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/buffer-overview-analytics-csv/stories-summary-20260101-to-20260923.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/buffer-overview-analytics-csv/stories-summary-20260101-to-20260923.csv",
+    "sha256": "8c0b3e9528d3be42886bc6ee6cea566b97735bb2ba8e6953cdb7529542c9eaa9",
+    "bytes": 104,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/posts.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/posts.csv",
+    "sha256": "b82af7b05e43d35c64c6998d71b11ba19a099f3808a7d4f8a8b4e802cbacff37",
+    "bytes": 375518,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/summary.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/summary.csv",
+    "sha256": "10af33fa6a2ef547ca35cca694d6a618b86262d0e118ba6792026f7d7d8e4e60",
+    "bytes": 367,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Buffer insights Union Coop/timeseries.csv",
+    "new": "creative/union-coop/Buffer insights Union Coop/timeseries.csv",
+    "sha256": "8a9b0a4207114aa8cc89ca3502c92e30fe354a8af6ef08886449c8764fc576fd",
+    "bytes": 7569,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/Rivoli-Consumer-Cohorts-Jan-Sep-2026.xlsx",
+    "new": "consumer/rivoli/Rivoli-Consumer-Cohorts-Jan-Sep-2026.xlsx",
+    "sha256": "d1014dc6b12d929611450eaf5be31bc6f79a48a2d882c8a92e5093df5a3db8b5",
+    "bytes": 8974,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "creative-tab/Rivoli-Consumer-Segment-Cut-Jan-Sep16-2026.xlsx",
+    "new": "consumer/rivoli/Rivoli-Consumer-Segment-Cut-Jan-Sep16-2026.xlsx",
+    "sha256": "660b3c79fb28e4ac225f589100e6dfec8c4de51d441615d5a74e6cded4e75a1f",
+    "bytes": 22469,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB Insta views .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB Insta views .csv",
+    "sha256": "44ba6fcc030c29a105197bd70b30ddfa945b7294515c497e2ef005fa9154f44a",
+    "bytes": 8720,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB Intercations .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB Intercations .csv",
+    "sha256": "422996d41fa93602c817f62b1e6b128e0168042324fd6560a4a83e50b940cffb",
+    "bytes": 8156,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB follows Insta .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB follows Insta .csv",
+    "sha256": "4c478c3befbf9f73ea57ce63ad8d9659585db3bdb1c6024207cbe24c9106c76e",
+    "bytes": 7006,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB interactions insta .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB interactions insta .csv",
+    "sha256": "005cc81cf4cbe1d5ab9ac48a23bf5c3a7f52cf19b3a60aa9995341f2288898f9",
+    "bytes": 8176,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB reach insta .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB reach insta .csv",
+    "sha256": "8a65b364b22fe42f1bb6d705612e42f0205b9311715105d8f0be0dd77968347f",
+    "bytes": 8468,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB visits insta.csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB visits insta.csv",
+    "sha256": "cca71923df0e098a147fbe9041f16247de3daecbe9c4309247e20bf70fdf3980",
+    "bytes": 8474,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB vists .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB vists .csv",
+    "sha256": "ef7cd1b9586e8e165b509c99d855d3e6df51c3b995ae5001fa4925eaa85213fb",
+    "bytes": 8348,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAB.csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAB.csv",
+    "sha256": "b27448efb283529d6879450ff1092ff687d9a2cdb10315628f2a913d79e49118",
+    "bytes": 8148,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAb audience insta .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAb audience insta .csv",
+    "sha256": "1d0d19868cbe6f64c05ff2ede0e1d5c81b3b3c3e66eec9b7c461d775e85b2c3a",
+    "bytes": 1388,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/SAb content formats .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/SAb content formats .csv",
+    "sha256": "08a68cdc7421842e9e1c6b430d15c7b343ab643085992d7b28cf2e12e5af8bff",
+    "bytes": 112,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Bahar Views .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Bahar Views .csv",
+    "sha256": "3bf91b73b1bd4f384f00876c9bc37caa3801dae1b8eccd497a3a724f15a1b98e",
+    "bytes": 8464,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al JUbair Views .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al JUbair Views .csv",
+    "sha256": "e222e814eb2007f9cb83679735ec16169daf08fd61ff8dc7552da04652a9e3b6",
+    "bytes": 14682,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Juabir Vsists .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Juabir Vsists .csv",
+    "sha256": "aa34a483e1092ef6ed91c18d8fc16179b97e1d098ae268efc97a371935ecea11",
+    "bytes": 14376,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Juabir follows .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Juabir follows .csv",
+    "sha256": "695ba7e13f20b7c7b89a0760ba9fdcbebc7af0de30a169e292edf008204e0c3f",
+    "bytes": 13920,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Jubair Interactions .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Jubair Interactions .csv",
+    "sha256": "cefe0ff7d6fd567f1e131476db8f520c51b1e29617546b3569cf1dc0128b0e73",
+    "bytes": 13940,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Jubair Links  .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Jubair Links  .csv",
+    "sha256": "534ffbb01c290295644252f0cbdaa246aadf7886a967a9980f7afa575359d9a7",
+    "bytes": 13928,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Jubair audience .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Jubair audience .csv",
+    "sha256": "e67f387a1d20ea89f92af923ac430ae84b30ac4dc3eb584b619a7fa1f679742c",
+    "bytes": 1470,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al Jubair viewers .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al Jubair viewers .csv",
+    "sha256": "455c0d807d624c63b85ddf2c2db09fd138596ae63ae634d78b16aca602ed7a00",
+    "bytes": 14410,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al bahar Viewers .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al bahar Viewers .csv",
+    "sha256": "41e7a7b584ffd3cc6f141a6e41587d9cf1257fcfc31809d61a733b2341ef2b9b",
+    "bytes": 8322,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/SOUQ Al Jubair and Bahar/Souq Al jubair content formats .csv",
+    "new": "creative/souqs/SOUQ Al Jubair and Bahar/Souq Al jubair content formats .csv",
+    "sha256": "94051038c5433e59f1c14561985642860359a762de37fff01817fbbd62adfac3",
+    "bytes": 544,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/UnionCoop-CLEO-Market-Import.xlsx",
+    "new": "search/union-coop/UnionCoop-CLEO-Market-Import.xlsx",
+    "sha256": "5d95a8efc025c82a63e9e63a6c7e4c65a8681e82f96958318ed88317a6cb797f",
+    "bytes": 14461,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "creative-tab/UnionCoop-Creative-WhyItWorked-Import.xlsx",
+    "new": "creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx",
+    "sha256": "676e0378f65ed73e42361700c660ab556a67079aeb263366b9a72d010003449d",
+    "bytes": 87537,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/average-performance-statistics-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/average-performance-statistics-20260101-to-20261001.csv",
+    "sha256": "89c35f7466386e8cfdeafb57a44dc356bbc42d83f27497e5785c42e2524dfe7d",
+    "bytes": 189,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/demographic-cities-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/demographic-cities-20260101-to-20261001.csv",
+    "sha256": "dd8b1f3d9c10cf5b2c48738feb96c07e29f4219c185f877d88cfba32c0d7aa6b",
+    "bytes": 3448,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/demographic-countries-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/demographic-countries-20260101-to-20261001.csv",
+    "sha256": "38297b0a877665bef7a081d6177b278af522b3998ef1a4b2a591c83b5d08f062",
+    "bytes": 854,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/demographic-gender-age-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/demographic-gender-age-20260101-to-20261001.csv",
+    "sha256": "87f1af0d12dd27fdb19dc77f3241b57c346b332d412becceef8d32df326df426",
+    "bytes": 628,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/metrics-insights-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/metrics-insights-20260101-to-20261001.csv",
+    "sha256": "a9d19118c9c25809cd0c6ba30562e1e476560964797505c21281d3ab3ff61aef",
+    "bytes": 4973,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/performance-statistics-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/performance-statistics-20260101-to-20261001.csv",
+    "sha256": "45eaf1e1f51ee249d896ee02e921dd8aa347e14d74af51a18dcb7936530f7a47",
+    "bytes": 158,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/posts-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/posts-20260101-to-20261001.csv",
+    "sha256": "37bd0631b44a3c14fabb1306a073eb3c1a7b125136ef6f8450c85503b8ff0015",
+    "bytes": 2629,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/posts-hashtags-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/posts-hashtags-20260101-to-20261001.csv",
+    "sha256": "3bcced7143d82e0331e027be277fda9105d6647b540da17bdec15277a7b06786",
+    "bytes": 1610,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/posts-summary-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/posts-summary-20260101-to-20261001.csv",
+    "sha256": "4ca9d85190e266ffdc11e652285fc67788c242440337b5d27db64e9c46bb1022",
+    "bytes": 174,
+    "kind": ".csv"
+  },
+  {
+    "old": "creative-tab/buffer-posts-analytics-csv/stories-summary-20260101-to-20261001.csv",
+    "new": "creative/pocari-sweat/buffer-posts-analytics-csv/stories-summary-20260101-to-20261001.csv",
+    "sha256": "6c545005ac9bb1714c53f5c9f1b8515de0eb7b92efcc52853b078343f5284cb4",
+    "bytes": 99,
+    "kind": ".csv"
+  },
+  {
+    "old": "media-tab/Rivoli Shop Segmentation with reconciled campaigns .xlsx",
+    "new": "media/rivoli/Rivoli Shop Segmentation with reconciled campaigns .xlsx",
+    "sha256": "8c5be46467d04b255fb9268a6a3deb1cd406628fd23297579e2a9eff9111edfc",
+    "bytes": 129152,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "media-tab/Rivoli Shop. Brand Segmentation 16.09.xlsx",
+    "new": "media/rivoli/Rivoli Shop. Brand Segmentation 16.09.xlsx",
+    "sha256": "db26bbe5346169079f9227b17bcd8cbb37f43cd7ca527202e438995bd0a79c9a",
+    "bytes": 21178,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "media-tab/Rivoli-Brand-Plot-MODULE2-Jan-Sep-2026.xlsx",
+    "new": "media/rivoli/Rivoli-Brand-Plot-MODULE2-Jan-Sep-2026.xlsx",
+    "sha256": "7e9e589b2704db9f70af7627bb7e6b2cdded095964f5109c8d4a3c36ada8b260",
+    "bytes": 16047,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "media-tab/Rivoli-Google-Brand-Spend-Jan-Sep-2026.xlsx",
+    "new": "media/rivoli/Rivoli-Google-Brand-Spend-Jan-Sep-2026.xlsx",
+    "sha256": "2c4140f2c719ef93dab125c577422c0b31dc9842d083a88bfb0673cf3130eced",
+    "bytes": 16017,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "media-tab/Rivoli-Meta-Brand-Spend-Jan-Sep-2026.xlsx",
+    "new": "media/rivoli/Rivoli-Meta-Brand-Spend-Jan-Sep-2026.xlsx",
+    "sha256": "025e4fe5743555b8676b5b44676e22fc343d2be387cdd2bd4dbe6af2020cde80",
+    "bytes": 19020,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "media-tab/Rivoli-Organic-Brand-Demand-Jan-Sep-2026.xlsx",
+    "new": "media/rivoli/Rivoli-Organic-Brand-Demand-Jan-Sep-2026.xlsx",
+    "sha256": "e5d6e303e5662eb9bef65f45d5bcd235b716cfee32b651b9a5a64db7f09ae10a",
+    "bytes": 54380,
+    "kind": ".xlsx"
+  },
+  {
+    "old": "theme.jpeg",
+    "new": "docs/reference-assets/theme.jpeg",
+    "sha256": "c92e9ede5b86a42d8ab522d06564bbc99218db00a7147dd0d0a226a0d6ea096c",
+    "bytes": 138011,
+    "kind": ".jpeg"
+  }
+]

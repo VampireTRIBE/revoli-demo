@@ -1,6 +1,8 @@
+> **Spreadsheet folder reorganization (24 Nov 2026):** All 19 Excel workbooks and 61 CSV data files are now grouped by dashboard category under `spreadsheets data/`. See [`spreadsheets data/README.md`](spreadsheets%20data/README.md) for the new paths, archived copies, and missing source destinations. Existing Node/Express/npm workspace structure is unchanged.
+
 # November 23, 2026 source update
 
-This project now includes the approved EDIT Google Ads Transparency Center capture in `spreadsheets data/compititaion-tab/`. Select Rivoli > Competition > EDIT > Google to view the **30 logged creatives**, four sample format groups, verified payer distribution and **approximately 200 Google-reported ads** as a separate population figure. The new capture does not include ad Library IDs, exact starts, or signed Highlights.
+This project now includes the approved EDIT Google Ads Transparency Center capture in `spreadsheets data/competition/rivoli/`. Select Rivoli > Competition > EDIT > Google to view the **30 logged creatives**, four sample format groups, verified payer distribution and **approximately 200 Google-reported ads** as a separate population figure. The new capture does not include ad Library IDs, exact starts, or signed Highlights.
 
 The latest changes also correct Media objective inference, mislabeled new-customer CAC, selected-client header text, missing-period spark bars, duplicated pending Highlights and selected KPI animations. See `docs/BIZCOM_NOV23_IMPLEMENTATION_AND_ACCURACY.md`, `docs/BIZCOM_NOV23_REQUIREMENT_STATUS.md` and `docs/BIZCOM_NOV23_TEST_RESULTS.md`.
 
@@ -17,9 +19,13 @@ This repository implements the **Creative, Competition, and Media tabs**. The su
 The application calculates paid impressions, Blended CTR, and directional platform, campaign, Segment, and Brand ROAS from the available sheet data. Brand ROAS uses exact Brand data, then mapped Segment, then overall-period fallback; Segment ROAS uses exact Segment then overall-period fallback. ROAS is not presented as verified paid attribution. The application does not fabricate new-customer CAC, traffic quality, plan adherence, or an official Media score when the required inputs are absent.
 
 
+## Creative brand selection and source availability (24 November 2026)
+
+The Creative brand dropdown now includes the **source-labelled** Souq Al Bahar and Souq Al Jubair accounts, with their available daily account metrics. Pocari Sweat automatically selects **All months** and opens **Paid Meta**, because its five supplied detail records cover a whole export rather than a monthly organic feed. Souq Al Haraj and Souq Al Jubail are awaiting exact-brand exports; existing files labelled Bahar/Jubair are not reassigned without approved identity confirmation. Run `npm run verify:creative-brands` to validate the selection contract. See [Creative source fix](docs/CREATIVE_BRAND_DATA_REPAIR_2026-11-24.md).
+
 ## GEO (Generative Engine Optimization)
 
-The application now has a standalone [GEO dashboard](docs/GEO_DASHBOARD_IMPLEMENTATION.md) at `/geo`, populated at runtime from the approved Union Coop CLEO workbook in `spreadsheets data/creative-tab/`. This unscored page shows AI voice, topic shares, citation positions, visibility funnel, tracked market questions and search language. Start the server with `npm run dev` and open `http://localhost:5173/geo`. Only Union Coop is available until further approved brand imports arrive.
+The application now has a standalone [GEO dashboard](docs/GEO_DASHBOARD_IMPLEMENTATION.md) at `/geo`, populated at runtime from the approved Union Coop CLEO workbook in `spreadsheets data/search/union-coop/`. This unscored page shows AI voice, topic shares, citation positions, visibility funnel, tracked market questions and search language. Start the server with `npm run dev` and open `http://localhost:5173/geo`. Only Union Coop is available until further approved brand imports arrive.
 
 ## Documentation
 
@@ -162,7 +168,7 @@ The client and server are separate applications managed from one npm workspace.
 - npm 10 or later
 - MongoDB 7 or later for persisted imports
 
-MongoDB is required to complete uploads. The API can still start in source-backed read mode when MongoDB is unavailable; in that mode it reads the supplied files in `spreadsheets data/creative-tab`, `spreadsheets data/compititaion-tab`, and `spreadsheets data/media-tab` so the dashboards remain inspectable.
+MongoDB is required to complete uploads. The API can still start in source-backed read mode when MongoDB is unavailable; in that mode it reads the supplied files in `spreadsheets data/creative`, `spreadsheets data/competition/rivoli`, and `spreadsheets data/media/rivoli` so the dashboards remain inspectable.
 
 ## Installation
 
@@ -315,7 +321,7 @@ This follow-up only changes Creative presentation; it does not address the outst
 
 See [`docs/CREATIVE_MEDIA_CAPTURE2_IMPLEMENTATION.md`](docs/CREATIVE_MEDIA_CAPTURE2_IMPLEMENTATION.md) for all 41 marker statuses, source mapping, API examples, missing approved inputs and actual validation results.
 
-The Media tab now uses five CEO slots with a November EDIT 68-ad register, historical comparison, and a real 15-image, four-row competition wall. The new workbook is in `spreadsheets data/compititaion-tab/` and the PNG assets are under `server/data/competition-assets/edit-by-ahmed-seddiqi/2026-11-03/`. Original October assets, Creative, Consumer and GEO are preserved.
+The Media tab now uses five CEO slots with a November EDIT 68-ad register, historical comparison, and a real 15-image, four-row competition wall. The new workbook is in `spreadsheets data/competition/rivoli/` and the PNG assets are under `server/data/competition-assets/edit-by-ahmed-seddiqi/2026-11-03/`. Original October assets, Creative, Consumer and GEO are preserved.
 
 Run `python tools/validate_edit_capture2.py` for a dependency-free audit, then in a machine with npm registry access run `npm ci`, `npm test`, `npm run lint`, `npm run build`, and `npm run dev`. Missing GA4 v4 and Souqs v2 imports are shown as unavailable rather than filled with estimated data.
 
@@ -348,3 +354,9 @@ Static contract check: `npm run verify:media-creative`. Existing Creative check:
 
 ## 24 Nov Competition & visual update (existing structure preserved)
 See `docs/COMPETITION_VISUAL_NOV24_REQUIREMENTS_AND_SOURCE_AUDIT.md`. This release preserves the existing React/Express workspaces and spreadsheet-based source imports; no Docker or database migration is introduced.
+
+## 24 November approved source import update
+
+The eight workbooks/assets in `Bizcom-Engine-Imports-All-24Nov2026.zip` have been merged into the existing categorized spreadsheet directories. No new infrastructure or deployment structure is required. Rivoli GA4 v4 adds complete September/October channel and first-time-purchaser values. Both 1 Oct and 18 Nov Union Coop competitor captures are included, with missing Library IDs kept separate from genuine IDs.
+
+Run `npm run verify:nov24-imports` to confirm all eight files are present and `npm run verify:spreadsheets` to verify original source-file provenance. Detailed import figures, editorial restrictions, and the outstanding approved-data dependencies are in `docs/NOV24_ALL_IMPORTS_INTEGRATION.md`.

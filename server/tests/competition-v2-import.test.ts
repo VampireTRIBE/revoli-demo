@@ -28,12 +28,15 @@ describe('Competition V2 import contract',()=>{
       ],
     });
     const [capture]=parseCompetitionCaptureV2(file,edit);
+    if(!capture)throw new Error('Expected the Google sample capture');
     expect(capture.observations).toHaveLength(2);
     expect(capture.reportedPopulation).toBe(200);
     expect(capture.sampleSize).toBe(2);
     expect(capture.channel).toBe('Google');
-    expect(capture.observations[0].libraryId).toMatch(/^not-captured-/);
-    expect(capture.observations[0].startDateAvailable).toBe(false);
+    const firstObservation=capture.observations[0];
+    if(!firstObservation)throw new Error('Expected at least one Google observation');
+    expect(firstObservation.libraryId).toMatch(/^not-captured-/);
+    expect(firstObservation.startDateAvailable).toBe(false);
   });
   it('keeps separate competitor sheets and only publishes explicitly signed highlights',()=>{
     const file=create('Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx',{
@@ -46,6 +49,7 @@ describe('Competition V2 import contract',()=>{
     });
     const [cc]=parseCompetitionCaptureV2(file,carrefour);
     const [lc]=parseCompetitionCaptureV2(file,lulu);
+    if(!cc||!lc)throw new Error('Expected both Carrefour and LuLu captures');
     expect(cc.observations).toHaveLength(1);
     expect(lc.observations).toHaveLength(1);
     expect(cc.highlights).toEqual(['Signed analyst statement']);

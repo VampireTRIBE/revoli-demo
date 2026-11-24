@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import '../styles/header.css';
 
-const scoreTabs = ['Tech', 'UI/UX', 'SEO'];
+
 
 function GpLogo() {
   return <svg viewBox="0 0 200 200" role="img" aria-label="The GP Inc. logo">
@@ -23,9 +23,13 @@ export function AppLayout() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const isCreative = location.pathname.startsWith('/creative');
-  const isGeo = location.pathname.startsWith('/geo');
+  const isGeo = location.pathname.startsWith('/search');
   const isConsumer = location.pathname.startsWith('/consumer');
-  const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
+  const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'souq-al-haraj': 'Souq Al Haraj', 'souq-al-jubail': 'Souq Al Jubail', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
+  const requestedClient = searchParams.get('client');
+  const consumerClient = requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
+  const mediaClient = requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
+  const displayedClient = isCreative ? creativeClient : isGeo ? 'Union Coop' : isConsumer ? consumerClient : mediaClient;
   const [openedAt] = useState(() => new Date().toLocaleString('en-US'));
 
   return <div className="app-shell reference-shell">
@@ -34,18 +38,13 @@ export function AppLayout() {
         <NavLink to="/media" className="reference-logo" aria-label="Open Media dashboard"><GpLogo /></NavLink>
         <div>
           <h1>The GP Inc. Bizcom Engine <span className="reference-badge live">PROOF OF CONCEPT</span></h1>
-          <div className="reference-sub">Client: <strong>{isCreative ? creativeClient : isGeo ? 'Union Coop' : 'Rivoli'}</strong> {isCreative ? 'Uploaded creative data' : isGeo ? 'Imported CLEO market data' : isConsumer ? 'Imported consumer data' : 'Imported media data'} &middot; opened {openedAt}</div>
+          <div className="reference-sub">Client: <strong>{displayedClient}</strong> {isCreative ? 'Uploaded creative data' : isGeo ? 'Imported CLEO market data' : isConsumer ? 'Imported consumer data' : 'Imported media data'} &middot; opened {openedAt}</div>
         </div>
       </header>
 
       <nav className="reference-tabs" aria-label="BizCom Engine modules">
-        <button type="button" className="reference-tab" disabled>Overview</button>
-        {scoreTabs.map((tab) => <button type="button" className="reference-tab" disabled key={tab}><span>{tab}</span><span className="reference-pill">&ndash;</span></button>)}
-        <NavLink end to="/creative" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Creative</span></NavLink>
-        <NavLink end to="/geo" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>GEO</span></NavLink>
-        <NavLink end to="/media" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Media</span></NavLink>
-        <NavLink end to="/consumer" className={({ isActive }) => `reference-tab${isActive ? ' active' : ''}`}><span>Consumer</span></NavLink>
-        <button type="button" className="reference-tab" disabled>Business</button>
+        {[['Overview', '/overview'], ['Tech','/tech'], ['UI/UX','/ui-ux'], ['Search','/search'], ['Creative','/creative'], ['Media','/media'], ['Consumer','/consumer'], ['Business','/business']].map(([label, to]) =>
+          <NavLink key={to} to={to} className={({isActive}) => `reference-tab${isActive ? ' active' : ''}`}><span>{label}</span></NavLink>)}
       </nav>
 
       <main><Outlet /></main>

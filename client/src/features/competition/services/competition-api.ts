@@ -8,6 +8,7 @@ export interface CompetitionFilter {
   month?: number;
   competitor?: string;
   captureDate?: string;
+  channel?: 'Meta' | 'Google';
 }
 
 export async function fetchCompetitionOptions(clientId?: string): Promise<CompetitionOptions> {

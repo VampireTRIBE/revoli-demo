@@ -7,7 +7,6 @@ import { useCompetitionDashboard, useCompetitionOptions } from '../hooks/use-com
 import { competitionAssetUrl } from '../services/competition-api';
 import { CompetitionSourceLabel } from './CompetitionSourceLabel';
 import { MediaCompetitionPanel } from './MediaCompetitionPanel';
-import { TblReadsStrip } from '../../reads/TblReadsStrip';
 import '../../../styles/reference-competition.css';
 
 export type CompetitionContextView = 'creative' | 'media';
@@ -16,6 +15,7 @@ export function useContextualCompetition(clientId: string, year?: number, month?
   const options = useCompetitionOptions(clientId);
   const [selectedCompetitor, setSelectedCompetitor] = useState<string | undefined>(initialCompetitor);
   const [captureDate, setCaptureDate] = useState<string>();
+  const [channel, setChannel] = useState<'Meta' | 'Google'>('Meta');
   const previousClient = useRef(clientId);
 
   useEffect(() => {
@@ -23,6 +23,7 @@ export function useContextualCompetition(clientId: string, year?: number, month?
       previousClient.current = clientId;
       setSelectedCompetitor(undefined);
       setCaptureDate(undefined);
+      setChannel('Meta');
     }
   }, [clientId]);
 
@@ -30,7 +31,7 @@ export function useContextualCompetition(clientId: string, year?: number, month?
     if (initialCompetitor && options.data?.competitors.some((item) => item.id === initialCompetitor)) setSelectedCompetitor(initialCompetitor);
   }, [initialCompetitor, options.data]);
 
-  const dashboard = useCompetitionDashboard({ year, month, competitor: selectedCompetitor, captureDate });
+  const dashboard = useCompetitionDashboard({ year, month, competitor: selectedCompetitor, captureDate, channel });
   return {
     clientId,
     year,
@@ -39,6 +40,8 @@ export function useContextualCompetition(clientId: string, year?: number, month?
     dashboard,
     selectedCompetitor,
     captureDate,
+    channel,
+    selectChannel: (value: 'Meta' | 'Google') => {setChannel(value);setCaptureDate(undefined);},
     selectCompetitor: (value?: string) => { setSelectedCompetitor(value); setCaptureDate(undefined); },
     selectCapture: setCaptureDate,
     close: () => { setSelectedCompetitor(undefined); setCaptureDate(undefined); },
@@ -80,11 +83,12 @@ export function CompetitionDropdown({ context }: { context: CompetitionContextSt
   };
 
   return <div className="competition-context-dropdown" ref={rootRef}>
-    <span>Competition</span>
+    <span>Compare against</span>
     <button type="button" className={`competition-context-trigger${open ? ' open' : ''}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((current) => !current)} onKeyDown={onKeyDown}>
-      <span>{selected?.label ?? 'Competition'}</span><ChevronDown size={14} aria-hidden="true" />
+      <span>{selected?.label ?? 'Off - own performance'}</span><ChevronDown size={14} aria-hidden="true" />
     </button>
     {open ? <div className="competition-context-menu" role="menu" aria-label="Competition">
+      <button type="button" role="menuitem" onClick={() => { context.close();setOpen(false); }}>Off - own performance</button>
       {context.options.isLoading ? <div>Loading competitors...</div> : context.options.isError ? <div>Competition options could not be loaded</div> : competitors.length ? competitors.map((competitor, index) => <button
         type="button"
         role="menuitem"
@@ -104,8 +108,12 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
   const showCaptureSelector = allDates.length > 1 || Boolean(data && !data.available && allDates.length);
   return <section className="competition-context-panel competition-mt" aria-label={`${view === 'creative' ? 'Creative' : 'Media'} Competition context`}>
     <div className="competition-context-heading">
-      <div><h3>{view === 'creative' ? 'Creative Competition' : 'Media Competition'}</h3><p>{data?.competitor.label ?? 'Selected competitor'}{data?.competitor.metaPage ? ` · Meta page ${data.competitor.metaPage}` : ''}</p></div>
+      <div><h3>{view === 'creative' ? 'Creative Competition' : 'Media Competition'}</h3><p>{data?.competitor.label ?? 'Selected competitor'}{context.channel === 'Meta' && data?.competitor.metaPage ? ` · Meta page ${data.competitor.metaPage}` : ''}</p></div>
       <div className="competition-context-actions">
+        {context.clientId === 'rivoli-shop' ? <div className="v2-channel-switch" role="group" aria-label="Competition capture channel">
+          <button type="button" className={context.channel==='Meta'?'selected':''} aria-pressed={context.channel==='Meta'} onClick={()=>context.selectChannel('Meta')}>Meta</button>
+          <button type="button" className={context.channel==='Google'?'selected':''} aria-pressed={context.channel==='Google'} onClick={()=>context.selectChannel('Google')}>Google</button>
+        </div> : null}
         {showCaptureSelector ? <label><span>Capture</span><select value={context.captureDate ?? ''} onChange={(event) => context.selectCapture(event.target.value || undefined)}>
           <option value="">Match page period</option>
           {allDates.map((date) => <option value={date} key={date}>{formatDate(date)}</option>)}
@@ -113,12 +121,13 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
         <button type="button" onClick={context.close} aria-label="Close Competition panel"><X size={16} /> Close</button>
       </div>
     </div>
+    <div className="v2-competition-source" role="note">COMPETITOR VIEW · Viewing {data?.competitor.label ?? 'selected competitor'} · {context.channel === 'Google' ? 'Google Ads Transparency Center' : 'Meta Ad Library'} · activity, not spend</div>
     {context.dashboard.isLoading ? <CompetitionState>Loading competition capture...</CompetitionState>
       : context.dashboard.isError ? <CompetitionState error>Competition capture could not be loaded.</CompetitionState>
         : !data ? <CompetitionState>Choose a competitor.</CompetitionState>
           : !data.available ? <UnavailableContext data={data} allDates={allDates} onSelectCapture={context.selectCapture} />
             : <>
-              {data.capture.date ? <TblReadsStrip client={competitionReadsClient(context.clientId)} section="Competition" year={Number(data.capture.date.slice(0, 4))} month={Number(data.capture.date.slice(5, 7))} /> : null}
+              {data.signedHighlights?.length ? <div className="v2-competition-highlights"><strong>Highlights this month · {data.capture.date?.slice(0,7)}</strong>{data.signedHighlights.map((line,i)=><p key={i}>{line}</p>)}</div> : null}
               <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Competition capture is independent of the ${formatMonth(context.year, context.month)} Media reporting period`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
               {view === 'creative' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionPanel data={data} />}
             </>}
@@ -156,7 +165,7 @@ function MixCard({ title, rows, source }: { title: string; rows: CompetitionMixR
 }
 
 function CreativeDetailTable({ data }: { data: CompetitionDashboard }) {
-  return <section className="competition-card competition-details competition-mt"><div className="competition-card-heading"><div><h3>Creative detail</h3><p>Original analyst labels remain unchanged.</p></div></div><div className="competition-table-wrap"><table><thead><tr><th>Library ID</th><th>Start date</th><th>Format</th><th>Theme</th><th>Language</th><th>Featured brand / product</th><th>Ad text</th><th>Destination</th></tr></thead><tbody>{data.observations.map((row) => <tr key={row.libraryId}><td>{row.libraryId}</td><td>{formatDate(row.startDate)}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td><td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> Open</a> : 'N/A'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel} /></section>;
+  return <section className="competition-card competition-details competition-mt"><div className="competition-card-heading"><div><h3>Creative detail</h3><p>Original analyst labels remain unchanged.</p></div></div><div className="competition-table-wrap"><table><thead><tr><th>Library ID</th><th>Start date</th><th>Format</th><th>Theme</th><th>Language</th><th>Featured brand / product</th><th>Ad text</th><th>Destination</th></tr></thead><tbody>{data.observations.map((row) => <tr key={row.libraryId}><td>{row.libraryId}</td><td>{row.startDateAvailable === false ? '(not captured)' : formatDate(row.startDate)}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td><td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> Open</a> : 'N/A'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel} /></section>;
 }
 
 function CompetitionImage({ screenshot, label }: { screenshot: CompetitionScreenshot; label: string }) {
@@ -184,4 +193,3 @@ function formatMonth(year?: number, month?: number): string { return year && mon
 function formatNumber(value: number | null): string { return value == null ? 'N/A' : value.toLocaleString('en-US'); }
 function formatDecimal(value: number | null): string { return value == null ? 'N/A' : value.toFixed(1); }
 function formatPercent(value: number): string { return `${(value * 100).toFixed(0)}%`; }
-function competitionReadsClient(clientId: string): string { return clientId === 'union-coop' ? 'Union Coop' : 'Rivoli'; }

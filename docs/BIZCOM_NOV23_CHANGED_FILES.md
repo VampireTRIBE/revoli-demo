@@ -1,0 +1,41 @@
+# Files changed or added on 23 November 2026
+
+- `client/src/components/v2/CountUpValue.tsx`
+- `client/src/components/v2/Reporting.tsx`
+- `client/src/features/competition/components/ContextualCompetition.tsx`
+- `client/src/features/competition/components/MediaCompetitionPanel.tsx`
+- `client/src/features/competition/components/media-competition-wall.css`
+- `client/src/features/media/components/CampaignSection.tsx`
+- `client/src/features/media/components/MediaConsumerAlignment.tsx`
+- `client/src/features/media/components/MediaMetricCard.tsx`
+- `client/src/features/media/components/OverviewCards.tsx`
+- `client/src/layouts/AppLayout.tsx`
+- `client/src/pages/CreativeDashboardPage.tsx`
+- `client/src/styles/bizcom-v2.css`
+- `client/src/types/media.ts`
+- `docs/BIZCOM_NOV23_DATA_VERIFICATION.json`
+- `docs/BIZCOM_NOV23_IMPLEMENTATION_AND_ACCURACY.md`
+- `docs/BIZCOM_NOV23_REQUIREMENT_STATUS.md`
+- `docs/BIZCOM_NOV23_TEST_RESULTS.md`
+- `server/src/modules/competition/calculations/competition-calculations.ts`
+- `server/src/modules/competition/config/competition.config.ts`
+- `server/src/modules/competition/import/capture-v2-parser.ts`
+- `server/src/modules/competition/services/competition.service.ts`
+- `server/src/modules/media/import/source-parser.ts`
+- `server/src/modules/media/models/media-record.models.ts`
+- `server/src/modules/media/services/media-analytics.service.ts`
+- `server/src/modules/media/types/media.types.ts`
+- `server/tests/competition-google-capture.test.ts`
+- `spreadsheets data/compititaion-tab/EDIT-Google-Capture1-18Nov2026.xlsx`
+
+Removed cleanup/metadata files:
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._average-performance-statistics-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._demographic-cities-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._demographic-countries-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._demographic-gender-age-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._metrics-insights-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._performance-statistics-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._posts-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._posts-hashtags-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._posts-summary-20260101-to-20261001.csv`
+- `spreadsheets data/creative-tab/__MACOSX/buffer-posts-analytics-csv/._stories-summary-20260101-to-20261001.csv`

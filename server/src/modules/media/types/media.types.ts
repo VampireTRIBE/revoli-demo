@@ -63,6 +63,7 @@ export interface CampaignRecord {
   segment: string;
   stage: string;
   campaignType: string;
+  objective?: 'Conversion' | 'Traffic' | 'Awareness' | null;
   mappingSource: string;
   confidence: string;
   spend: number;

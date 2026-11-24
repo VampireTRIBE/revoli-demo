@@ -3,6 +3,7 @@ import path from 'node:path';
 import AdmZip from 'adm-zip';
 import XLSX from 'xlsx';
 import { parseEditCaptureTwo } from './edit-capture-two-parser.js';
+import { parseCompetitionCaptureV2 } from './capture-v2-parser.js';
 import { dateOnlyDifference } from '../calculations/competition-calculations.js';
 import {
   competitionConfigs,
@@ -52,7 +53,13 @@ export function parseCompetitionSources(): CompetitionSourceDataset {
       if (edit) captures.push(parseEditCaptureTwo(file, edit));
       continue;
     }
-    const matchedConfigs = competitionConfigs.filter((config) => config.workbookPattern.test(path.basename(file)));
+    const filename = path.basename(file);
+    if (/^EDIT-Google-Capture\d+-/i.test(filename)) {
+      const edit = competitionConfigs.find((config) => config.id === 'edit-by-ahmed-seddiqi');
+      if (edit) captures.push(...parseCompetitionCaptureV2(file,edit));
+      continue;
+    }
+    const matchedConfigs = competitionConfigs.filter((config) => config.workbookPattern.test(filename));
     if (!matchedConfigs.length) continue;
     const workbook = XLSX.readFile(file, { cellDates: false, raw: false });
     const captureSheets = workbook.SheetNames.filter((sheetName) => {
@@ -63,6 +70,10 @@ export function parseCompetitionSources(): CompetitionSourceDataset {
       return REQUIRED_HEADERS.every((header) => headers.includes(header));
     });
 
+    if (captureSheets.length === 0 && /Competition-Capture-UnionCoop-Carrefour-LuLu/i.test(filename)) {
+      for(const config of matchedConfigs) captures.push(...parseCompetitionCaptureV2(file,config));
+      continue;
+    }
     for (const sheetName of captureSheets) {
       const sheet = workbook.Sheets[sheetName];
       if (!sheet) continue;

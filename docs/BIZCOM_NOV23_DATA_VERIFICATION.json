@@ -1,0 +1,51 @@
+{
+  "generated_on": "2026-11-23",
+  "input_baseline": "Bizcom-Engine-V2-Creative-Fixed-Four-PDF-Audited.zip",
+  "google_capture": {
+    "source": "EDIT-Google-Capture1-18Nov2026.xlsx",
+    "capture_date": "2026-11-18",
+    "reported_ads_approximate": 200,
+    "logged_sample": 30,
+    "format_mix_sample": {
+      "Search": 11,
+      "Local/Maps": 5,
+      "Shopping": 7,
+      "Display": 7
+    },
+    "verified_payers": {
+      "Ahmed Seddiqi & Sons L.L.C": 28,
+      "Amnet MENA FZ-LLC": 1,
+      "ETHINOS DIGITAL MARKETING": 1
+    },
+    "source_library_ids_available": false,
+    "source_start_dates_available": false,
+    "highlights_approved": false
+  },
+  "meta_capture": {
+    "source": "EDIT-AdLibrary-Capture2-03Nov2026.xlsx",
+    "registered_unique_ids": 68,
+    "gallery_images": 15,
+    "gallery_rows": [
+      4,
+      4,
+      4,
+      3
+    ],
+    "duplicate_source_sha_matches_existing": true
+  },
+  "tests": {
+    "creative_contract": "PASS",
+    "typescript_tsx_syntax": "PASS (118 files)",
+    "css_syntax": "PASS (16 files)",
+    "google_observed_sample_logic": "PASS (isolated)",
+    "npm_ci_offline": "BLOCKED (missing cached zod 4.6.5 tarball)",
+    "vitest": "NOT EXECUTED (dependencies unavailable)",
+    "full_build": "NOT VERIFIED",
+    "browser_e2e": "NOT VERIFIED"
+  },
+  "requirements": {
+    "complete_in_source": 10,
+    "partial": 15,
+    "blocked": 5
+  }
+}

@@ -228,6 +228,7 @@ function parseGoogleCampaigns(source: WorkbookSource, periods: MediaPeriod[], ba
       segment: text(value(row, 'Final segment(s)')),
       stage: text(value(row, 'Campaign type')),
       campaignType: text(value(row, 'Campaign type')),
+      objective: verifiedObjective(value(row, 'Objective')),
       mappingSource: text(value(row, 'Validation')),
       confidence: text(value(row, 'Mapping confidence')),
       spend: numberValue(value(row, 'Cost (AED)')),
@@ -255,6 +256,7 @@ function parseMetaCampaigns(source: WorkbookSource, _periods: MediaPeriod[], _pl
       segment: text(value(row, 'Final segment')),
       stage: text(value(row, 'Stage')),
       campaignType: text(value(row, 'Stage')),
+      objective: verifiedObjective(value(row, 'Objective')),
       mappingSource: text(value(row, 'Note')) || 'T31N naming map',
       confidence: text(value(row, 'Confidence')),
       spend: nineMonthSpend,
@@ -312,4 +314,13 @@ function parseOrganic(source: WorkbookSource, periods: MediaPeriod[], batchId: s
     }
   });
   return [...brandRows, ...byMarket];
+}
+
+/** Published business objectives come only from a dedicated workbook column. */
+function verifiedObjective(raw: unknown): CampaignRecord['objective'] {
+  const label = String(raw ?? '').trim().toLowerCase();
+  if (label === 'conversion') return 'Conversion';
+  if (label === 'traffic') return 'Traffic';
+  if (label === 'awareness') return 'Awareness';
+  return null;
 }

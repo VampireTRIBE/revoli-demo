@@ -62,6 +62,9 @@ export interface CompetitionObservation {
   newSincePreviousCapture?: boolean;
   offerCode?: string | null;
   celebrity?: string | null;
+  channel?: 'Meta' | 'Google';
+  startDateAvailable?: boolean;
+  payerVerified?: string | null;
   sourceFile: string;
   sourceSheet: string;
   sourceRow: number;
@@ -74,6 +77,10 @@ export interface CompetitionCapture {
   clientLabel: string;
   metaPage: string;
   captureDate: string;
+  channel?: 'Meta' | 'Google';
+  reportedPopulation?: number | null;
+  sampleSize?: number;
+  highlights?: string[];
   sourceFile: string;
   observations: CompetitionObservation[];
   screenshots: CompetitionScreenshot[];
@@ -101,6 +108,7 @@ export interface CompetitionFilter {
   month?: number;
   competitor?: string;
   captureDate?: string;
+  channel?: 'Meta' | 'Google';
 }
 
 export interface MixRow {
@@ -125,7 +133,10 @@ export interface CompetitionOptions {
 export interface CompetitionDashboard {
   available: boolean;
   availabilityMessage: 'Data not received' | null;
-  sourceLabel: 'Source: Meta Ad Library. Activity, not spend.';
+  sourceLabel: string;
+  channel: 'Meta' | 'Google';
+  sample: { logged: number; reported: number | null; sampleOnly: boolean } | null;
+  signedHighlights: string[];
   filter: { year: number; month: number; competitor: string; captureDate: string | null };
   competitor: {
     id: string;

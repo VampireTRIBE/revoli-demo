@@ -83,8 +83,9 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     ?? competitionConfigs.find((config) => config.id === defaults?.competitor)
     ?? competitionConfigs[0];
   if (!selectedCompetitor) throw new Error('No Competition configuration is available.');
+  const selectedChannel = filter.channel ?? 'Meta';
   const allCompetitorCaptures = dataset.captures
-    .filter((capture) => capture.competitorId === selectedCompetitor.id)
+    .filter((capture) => capture.competitorId === selectedCompetitor.id && (capture.channel ?? 'Meta') === selectedChannel)
     .sort((left, right) => left.captureDate.localeCompare(right.captureDate));
   const latestCompetitorCapture = allCompetitorCaptures.at(-1);
   const year = filter.year ?? Number(latestCompetitorCapture?.captureDate.slice(0, 4) ?? defaults?.year ?? new Date().getUTCFullYear());
@@ -95,7 +96,10 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     ? allCompetitorCaptures.find((capture) => capture.captureDate === filter.captureDate)
     : matchingCaptures.at(-1) ?? latestCompetitorCapture;
   const base = {
-    sourceLabel: COMPETITION_SOURCE_LABEL,
+    sourceLabel: selectedChannel === 'Google' ? 'Source: Google Ads Transparency Center. Activity, not spend.' : COMPETITION_SOURCE_LABEL,
+    channel: selectedChannel,
+    sample: null as CompetitionDashboard['sample'],
+    signedHighlights: [] as string[],
     filter: { year, month, competitor: selectedCompetitor.id, captureDate: selectedCapture?.captureDate ?? null },
     competitor: {
       id: selectedCompetitor.id,
@@ -130,31 +134,36 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     : null;
   const selectedPeriodPrefix = reportingPrefix;
   const launchCounts = new Map<string, number>();
-  for (const row of active) launchCounts.set(row.startDate, (launchCounts.get(row.startDate) ?? 0) + 1);
+  for (const row of active) {
+    if (row.startDateAvailable === false) continue; // Google overview has no per-ad start date.
+    launchCounts.set(row.startDate, (launchCounts.get(row.startDate) ?? 0) + 1);
+  }
 
   return {
     ...base,
     available: true,
     availabilityMessage: null,
+    sample: { logged: selectedCapture.observations.length, reported: selectedCapture.reportedPopulation ?? null, sampleOnly: selectedChannel === 'Google' },
+    signedHighlights: selectedCapture.highlights ?? [],
     capture: { ...base.capture, firstCapture: earlier.length === 0 },
     activity: {
       activeAds: active.length,
-      averageDaysRunning: averageDays(active),
+      averageDaysRunning: selectedChannel === 'Google' ? null : averageDays(active),
       historicalTrend,
-      firstObservedAds: firstObservedIds?.length ?? null,
-      netActiveChange: previous ? active.length - activeObservations(previous).length : null,
-      noLongerObservedAds: noLongerIds?.length ?? null,
+      firstObservedAds: selectedChannel === 'Google' ? null : firstObservedIds?.length ?? null,
+      netActiveChange: selectedChannel === 'Google' ? null : previous ? active.length - activeObservations(previous).length : null,
+      noLongerObservedAds: selectedChannel === 'Google' ? null : noLongerIds?.length ?? null,
     },
     launches: {
-      startedInSelectedMonth: active.filter((row) => row.startDate.startsWith(selectedPeriodPrefix)).length,
-      startedOnSeptember28Or29: active.filter((row) => ['2026-09-28', '2026-09-29'].includes(row.startDate)).length,
-      firstObservedAds: firstObservedIds?.length ?? null,
-      sincePreviousCapture: selectedCapture.launchesSincePreviousCapture ?? null,
+      startedInSelectedMonth: selectedChannel === 'Google' ? null : active.filter((row) => row.startDateAvailable !== false && row.startDate.startsWith(selectedPeriodPrefix)).length,
+      startedOnSeptember28Or29: selectedChannel === 'Google' ? null : active.filter((row) => ['2026-09-28', '2026-09-29'].includes(row.startDate)).length,
+      firstObservedAds: selectedChannel === 'Google' ? null : firstObservedIds?.length ?? null,
+      sincePreviousCapture: selectedChannel === 'Google' ? null : selectedCapture.launchesSincePreviousCapture ?? null,
       groups: [...launchCounts.entries()].map(([startDate, count]) => ({ startDate, count })).sort((left, right) => right.startDate.localeCompare(left.startDate)),
     },
     gallery: selectedCapture.gallery ?? [],
     campaignPlatformMix: mixBy(active, (ad) => ad.campaignPlatform ?? null),
-    longestRunning: [...active]
+    longestRunning: (selectedChannel === 'Google' ? [] : [...active])
       .sort((left, right) => right.calculatedDaysRunning - left.calculatedDaysRunning || left.libraryId.localeCompare(right.libraryId))
       .slice(0, 3),
     formatMix: mixBy(active, (row) => row.formatGroup),
@@ -163,7 +172,7 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     observations: [...active].sort((left, right) => right.startDate.localeCompare(left.startDate) || left.libraryId.localeCompare(right.libraryId)),
     screenshots: selectedCapture.screenshots,
     audit: selectedCapture.audit,
-    historyNote: earlier.length
+    historyNote: selectedChannel === 'Google' ? 'Google capture is a logged sample. Missing Library IDs cannot be used to establish ad churn or survival.' : earlier.length
       ? 'First observed compares this capture with all earlier captures. No longer observed means absent from the previous capture; it does not confirm inactivity.'
       : 'This is the first stored capture. Earlier-running ads are not labelled as new launches, and historical trend is not available yet.',
   };
@@ -190,7 +199,7 @@ function unavailableDashboard(base: Omit<CompetitionDashboard, 'available' | 'av
 }
 
 export function findCaptureAsset(competitorId: string, captureDate: string, assetFile: string): { directory: string; file: string } | null {
-  if (!/^[a-z0-9-]+$/.test(competitorId) || !/^\d{4}-\d{2}-\d{2}$/.test(captureDate) || !/^(?:screenshot-\d+|r[1-4]_[a-z0-9_]+)\.(png|jpe?g|webp)$/i.test(assetFile)) return null;
+  if (!/^[a-z0-9-]+$/.test(competitorId) || !/^\d{4}-\d{2}-\d{2}$/.test(captureDate) || !/^[a-z0-9][a-z0-9_-]{0,110}\.(png|jpe?g|webp)$/i.test(assetFile)) return null;
   const capture = competitionSourceDataset().captures.find((item) => item.competitorId === competitorId && item.captureDate === captureDate);
   if (!capture?.screenshots.some((screenshot) => screenshot.assetFile === assetFile)) return null;
   const sourceDirectory = resolveCompetitionAssetDirectory().replace(/\\/g, '/');

@@ -21,7 +21,11 @@ function load(): TblRead[] {
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null, raw: true });
   cache = rows.flatMap((row) => {
     const section = String(row.Section ?? '').trim() as TblRead['section'];
-    const bullet = String(row.Bullet ?? '').trim();
+    const bullet = String(row.Bullet ?? row.Sentence ?? '').trim();
+    // Editorial text must be explicitly signed. Legacy imported text without a
+    // signed status is not automatically approved for client publication.
+    const signed = String(row.Signed ?? row.Approved ?? row['Signed flag'] ?? row['Approval status'] ?? row.Status ?? '').trim().toLowerCase();
+    if (!['yes','signed','approved','true','1'].includes(signed)) return [];
     const order = Number(row.Order);
     if (!['Media', 'Creative', 'Consumer', 'Competition'].includes(section) || !bullet || !Number.isFinite(order)) return [];
     return [{

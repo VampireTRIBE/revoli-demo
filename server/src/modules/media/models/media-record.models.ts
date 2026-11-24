@@ -68,6 +68,8 @@ const campaignSchema = new Schema(
     stage: String,
     campaignType: String,
     objective: { type: String, enum: ['Conversion', 'Traffic', 'Awareness'] },
+    shortName: String,
+    thumbnailFile: String,
     mappingSource: String,
     confidence: String,
     spend: Number,

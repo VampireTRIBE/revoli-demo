@@ -64,6 +64,8 @@ export interface CampaignRecord {
   stage: string;
   campaignType: string;
   objective?: 'Conversion' | 'Traffic' | 'Awareness' | null;
+  shortName?: string | null;
+  thumbnailFile?: string | null;
   mappingSource: string;
   confidence: string;
   spend: number;

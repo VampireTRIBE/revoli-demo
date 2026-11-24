@@ -1,7 +1,7 @@
 import { creativeBrands, creativeScoringMode, CREATIVE_TIMEZONE, paidMetaSource } from '../config/creative-source.config.js';
 import { calculateOrganic, calculatePaidCreative } from '../calculations/creative-calculations.js';
 import { parseCreativeSources } from '../import/creative-source-parser.js';
-import type { CreativeAccountMetricSummary, CreativeDashboard, CreativeFilter, CreativeOptions, CreativePostView, CreativeSourceDataset } from '../types/creative.types.js';
+import type { CreativeAccountMetricSummary, CreativeDashboard, CreativeFilter, CreativeMonthlyKpi, CreativeOptions, CreativePostView, CreativeSourceDataset, PreparedCreativeImport } from '../types/creative.types.js';
 
 let sourceCache: CreativeSourceDataset | null = null;
 
@@ -62,6 +62,41 @@ export function getCreativeOptions(): CreativeOptions {
     defaultSelection: latestYear && defaultMonth ? { year: latestYear.year, month: defaultMonth.month, brand: 'union-coop' } : null,
     timezone: CREATIVE_TIMEZONE,
   };
+}
+
+
+/** Source-backed, like-for-like monthly KPI series. No extrapolation or missing-month zeros. */
+function buildPreparedMonthlyKpis(prepared: PreparedCreativeImport | null, year: number): CreativeMonthlyKpi[] {
+  if (!prepared) return [];
+  const periods = new Map<number, typeof prepared.postMetrics>();
+  for (const post of prepared.postMetrics) {
+    if (post.year !== year || post.month < 1 || post.month > 12) continue;
+    periods.set(post.month, [...(periods.get(post.month) ?? []), post]);
+  }
+  return [...periods.entries()].sort(([a], [b]) => a - b).map(([month, posts]) => {
+    const benchmark = prepared.monthlyBenchmarks.find((item) => item.year === year && item.month === month);
+    const top = prepared.monthlyTopPosts.find((item) => item.year === year && item.month === month && item.rank === 1);
+    const cuts = prepared.creativeCuts.filter((item) => item.year === year && item.month === month);
+    const giveaway = cuts.find((item) => item.cut.toLowerCase() === 'giveaway' && item.value.toLowerCase() === 'giveaway');
+    const nonGiveaway = cuts.find((item) => item.cut.toLowerCase() === 'giveaway' && item.value.toLowerCase().includes('non'));
+    const reach = posts.reduce((total, post) => total + post.reach, 0);
+    const views = posts.reduce((total, post) => total + post.views, 0);
+    const actions = posts.reduce((total, post) => total + post.activeActions, 0);
+    return {
+      year, month,
+      posts: posts.filter((post) => post.eligibleForRanking && post.postType.toLowerCase() === 'post').length,
+      reels: posts.filter((post) => post.eligibleForRanking && post.postType.toLowerCase() === 'reel').length,
+      reach, views, actions,
+      activeEngagementRate: reach > 0 ? actions / reach : null,
+      frequency: reach > 0 ? views / reach : null,
+      medianEngagementRate: benchmark?.medianActiveEngagementRate ?? null,
+      medianFrequency: benchmark?.medianFrequency ?? null,
+      bestEngagementRate: top?.activeEngagementRate ?? null,
+      giveawayShare: giveaway?.shareOfTotalActions ?? null,
+      nonGiveawayMedian: nonGiveaway?.medianActiveEngagementRate ?? null,
+      follows: posts.reduce((total, post) => total + post.followsFromPost, 0),
+    };
+  });
 }
 
 export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard {
@@ -206,6 +241,7 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
         best: topPostViews[0] ?? null,
         topPosts: topPostViews,
         trend: prepared?.monthlyBenchmarks.filter((row) => row.year === selected.year).sort((left, right) => left.month - right.month) ?? [],
+        monthlyKpis: buildPreparedMonthlyKpis(prepared, selected.year),
         cuts: selectedCuts,
         unmatchedPostIds: topPostViews.filter((row) => !row.matchedPost).map((row) => row.postId),
         rankingFloor: 'reach >= 500',

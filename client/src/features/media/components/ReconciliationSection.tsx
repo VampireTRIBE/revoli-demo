@@ -17,10 +17,10 @@ export function ReconciliationSection({ data }: { data: ReconciliationData }) {
     </SectionCard>
     <SectionCard title="Claims vs site trend" eyebrow="Monthly comparison">
       <div className="chart"><ResponsiveContainer width="100%" height="100%"><LineChart data={data.monthlyTrend} margin={{ left: 2, right: 8 }}>
-        <CartesianGrid stroke="#232936" vertical={false} /><XAxis dataKey="label" tick={{ fill: '#8b94a7', fontSize: 10 }} tickFormatter={(value: string) => value.slice(0, 3)} /><YAxis tick={{ fill: '#8b94a7', fontSize: 10 }} width={42} />
-        <Tooltip contentStyle={{ background: '#14171f', border: '1px solid #2d3443', borderRadius: 10 }} /><Legend wrapperStyle={{ fontSize: 11 }} />
-        <Line type="monotone" dataKey="platformClaims" name="Platform claims" stroke="#7c9aff" strokeWidth={2} dot={{ r: 3 }} />
-        <Line type="monotone" dataKey="sitePurchases" name="Site purchases" stroke="#5eead4" strokeWidth={2} dot={{ r: 3 }} />
+        <CartesianGrid stroke="var(--v2-line)" vertical={false} /><XAxis dataKey="label" tick={{ fill: '#5A646E', fontSize: 10 }} tickFormatter={(value: string) => value.slice(0, 3)} /><YAxis tick={{ fill: '#5A646E', fontSize: 10 }} width={42} />
+        <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E2E2DE', borderRadius: 10 }} /><Legend wrapperStyle={{ fontSize: 11 }} />
+        <Line type="linear" connectNulls={false} dataKey="platformClaims" name="Platform claims" stroke="#141413" strokeWidth={2} dot={{ r: 3 }} />
+        <Line type="linear" connectNulls={false} dataKey="sitePurchases" name="Site purchases" stroke="#5A646E" strokeWidth={2} dot={{ r: 3 }} />
       </LineChart></ResponsiveContainer></div>
     </SectionCard>
   </div>;

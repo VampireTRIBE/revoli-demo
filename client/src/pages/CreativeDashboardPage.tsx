@@ -13,7 +13,7 @@ import { TblReadsStrip } from '../features/reads/TblReadsStrip';
 import { DeltaLine, SectionAnatomy, SparkBars } from '../components/v2/Reporting';
 import { CountUpValue } from '../components/v2/CountUpValue';
 import { CleoMarketPanel } from '../features/creative/cleo/CleoMarketPanel';
-import type { CreativeDashboard } from '../types/creative';
+import type { CreativeDashboard, CreativeMonthlyKpi } from '../types/creative';
 import '../styles/reference-creative.css';
 
 type MainTab = 'organic' | 'paid';
@@ -94,6 +94,34 @@ export function CreativeSlot({ number, title, subtitle, children, client, year, 
     <div className="v2-creative-slot-body" data-original-title={title} title={subtitle}>{children}</div>
   </SectionAnatomy>;
 }
+type CreativeKpiKey = keyof Pick<CreativeMonthlyKpi,
+  'posts' | 'reels' | 'reach' | 'views' | 'actions' | 'frequency' |
+  'activeEngagementRate' | 'medianEngagementRate' | 'medianFrequency' |
+  'bestEngagementRate' | 'giveawayShare' | 'nonGiveawayMedian' | 'follows'>;
+
+function creativeHistory(data: CreativeDashboard, key: CreativeKpiKey, rate = false) {
+  const { year, month } = data.filter;
+  if (month < 1 || month > 12 || data.brand.id !== 'union-coop') return undefined;
+  const rows = data.organic.preparedInsights.monthlyKpis;
+  const available = new Map(rows.filter((row) => row.year === year).map((row) => [row.month, row]));
+  const currentValue = available.get(month)?.[key];
+  if (typeof currentValue !== 'number' || !Number.isFinite(currentValue)) return undefined;
+  const prevValue = available.get(month - 1)?.[key];
+  const series = Array.from({ length: Math.min(8, month) }, (_, index) => {
+    const sourceMonth = month - Math.min(8, month) + index + 1;
+    const value = available.get(sourceMonth)?.[key];
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  });
+  const monthName = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 2, 1)));
+  return {
+    series,
+    previous: !data.partial && typeof prevValue === 'number' && Number.isFinite(prevValue) ? (rate ? prevValue * 100 : prevValue) : null,
+    current: rate ? currentValue * 100 : currentValue,
+    period: `${monthName} ${year}`,
+    kind: rate ? 'points' as const : 'relative' as const,
+  };
+}
+
 function OrganicPanel({ data }: { data: CreativeDashboard }) {
   const [platform, setPlatform] = useState<'facebook' | 'instagram'>('facebook');
   const hasPosts = data.organic.available;
@@ -101,6 +129,8 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
   const postCount = posts.filter((row) => row.postType.toLowerCase() === 'post').length;
   const reelCount = posts.filter((row) => row.postType.toLowerCase() === 'reel').length;
   const insights = data.organic.preparedInsights;
+  // The prepared Union Coop KPI values and their histories must use the same source grain.
+  const currentKpi = data.filter.month > 0 ? insights.monthlyKpis.find((r)=>r.year===data.filter.year&&r.month===data.filter.month) : undefined;
   const typical = insights.typical;
   const top3 = insights.topPosts.slice(0, 3);
   const giveaway = insights.cuts.find((row) => row.cut.toLowerCase() === 'giveaway' && row.value.toLowerCase() === 'giveaway');
@@ -116,8 +146,8 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
   return <>
     <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={1} title="Output & Effort" subtitle="Published content and effort against measured return. Never estimate missing Stories.">
       <div className="creative-paid-source-grid">
-        <CreativeSourceMetric label="Posts with eligible reach" value={hasPosts ? formatNumber(postCount) : 'n/a'} detail={hasPosts ? 'Eligible per-post records only; not an all-published total' : reason} />
-        <CreativeSourceMetric label="Reels with eligible reach" value={hasPosts ? formatNumber(reelCount) : 'n/a'} detail={hasPosts ? 'Eligible per-post records only; not an all-published total' : reason} />
+        <CreativeSourceMetric history={creativeHistory(data,'posts')} label="Ranking-eligible posts (reach ≥500)" value={hasPosts ? formatNumber(currentKpi?.posts ?? postCount) : 'n/a'} detail={hasPosts ? 'Eligible per-post records only; not an all-published total' : reason} />
+        <CreativeSourceMetric history={creativeHistory(data,'reels')} label="Ranking-eligible reels (reach ≥500)" value={hasPosts ? formatNumber(currentKpi?.reels ?? reelCount) : 'n/a'} detail={hasPosts ? 'Eligible per-post records only; not an all-published total' : reason} />
         <CreativeSourceMetric label="Stories published" value="n/a" detail={rawReason} />
         <CreativeSourceMetric label="Effort versus return" value="n/a" detail={rawReason} />
       </div>
@@ -125,9 +155,9 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
     <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={2} title="Attention" subtitle="Reach, views, frequency and account-level trends. Platforms are never combined.">
       {hasPosts ? <>
         <div className="creative-paid-source-grid">
-          <CreativeSourceMetric label="Summed post reach" value={formatNumber(data.organic.summedPostReach)} detail="Not unique monthly audience" />
-          <CreativeSourceMetric label="Post views" value={formatNumber(data.organic.totalViews)} detail="Eligible source records" />
-          <CreativeSourceMetric label="Frequency" value={formatRatio(data.organic.frequency)} detail={`${formatNumber(data.organic.totalViews)} views / ${formatNumber(data.organic.summedPostReach)} matching reach`} />
+          <CreativeSourceMetric history={creativeHistory(data,'reach')} label="Summed post reach" value={formatNumber(currentKpi?.reach ?? data.organic.summedPostReach)} detail="Not unique monthly audience" />
+          <CreativeSourceMetric history={creativeHistory(data,'views')} label="Post views" value={formatNumber(currentKpi?.views ?? data.organic.totalViews)} detail="Eligible source records" />
+          <CreativeSourceMetric history={creativeHistory(data,'frequency')} label="Frequency" value={formatRatio(currentKpi?.frequency ?? data.organic.frequency)} detail={`${formatNumber(currentKpi?.views ?? data.organic.totalViews)} views / ${formatNumber(currentKpi?.reach ?? data.organic.summedPostReach)} matching reach`} />
           <CreativeSourceMetric label="Watch-time coverage" value={`${data.organic.watchTimeCoverage.populatedReels} / ${data.organic.watchTimeCoverage.totalReels}`} detail="Reels with supplied watch time / eligible Reels" />
         </div>
         {follows?.posts != null ? <p className="creative-support">{formatNumber(follows.posts)} follows attributed to posts (supplied Creative Cuts).</p> : <p className="creative-support">Follows: n/a (no compatible imported follows cut for the selected period).</p>}
@@ -140,20 +170,13 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
     <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={3} title="Engagement" subtitle="Median versus best, earned versus rented engagement, and an action mix that is actually supplied.">
       {hasPosts ? <>
         <div className="creative-grid three">
-          <CreativeSourceMetric label="Typical · median active engagement" value={typical ? formatPercent(typical.medianActiveEngagementRate, 2) : 'n/a'} detail={typical ? `${formatNumber(typical.eligiblePosts)} eligible posts · monthly prepared benchmark` : 'n/a (monthly prepared benchmark not supplied)'} />
-          <CreativeSourceMetric label="Best · post engagement" value={top3[0] ? formatPercent(top3[0].activeEngagementRate, 2) : 'n/a'} detail={top3[0] ? `${formatNumber(top3[0].activeActions)} actions / ${formatNumber(top3[0].reach)} reach` : 'n/a (approved top-three for this month not supplied)'} />
-          <CreativeSourceMetric label="Active engagement" value={formatPercent(data.organic.activeEngagementRate, 2)} detail={`${formatNumber(data.organic.activeActions)} actions / ${formatNumber(data.organic.summedPostReach)} matched reach`} />
+          <CreativeSourceMetric history={creativeHistory(data,'medianEngagementRate',true)} label="Typical · median active engagement" value={typical ? formatPercent(typical.medianActiveEngagementRate, 2) : 'n/a'} detail={typical ? `${formatNumber(typical.eligiblePosts)} eligible posts · monthly prepared benchmark` : 'n/a (monthly prepared benchmark not supplied)'} />
+          <CreativeSourceMetric history={creativeHistory(data,'bestEngagementRate',true)} label="Best · post engagement" value={top3[0] ? formatPercent(top3[0].activeEngagementRate, 2) : 'n/a'} detail={top3[0] ? `${formatNumber(top3[0].activeActions)} actions / ${formatNumber(top3[0].reach)} reach` : 'n/a (approved top-three for this month not supplied)'} />
+          <CreativeSourceMetric history={creativeHistory(data,'activeEngagementRate',true)} label="Active engagement" value={formatPercent(currentKpi?.activeEngagementRate ?? data.organic.activeEngagementRate, 2)} detail={`${formatNumber(currentKpi?.actions ?? data.organic.activeActions)} actions / ${formatNumber(currentKpi?.reach ?? data.organic.summedPostReach)} matched reach`} />
         </div>
-        {(() => {
-          const trend = insights.trend.filter((r)=>r.year === data.filter.year && r.month <= data.filter.month).sort((a,b)=>a.month-b.month);
-          const previous = trend.length>1 ? trend.at(-2) : undefined;
-          const current = trend.at(-1);
-          const comparable = !data.partial && current?.month === data.filter.month && previous?.month === data.filter.month-1;
-          return <div className="v2-creative-trend">{comparable && previous && current ? <DeltaLine previous={previous.medianActiveEngagementRate*100} current={current.medianActiveEngagementRate*100} period={`${previous.month}/${previous.year}`} kind="points"/> : null}<SparkBars values={trend.map((r)=>r.medianActiveEngagementRate)}/></div>;
-        })()}
         <div className="creative-grid two creative-mt">
-          <CreativeSourceMetric label="Earned vs rented · giveaway actions" value={giveaway?.shareOfTotalActions != null ? formatPercent(giveaway.shareOfTotalActions, 1) : 'n/a'} detail={giveaway?.posts != null ? `${formatNumber(giveaway.posts)} giveaway posts · approved Creative Cuts` : 'No giveaway action-share cut for this selected period'} />
-          <CreativeSourceMetric label="Non-giveaway median" value={nonGiveaway?.medianActiveEngagementRate != null ? formatPercent(nonGiveaway.medianActiveEngagementRate, 2) : 'n/a'} detail={nonGiveaway?.posts != null ? `${formatNumber(nonGiveaway.posts)} non-giveaway posts · approved Creative Cuts` : 'No non-giveaway cut for this selected period'} />
+          <CreativeSourceMetric history={creativeHistory(data,'giveawayShare',true)} label="Earned vs rented · giveaway actions" value={giveaway?.shareOfTotalActions != null ? formatPercent(giveaway.shareOfTotalActions, 1) : 'n/a'} detail={giveaway?.posts != null ? `${formatNumber(giveaway.posts)} giveaway posts · approved Creative Cuts` : 'No giveaway action-share cut for this selected period'} />
+          <CreativeSourceMetric history={creativeHistory(data,'nonGiveawayMedian',true)} label="Non-giveaway median" value={nonGiveaway?.medianActiveEngagementRate != null ? formatPercent(nonGiveaway.medianActiveEngagementRate, 2) : 'n/a'} detail={nonGiveaway?.posts != null ? `${formatNumber(nonGiveaway.posts)} non-giveaway posts · approved Creative Cuts` : 'No non-giveaway cut for this selected period'} />
         </div>
         {insights.cuts.filter((row) => row.cut === 'Action mix').length ? <div className="creative-card creative-mt"><h3>Action mix · supplied cut</h3><div className="creative-action-list">{insights.cuts.filter((row) => row.cut === 'Action mix').map((row) => <div key={row.value}><span>{row.value}</span><b>{row.shareOfTotalActions != null ? formatPercent(row.shareOfTotalActions, 1) : 'n/a (share unavailable)'}</b></div>)}</div></div> : <div className="creative-awaiting creative-mt">Action mix: n/a. Compatible action-share cuts are not supplied for this period.</div>}
         <PreparedTrend data={data} metric="engagement" />
@@ -163,8 +186,9 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
       {hasPosts ? <>
         {top3.length ? <div className="creative-top-three">{top3.map((post) => <article className="creative-card creative-top-card" key={`${post.postId}:${post.rank}`}>
           <div className="creative-top-image">{post.imageUrl ? <img src={post.imageUrl} alt={`Imported creative ${post.postId}`} loading="lazy" /> : <div>Thumbnail awaiting verified monthly asset</div>}</div>
-          <div className="creative-top-meta"><span>#{post.rank} · {post.postType} · {post.date}</span><strong>{formatPercent(post.activeEngagementRate, 2)}</strong><small>{formatNumber(post.activeActions)} actions / {formatNumber(post.reach)} reach</small><p>{post.theme !== 'Untagged' ? `Tagged theme: ${post.theme}. ` : ''}{post.language} · {post.day} · {post.timeSlot}{post.giveaway ? ' · Giveaway' : ''}</p><p className="creative-pending-line">Why-it-worked explanation awaiting approved analyst text. Source factors are listed above.</p>{post.postUrl ? <a href={post.postUrl} target="_blank" rel="noopener noreferrer">View source post</a> : null}</div>
+          <div className="creative-top-meta"><span>#{post.rank} · {post.postType} · {post.date}</span><strong>{formatPercent(post.activeEngagementRate, 2)}</strong><small>{formatNumber(post.activeActions)} actions / {formatNumber(post.reach)} reach</small><p>{post.theme !== 'Untagged' ? `Tagged theme: ${post.theme}. ` : ''}{post.language} · {post.day} · {post.timeSlot}{post.giveaway ? ' · Giveaway' : ''}</p><p className="creative-source-factors">Imported factors: {post.postType}, {post.language}, {post.day}, {post.timeSlot}{post.giveaway ? ', giveaway' : ''}. These are source fields, not an analyst verdict.</p>{post.caption ? <p className="creative-source-caption" title={post.caption}>{post.caption}</p> : null}{post.postUrl ? <a href={post.postUrl} target="_blank" rel="noopener noreferrer">View source post</a> : null}</div>
         </article>)}</div> : <div className="creative-awaiting">Monthly Top 3: n/a (prepared monthly ranking not supplied for this period).</div>}
+        {top3.length ? <p className="creative-support">Rankings, factors and captions imported from UnionCoop-Creative-WhyItWorked-Import.xlsx. No signed why-it-worked prose is included; editorial statements are omitted until approved.</p> : null}
         <div className="creative-card creative-mt"><div className="creative-section-heading"><h3>Top / Core / Low bands</h3><span>Imported band classification</span></div><div className="creative-band-summary">{(['Top','Core','Low'] as const).map((band) => <div key={band}><strong>{band}</strong><span>{formatNumber(posts.filter((post) => post.band === band).length)} posts</span></div>)}</div></div>
         <details className="creative-method"><summary>See all posts · full Top / Core / Low grid</summary><CreativeGalleryBands posts={posts} /></details>
         <details className="creative-method"><summary>See all Creative Cuts</summary><CreativeCuts data={data} /></details>
@@ -278,8 +302,17 @@ function MetaPaid({ data }: { data: CreativeDashboard }) {
   </>;
 }
 
-function CreativeSourceMetric({ label, value, detail }: { label: string; value: string; detail?: string }) {
-  return <div className="creative-card creative-paid-source"><span>{label}</span><strong><CountUpValue value={value}/></strong>{detail ? <small>{detail}</small> : null}</div>;
+interface CreativeCardHistory {
+  series: Array<number | null>;
+  previous: number | null;
+  current: number;
+  period: string;
+  kind: 'points' | 'relative';
+}
+function CreativeSourceMetric({ label, value, detail, history }: { label: string; value: string; detail?: string; history?: CreativeCardHistory }) {
+  return <div className="creative-card creative-paid-source"><span>{label}</span><strong><CountUpValue value={value}/></strong>
+    {history ? <div className="creative-card-history"><DeltaLine previous={history.previous} current={history.current} period={history.period} kind={history.kind} /><SparkBars values={history.series} /></div> : null}
+    {detail ? <small>{detail}</small> : null}</div>;
 }
 
 function MetaUnavailable({ message }: { message: string }) {

@@ -1,5 +1,6 @@
 import { calculateMetrics, safeDivide, type MediaTotals } from '../calculations/media-calculations.js';
 import { sourceDataset, mediaDataset } from './media-data.service.js';
+import { getGa4V4 } from './media-supplements.service.js';
 import type { CampaignRecord, MediaDataset, MediaFilter, MediaPeriod, MetricStatus } from '../types/media.types.js';
 
 function sum<T>(rows: T[], select: (row: T) => number): number {
@@ -132,10 +133,45 @@ async function directionalReturnContext(filter: MediaFilter, filtered: MediaData
   return mediaDataset({ year: filter.year, month: filter.month });
 }
 
+/** Eight-period history for the selected filters. A missing source stays null. */
+export async function getMediaKpiHistory(filter: MediaFilter) {
+  const dataset = await mediaDataset({year:filter.year,segment:filter.segment,brand:filter.brand});
+  const periods = dataset.periods.filter((row) => !filter.year || row.year === filter.year)
+    .sort((a,b)=>a.periodKey.localeCompare(b.periodKey));
+  return {months: periods.map((period) => {
+    const platformRows=dataset.platforms.filter((row)=>row.periodKey===period.periodKey);
+    const siteRows=dataset.site.filter((row)=>row.periodKey===period.periodKey);
+    const spend=platformRows.length?sum(platformRows,(row)=>row.spend):null;
+    const itemRevenue=siteRows.length?sum(siteRows,(row)=>row.revenue):null;
+    const platformClaims=platformRows.length?sum(platformRows,(row)=>row.claims):null;
+    const sitePurchases=siteRows.length?sum(siteRows,(row)=>row.itemsPurchased):null;
+    return {year:period.year,month:period.month,label:period.monthLabel,partial:period.isPartialPeriod,
+      spend, itemRevenue, coverage:spend!==null&&spend>0&&itemRevenue!==null?itemRevenue/spend:null,
+      platformCostPerClaim:spend!==null&&platformClaims!==null&&platformClaims>0?spend/platformClaims:null,
+      siteAov:itemRevenue!==null&&sitePurchases!==null&&sitePurchases>0?itemRevenue/sitePurchases:null,
+      platformClaims,sitePurchases};
+  })};
+}
+
 export async function getPeriods() {
   const dataset = await mediaDataset();
   const yearMap = new Map<number, MediaPeriod[]>();
   dataset.periods.forEach((period) => yearMap.set(period.year, [...(yearMap.get(period.year) ?? []), period]));
+  // Approved GA4-only months appear in period selector, even when media spend is not yet imported.
+  const ga4 = getGa4V4();
+  if (ga4.available) {
+    const known = new Set(dataset.periods.map((period)=>period.periodKey));
+    for (const row of [...ga4.channels,...ga4.summaries]) {
+      const periodKey=`${row.year}-${String(row.month).padStart(2,'0')}`;
+      if (known.has(periodKey)) continue;
+      known.add(periodKey);
+      yearMap.set(row.year,[...(yearMap.get(row.year)??[]),{
+        year:row.year,month:row.month,periodKey,monthLabel:new Intl.DateTimeFormat('en-US',{month:'long',timeZone:'UTC'}).format(new Date(Date.UTC(row.year,row.month-1,1))),
+        periodStart:`${periodKey}-01`,periodEnd:new Date(Date.UTC(row.year,row.month,0)).toISOString().slice(0,10),
+        isPartialPeriod:false,sourcePeriodLabel:`GA4 v4 ${periodKey} only`,
+      }]);
+    }
+  }
   return {
     years: [...yearMap.entries()].sort(([a], [b]) => b - a).map(([year, periods]) => ({
       year,

@@ -11,3 +11,7 @@ export const useSegments = (filter: MediaFilter) => useQuery({ queryKey: ['media
 export const useReconciliation = (filter: MediaFilter) => useQuery({ queryKey: ['media', 'reconciliation', filter], queryFn: () => mediaApi.reconciliation(filter) });
 export const useFunnel = (filter: MediaFilter) => useQuery({ queryKey: ['media', 'funnel', filter], queryFn: () => mediaApi.funnel(filter) });
 export const useOrganic = (filter: MediaFilter) => useQuery({ queryKey: ['media', 'organic', filter], queryFn: () => mediaApi.organic(filter) });
+
+export const useMediaHistory = (filter:MediaFilter) => useQuery({queryKey:['media','history',filter],queryFn:()=>mediaApi.history(filter),enabled:Boolean(filter.year)});
+export const useGa4V4 = (filter:MediaFilter) => useQuery({queryKey:['media','ga4-v4',filter],queryFn:()=>mediaApi.ga4V4(filter),enabled:Boolean(filter.year)});
+export const useUnionCoop = (filter:MediaFilter) => useQuery({queryKey:['media','union-coop',filter],queryFn:()=>mediaApi.unionCoop(filter),enabled:Boolean(filter.year)});

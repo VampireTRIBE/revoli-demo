@@ -92,6 +92,9 @@ function enrichLegacyCampaignMetrics(databaseDataset: MediaDataset, source: Medi
       interactions: row.interactions ?? match.interactions,
       clicks: row.clicks ?? match.clicks,
       claims: row.claims ?? match.claims,
+      objective: row.objective ?? match.objective,
+      shortName: row.shortName ?? match.shortName,
+      thumbnailFile: row.thumbnailFile ?? match.thumbnailFile,
       calculationBasis: row.calculationBasis ?? match.calculationBasis,
     };
   });

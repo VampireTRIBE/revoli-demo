@@ -62,6 +62,17 @@ export function parseCompetitionSources(): CompetitionSourceDataset {
     const matchedConfigs = competitionConfigs.filter((config) => config.workbookPattern.test(filename));
     if (!matchedConfigs.length) continue;
     const workbook = XLSX.readFile(file, { cellDates: false, raw: false });
+    // v2 workbooks have one Register sheet per competitor, plus separate Delta,
+    // Theme Mix, Draft Highlights and Gallery sheets. Always use the v2 parser
+    // for this format, even if its Register has the legacy header set: the old
+    // parser silently discarded the analyst's approved supporting sheets.
+    if (/^Competition-Capture-UnionCoop-Carrefour-LuLu-/i.test(filename)
+      && workbook.SheetNames.some((name) => /^(carrefour|lulu|lu\s*lu).*register$/i.test(name.trim()))) {
+      for (const config of matchedConfigs) {
+        captures.push(...parseCompetitionCaptureV2(file, config));
+      }
+      continue;
+    }
     const captureSheets = workbook.SheetNames.filter((sheetName) => {
       const sheet = workbook.Sheets[sheetName];
       if (!sheet) return false;

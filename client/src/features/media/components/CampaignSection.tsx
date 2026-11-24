@@ -3,6 +3,7 @@ import type { Campaign, MediaFilter } from '../../../types/media';
 import { useCampaigns } from '../hooks/use-media-data';
 import { formatAED, formatCampaignName, formatNumber, formatPercent } from '../utils/formatters';
 import { AwaitingLine } from '../../../components/v2/Reporting';
+import { http } from '../../../api/http';
 import { EmptyState, ErrorState } from './StateCard';
 import { LoadingSkeleton } from './LoadingSkeleton';
 
@@ -28,7 +29,10 @@ function Table({rows}:{rows:Campaign[]}) {
     const category=objective(row),unit=cost(row,category);
     const actions=category==='Conversion'?row.claims:category==='Traffic'?(row.platform==='Google Ads'?row.interactions:row.clicks):category==='Awareness'?row.impressions:null;
     return <tr key={`${row.platform}-${row.campaign}-${index}`}>
-      <td title={row.campaign}><span className="v2-campaign-name">{formatCampaignName(row.campaign)}</span><small>Thumbnail awaiting approved image import</small></td>
+      <td title={row.campaign}><span className="v2-campaign-identity">
+        {row.thumbnailFile ? <img className="v2-campaign-thumbnail" src={http.getUri({url:`/media/campaign-thumbnails/${encodeURIComponent(row.thumbnailFile)}`})} alt={`Approved creative: ${row.shortName??row.campaign}`} loading="lazy"/> : null}
+        <span className="v2-campaign-name">{row.shortName || formatCampaignName(row.campaign).slice(0,56)}</span>
+      </span></td>
       <td><span className="v2-objective">{category}</span></td>
       <td className="num">{formatAED(row.spend)}</td>
       <td className="num" title={objectiveResult(category)}>{actions==null?'n/a':formatNumber(actions)}</td>
@@ -59,7 +63,7 @@ export function CampaignSection({ filter }: { filter: MediaFilter }) {
   const shown=[...best,...worst];
   const availableObjectives=useMemo(()=>new Set(rows.map(objective)),[rows]);
   useEffect(()=>{if(rows.length&&!availableObjectives.has(objectiveFilter))setObjectiveFilter(availableObjectives.has('Conversion')?'Conversion':availableObjectives.has('Traffic')?'Traffic':availableObjectives.has('Awareness')?'Awareness':'Not supplied');},[rows.length,availableObjectives,objectiveFilter]);
-  const fullFiltered=rows.filter((r)=>`${r.campaign} ${r.platform} ${r.campaignType}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const fullFiltered=rows.filter((r)=>`${r.campaign} ${r.shortName??''} ${r.objective??''} ${r.platform} ${r.campaignType}`.toLowerCase().includes(search.trim().toLowerCase()));
   return <section className="reference-card reference-mt reference-campaign-detail-card">
     <div className="reference-subtabs" aria-label="Campaign platform">
       <button type="button" className={`reference-subtab${platform==='Meta Ads'?' active':''}`} onClick={()=>setPlatform('Meta Ads')} disabled={!availableQuery.isLoading&&!platforms.has('Meta Ads')}>Meta</button>
@@ -78,6 +82,7 @@ export function CampaignSection({ filter }: { filter: MediaFilter }) {
         </div>
       </dialog>
     </> : <EmptyState message="No campaign rows available for this platform and period."/>}
+    {rows.length && rows.some((row)=>!row.thumbnailFile)?<p className="media-comp-muted">Creative thumbnails appear only when approved files and matching Campaign Metadata rows are imported; missing images are omitted.</p>:null}
     <p className="media-comp-muted">Editorial verdicts are imported only when explicitly signed. No analysis is generated.</p>
   </section>;
 }

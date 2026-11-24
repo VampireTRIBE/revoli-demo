@@ -7,8 +7,10 @@ import { LoadingSkeleton } from '../features/media/components/LoadingSkeleton';
 import { MediaPeriodFilters } from '../features/media/components/MediaPeriodFilters';
 import { MediaConsumerAlignment } from '../features/media/components/MediaConsumerAlignment';
 import { OverviewCards } from '../features/media/components/OverviewCards';
+import { Ga4Channels } from '../features/media/components/Ga4Channels';
+import { UnionCoopBursts, UnionCoopReach } from '../features/media/components/UnionCoopMediaSections';
 import { PlatformComparisonTable } from '../features/media/components/PlatformComparisonTable';
-import { useBrands, useOverview, usePeriods, usePlatforms, useSegments } from '../features/media/hooks/use-media-data';
+import { useBrands, useGa4V4, useMediaHistory, useOverview, usePeriods, usePlatforms, useSegments, useUnionCoop } from '../features/media/hooks/use-media-data';
 import { formatNumber } from '../features/media/utils/formatters';
 import { CompetitionDropdown, ContextualCompetitionPanel, useContextualCompetition } from '../features/competition/components/ContextualCompetition';
 import { TblReadsStrip } from '../features/reads/TblReadsStrip';
@@ -71,6 +73,9 @@ export function MediaDashboardPage() {
 
   const overview = useOverview(filter);
   const platforms = usePlatforms(filter);
+  const history=useMediaHistory(filter);
+  // Fetch the full year once: selected-month tables and historic charts share the same verified source.
+  const ga4=useGa4V4({year:filter.year});
   const onFilterChange = (year?: number, month?: number) => {
     setSearchParams(toSearchParams({ year, month }));
   };
@@ -109,16 +114,16 @@ export function MediaDashboardPage() {
     </div>
     <TblReadsStrip client="Rivoli" section="Media" year={filter.year} month={filter.month ?? 0} />
     <SectionAnatomy number={1} label="Spend and return" question="What went in, what came out" definition="Platform spend (all ad accounts) beside site revenue. Coverage, not ROAS." client="Rivoli" readSection="Media" year={filter.year} month={filter.month} source="Google Ads + Meta workbook exports; reconciled site import. Source coverage must be checked per month.">
-      <MediaConsumerAlignment year={filter.year} month={filter.month} overview={overview.data} scopedSelection={Boolean(filter.segment?.length || filter.brand?.length)} />
+      <MediaConsumerAlignment year={filter.year} month={filter.month} overview={overview.data} history={history.data} scopedSelection={Boolean(filter.segment?.length || filter.brand?.length)} />
       {overview.data ? <AttributionNote data={overview.data}/> : null}
     </SectionAnatomy>
     <SectionAnatomy number={2} label="Acquisition cost" question="What a customer costs" definition="Spend ÷ first-time site purchasers. Platform-claimed purchases shown separately, labelled." client="Rivoli" readSection="Media" year={filter.year} month={filter.month}>
-      {overview.isLoading ? <LoadingSkeleton rows={3} /> : overview.isError ? <ErrorState/> : overview.data ? <OverviewCards data={overview.data}/> : <EmptyState/>}
+      {overview.isLoading ? <LoadingSkeleton rows={3} /> : overview.isError ? <ErrorState/> : overview.data ? <OverviewCards data={overview.data} history={history.data} selectedMonth={filter.month} ga4={ga4.data} scopedSelection={Boolean(filter.segment?.length||filter.brand?.length)}/> : <EmptyState/>}
       {platforms.isLoading ? <div className="reference-card reference-mt"><LoadingSkeleton /></div> : platforms.isError ? <ErrorState/> : platforms.data ? <PlatformComparisonTable data={platforms.data}/> : null}
       <p className="media-ceo-source-note">Google interaction rate and Meta link CTR are separate definitions. No cross-platform rate is combined or used as ROAS.</p>
     </SectionAnatomy>
     <SectionAnatomy number={3} label="Channels" question="Where traffic and money come from" definition="Site sessions and revenue by channel, from the reconciled GA4 import." client="Rivoli" readSection="Media" year={filter.year} month={filter.month}>
-      <AwaitingLine source="Rivoli-Consumer-GA4-Import-v4.xlsx: September/October channels, Unassigned refunds, AI Assistant. Previous consumer workbooks cannot substitute for GA4 v4." owner="GA4 team"/>
+      <Ga4Channels data={ga4.data} year={filter.year} month={filter.month} />
     </SectionAnatomy>
     <SectionAnatomy number={4} label="Campaigns" question="What is working hardest, per objective" definition="Cost per reported result inside each objective. Objectives never ranked against each other. No recommendations." client="Rivoli" readSection="Media" year={filter.year} month={filter.month}>
       <CampaignSection filter={filter}/>
@@ -164,18 +169,19 @@ function ScoreMethod({ data }: { data: Overview }) {
 }
 
 function UnionCoopMediaView({year,month,context,onClientChange}:{year:number;month:number;context:ReturnType<typeof useContextualCompetition>;onClientChange:(value:string)=>void}) {
+  const coop=useUnionCoop({year,month});
   return <section className="reference-media-page v2-union-media">
     <div className="reference-media-heading"><div className="v2-client-heading"><label>Client <select aria-label="Media client" value="union-coop" onChange={(e)=>onClientChange(e.target.value)}><option value="rivoli-shop">Rivoli</option><option value="union-coop">Union Coop</option></select></label><div><h2>Union Coop · Media</h2><p className="v2-section-definition">Selected reporting context: {year}-{String(month).padStart(2,'0')} · Unscored, source coverage pending</p></div></div><CompetitionDropdown context={context}/></div>
     <TblReadsStrip client="Union Coop" section="Media" year={year} month={month}/>
     <SectionAnatomy number={1} label="Spend and return" question="What went in, what it delivered" definition="Platform spend and public delivery by approved burst. Paid and organic are separate sources." client="Union Coop" readSection="Media" year={year} month={month}>
-      <AwaitingLine source="Approved Union Coop Burst Register and reconciled media plan / ad-account exports not supplied. October spend and public-view examples in design PDF are not imported figures." owner="TBL / Media team"/>
+      <UnionCoopBursts data={coop.data}/><p className="v2-section-definition">Paid delivery and site transactions are separate metrics. No platform ROAS inferred.</p>
       <AwaitingLine source="Site traffic and sales return can be reported only after unioncoop.ae analytics is provided." owner="Client digital team"/>
     </SectionAnatomy>
     <SectionAnatomy number={2} label="Paid beside organic" question="The separation, standing" definition="Page-level paid amplification is not the same as per-post organic engagement. Flight windows must be approved." client="Union Coop" readSection="Media" year={year} month={month}>
-      <AwaitingLine source="Verified October daily paid/organic comparison and burst timing are missing. No paid page reach is substituted for post-level organic reach." owner="TBL / Media team"/>
+      <UnionCoopReach data={coop.data}/>
     </SectionAnatomy>
     <SectionAnatomy number={3} label="Bursts" question="Each boost accounted for" definition="Approved campaign-burst register with spend, platforms, eligible delivery and known gaps." client="Union Coop" readSection="Media" year={year} month={month}>
-      <AwaitingLine source="Union Coop burst register and approved campaign-image mapping required. No values copied from illustrative design mockups." owner="TBL"/>
+      <UnionCoopBursts data={coop.data}/>
     </SectionAnatomy>
     <SectionAnatomy number={4} label="Competition" question="What rivals are running" definition="Carrefour UAE and LuLu Hypermarket from Meta Ad Library. Activity, not spend." client="Union Coop" readSection="Media" year={year} month={month}>
       {!context.selectedCompetitor ? <p className="v2-section-definition">Compare against: Off - own performance. Select Carrefour UAE or LuLu Hypermarket to display approved captures.</p> : null}

@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { http } from '../../../api/http';
 import type { ConsumerDashboard } from '../../../types/consumer';
-import type { Overview } from '../../../types/media';
-import { DeltaLine, SparkBars } from '../../../components/v2/Reporting';
+import type { MediaMonthlyHistory, Overview } from '../../../types/media';
+import { MediaHistory } from './MediaHistory';
 import { CountUpValue } from '../../../components/v2/CountUpValue';
 import { formatAED, formatNumber, formatRatio } from '../utils/formatters';
 import '../../../styles/reference-consumer.css';
@@ -12,7 +12,7 @@ async function loadConsumerAlignment(year: number): Promise<ConsumerDashboard> {
   return (await http.get<{ data: ConsumerDashboard }>('/consumer/dashboard', { params: { year, month: 0 } })).data.data;
 }
 
-export function MediaConsumerAlignment({ year, month, overview, scopedSelection = false }: { year?: number; month?: number; overview?: Overview; scopedSelection?: boolean }) {
+export function MediaConsumerAlignment({ year, month, overview, history, scopedSelection = false }: { year?: number; month?: number; overview?: Overview; history?:MediaMonthlyHistory; scopedSelection?: boolean }) {
   const query = useQuery({ queryKey: ['consumer', 'media-alignment', year], queryFn: () => loadConsumerAlignment(year!), enabled: Boolean(year) });
   if (!year) return <div className="reference-card">Select a reporting year to see spend and purchasers.</div>;
   if (query.isLoading) return <div className="reference-card">Loading spend and purchaser alignment...</div>;
@@ -27,16 +27,11 @@ export function MediaConsumerAlignment({ year, month, overview, scopedSelection 
       spend: record?.mediaSpendAed ?? null, ftp: record?.firstTimePurchasers ?? null, partial: partialMonths.has(month),
     };
   });
-  const selectedIndex = typeof month === 'number' && month >= 1 ? rows.findIndex((_, index) => index + 1 === month) : -1;
-  const comparable = !scopedSelection && selectedIndex > 0 && !rows[selectedIndex]?.partial && !rows[selectedIndex-1]?.partial;
-  const selected = selectedIndex >= 0 ? rows[selectedIndex] : null;
-  const prior = selectedIndex > 0 ? rows[selectedIndex-1] : null;
-  const spendHistory = rows.slice(0,selectedIndex+1).map((r)=>r.spend);
   return <section className="reference-card media-alignment-v2">
     <div className="media-inout-kpis">
-      <article><span>Platform spend · selected period</span><strong><CountUpValue value={overview ? formatAED(overview.metrics.totalSpend) : 'n/a'}/></strong><small>Google + Meta workbook exports</small>{comparable && selected?.spend != null && prior?.spend != null ? <DeltaLine previous={prior.spend} current={selected.spend} period={prior.month+' '+year} /> : null}{selectedIndex >= 1 && !scopedSelection ? <SparkBars values={spendHistory} /> : null}</article>
-      <article><span>Reported site item revenue · selected period</span><strong><CountUpValue value={overview ? formatAED(overview.metrics.siteRevenue) : 'n/a'}/></strong><small>Reconciled site import, not GA4 net revenue; GA4 v4 pending</small></article>
-      <article><span>Revenue coverage</span><strong><CountUpValue value={overview ? formatRatio(overview.metrics.directionalReturn.value) : 'n/a'}/></strong><small>Coverage, not ROAS</small></article>
+      <article><span>Platform spend · selected period</span><strong><CountUpValue value={overview ? formatAED(overview.metrics.totalSpend) : 'n/a'}/></strong><small>Google + Meta workbook exports</small><MediaHistory history={history} month={month} keyName="spend"/></article>
+      <article><span>Reported site item revenue · selected period</span><strong><CountUpValue value={overview ? formatAED(overview.metrics.siteRevenue) : 'n/a'}/></strong><small>Reconciled site import, not GA4 net revenue; GA4 v4 separate</small><MediaHistory history={history} month={month} keyName="itemRevenue"/></article>
+      <article><span>Revenue coverage</span><strong><CountUpValue value={overview ? formatRatio(overview.metrics.directionalReturn.value) : 'n/a'}/></strong><small>Coverage, not ROAS</small><MediaHistory history={history} month={month} keyName="coverage"/></article>
     </div>
     <h3>Spend and first-time purchasers · {year}</h3>
     <p>Separate sources and separate axes. Missing spend months remain gaps, never zeros. No platform ROAS is inferred. {scopedSelection ? "This yearly chart is overall Rivoli context and does not inherit the selected brand or segment filter; the KPI row above follows the current Media selection." : null}</p>

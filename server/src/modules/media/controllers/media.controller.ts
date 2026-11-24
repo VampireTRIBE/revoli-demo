@@ -15,10 +15,15 @@ import {
 import { getImport, listImports } from '../repositories/media.repository.js';
 import { importMediaPackage } from '../import/import.service.js';
 import { ApiError } from '../../../utils/api-error.js';
+import { getGa4V4, getUnionCoopMedia } from '../services/media-supplements.service.js';
+import { getMediaKpiHistory } from '../services/media-analytics.service.js';
 
 const send = (response: Parameters<RequestHandler>[1], message: string, data: unknown) => response.json({ success: true, message, data });
 
 export const periods: RequestHandler = async (_request, response) => send(response, 'Media periods fetched successfully', await getPeriods());
+export const history: RequestHandler = async (request,response) => send(response,'Source-backed Media history fetched',await getMediaKpiHistory(periodQuerySchema.parse(request.query)));
+export const ga4V4: RequestHandler = async (request,response) => {const q=periodQuerySchema.parse(request.query);send(response,'GA4 v4 workbook coverage',getGa4V4(q.year,q.month));};
+export const unionCoop: RequestHandler = async (request,response) => {const q=periodQuerySchema.parse(request.query);send(response,'Union Coop approved media coverage',getUnionCoopMedia(q.year,q.month));};
 export const overview: RequestHandler = async (request, response) => send(response, 'Media overview fetched successfully', await getOverview(periodQuerySchema.parse(request.query)));
 export const platforms: RequestHandler = async (request, response) => send(response, 'Media platforms fetched successfully', await getPlatforms(periodQuerySchema.parse(request.query)));
 export const campaigns: RequestHandler = async (request, response) => send(response, 'Media campaigns fetched successfully', await getCampaigns(campaignQuerySchema.parse(request.query)));

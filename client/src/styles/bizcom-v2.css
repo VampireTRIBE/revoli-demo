@@ -117,3 +117,29 @@ body,.app-shell,.reference-shell,.reference-wrap { background:var(--v2-paper) !i
 }
 .app-shell .period-filters select:focus, .app-shell .campaign-controls select:focus { border-color:var(--v2-ink); background-color:#fff; box-shadow:0 0 0 2px #E2E2DE; }
 .app-shell .period-filters select option, .app-shell .campaign-controls select option {background:#fff;color:var(--v2-ink);}
+
+/* Nov 18 Creative source-backed trend anatomy: no chart when <2 periods. */
+.creative-card-history{display:grid;gap:5px;padding-top:7px;min-width:0}
+.creative-card-history .v2-delta{font-size:11px;flex-wrap:wrap;white-space:normal}
+.creative-card-history .v2-sparkbars{height:28px;max-width:270px}
+.creative-source-factors,.creative-source-caption{color:var(--v2-muted);font-size:11px;line-height:1.5;margin:2px 0}
+.creative-source-caption{border-top:1px solid var(--v2-line);padding-top:7px}
+
+/* Source-backed Media KPI history and UC daily reach, maintaining existing theme. */
+.v2-media-history{display:grid;gap:5px;margin-top:6px;min-width:0}
+.v2-media-history .v2-delta{font-size:10px;white-space:normal;flex-wrap:wrap}
+.v2-media-history .v2-sparkbars{height:24px;max-width:260px}
+.v2-coop-daily{display:grid;gap:8px;padding:14px 0}
+.v2-coop-daily-row{display:grid;grid-template-columns:95px minmax(80px,1fr) 84px 110px;align-items:center;gap:10px;font-size:11px}
+.v2-coop-daily-row strong{text-align:right}.v2-coop-daily-row small{color:var(--v2-muted)}
+.v2-coop-track{height:10px;background:var(--v2-paper);border:1px solid var(--v2-line)}
+.v2-coop-track i{display:block;height:100%;background:var(--v2-ink)}
+.v2-coop-track i.paid{background:var(--v2-amber)}
+.v2-union-media-bursts .media-inout-kpis{margin-top:9px}
+@media(max-width:650px){.v2-coop-daily-row{grid-template-columns:74px 1fr 65px;gap:6px}.v2-coop-daily-row small{grid-column:2 / -1}}
+
+.v2-campaign-identity{display:flex;align-items:center;gap:10px;min-width:145px}
+.v2-campaign-thumbnail{width:48px;height:48px;flex:none;object-fit:cover;border:1px solid var(--v2-line);background:var(--v2-paper)}
+.v2-campaign-identity .v2-campaign-name{min-width:0;overflow-wrap:anywhere}
+
+.v2-ga4-trend{min-width:0;padding:12px 0}.v2-ga4-trend h4{font-size:13px;font-weight:600;color:var(--v2-ink);margin:0 0 10px}

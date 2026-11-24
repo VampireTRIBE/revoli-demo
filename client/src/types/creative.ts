@@ -210,6 +210,7 @@ export interface CreativeDashboard {
       best: PreparedCreativeTopPost | null;
       topPosts: PreparedCreativeTopPost[];
       trend: PreparedCreativeBenchmark[];
+      monthlyKpis: CreativeMonthlyKpi[];
       cuts: PreparedCreativeCut[];
       unmatchedPostIds: string[];
       rankingFloor: 'reach >= 500';
@@ -259,4 +260,24 @@ export interface CreativeDashboard {
     conflictingPostCount: number;
     conflictFieldCounts: Record<string, number>;
   };
+}
+
+
+/** Monthly values calculated solely from the approved prepared post-level import. */
+export interface CreativeMonthlyKpi {
+  year: number;
+  month: number;
+  posts: number;
+  reels: number;
+  reach: number;
+  views: number;
+  actions: number;
+  activeEngagementRate: number | null;
+  frequency: number | null;
+  medianEngagementRate: number | null;
+  medianFrequency: number | null;
+  bestEngagementRate: number | null;
+  giveawayShare: number | null;
+  nonGiveawayMedian: number | null;
+  follows: number;
 }

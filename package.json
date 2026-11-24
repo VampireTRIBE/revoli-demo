@@ -11,7 +11,8 @@
     "build": "npm run build --workspace server && npm run build --workspace client",
     "test": "npm run test --workspace server && npm run test --workspace client",
     "lint": "npm run lint --workspace server && npm run lint --workspace client",
-    "verify:creative": "node scripts/verify_creative_render_contract.cjs"
+    "verify:creative": "node scripts/verify_creative_render_contract.cjs",
+    "verify:media-creative": "node scripts/verify_media_creative_nov24.cjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

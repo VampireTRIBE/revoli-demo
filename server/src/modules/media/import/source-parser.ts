@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 import XLSX from 'xlsx';
 import type {
   CampaignRecord,
@@ -62,6 +62,7 @@ export function parseMediaSources(paths: string[]): MediaDataset {
     ...(siteSource ? parseGoogleCampaigns(siteSource, periods, batchId) : []),
     ...(metaSource ? parseMetaCampaigns(metaSource, periods, platforms.filter((row) => row.platform === 'Meta Ads'), batchId) : []),
   ];
+  const approvedCampaigns = applyApprovedCampaignMetadata(campaigns, sources);
   const organic = organicSource ? parseOrganic(organicSource, periods, batchId) : [];
   if (!organicSource) warnings.push('Organic demand workbook was not detected.');
 
@@ -69,7 +70,7 @@ export function parseMediaSources(paths: string[]): MediaDataset {
     periods,
     platforms,
     site,
-    campaigns,
+    campaigns: approvedCampaigns,
     organic,
     sourceFiles: sources.map((source) => source.name),
     warnings,
@@ -314,6 +315,31 @@ function parseOrganic(source: WorkbookSource, periods: MediaPeriod[], batchId: s
     }
   });
   return [...brandRows, ...byMarket];
+}
+
+/** The optional Campaign Metadata sheet must explicitly match source platform and full name. */
+function applyApprovedCampaignMetadata(campaigns: CampaignRecord[], sources: WorkbookSource[]): CampaignRecord[] {
+  const metadataSource = sources.find((source)=>source.workbook.SheetNames.includes('Campaign Metadata'));
+  if (!metadataSource) return campaigns;
+  const byIdentity = new Map<string, {objective: CampaignRecord['objective']; shortName:string|null; thumbnailFile:string|null}>();
+  for (const row of rows(metadataSource.workbook,'Campaign Metadata')) {
+    const campaign=text(value(row,'Campaign','Full campaign name'));
+    const platform=text(value(row,'Platform'));
+    const objective=verifiedObjective(value(row,'Objective'));
+    const name=text(value(row,'Short name','Short Name'));
+    const image=text(value(row,'Thumbnail file','Thumbnail filename'));
+    if (!campaign || !['Google Ads','Meta Ads'].includes(platform)) continue;
+    // Images must resolve only inside server/data/media-campaign-assets. No URL or traversal is allowed.
+    const validName=/^[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(png|jpe?g|webp)$/i.test(image) ? image : null;
+    const roots=[resolve(process.cwd(),'server/data/media-campaign-assets'),resolve(process.cwd(),'data/media-campaign-assets')];
+    const safeImage=validName && roots.some((root)=>existsSync(resolve(root,validName))) ? validName : null;
+    byIdentity.set(`${platform}\n${campaign}`, {objective,shortName:name||null,thumbnailFile:safeImage});
+  }
+  return campaigns.map((campaign)=>{
+    const verified=byIdentity.get(`${campaign.platform}\n${campaign.campaign}`);
+    return verified ? {...campaign, objective:verified.objective??campaign.objective, shortName:verified.shortName,
+      thumbnailFile:verified.thumbnailFile, mappingSource: verified.objective ? `${metadataSource.name} / Campaign Metadata` : campaign.mappingSource} : campaign;
+  });
 }
 
 /** Published business objectives come only from a dedicated workbook column. */

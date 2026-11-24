@@ -11,6 +11,9 @@ const get = async <T>(url: string, query?: Record<string, unknown>) => (await ht
 
 export const mediaApi = {
   periods: () => get<Periods>('/media/periods'),
+  history: (filter:MediaFilter) => get<MediaMonthlyHistory>('/media/history',params(filter)),
+  ga4V4: (filter:MediaFilter) => get<Ga4V4>('/media/ga4-v4',params(filter)),
+  unionCoop: (filter:MediaFilter) => get<UnionCoopMedia>('/media/union-coop',params(filter)),
   overview: (filter: MediaFilter) => get<Overview>('/media/overview', params(filter)),
   platforms: (filter: MediaFilter) => get<PlatformData>('/media/platforms', params(filter)),
   campaigns: (filter: MediaFilter, extras: Record<string, unknown>) => get<CampaignData>('/media/campaigns', { ...params(filter), ...extras }),

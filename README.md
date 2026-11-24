@@ -338,3 +338,9 @@ To verify the included original approved images and workbook structure without N
 The Organic Creative crash caused by unbound `client`, `year`, and `month` variables in `CreativeSlot` has been fixed. The Creative API error path and month-scoped prepared trend rendering were corrected; a route-level error boundary was added. Run `npm run verify:creative` after `npm ci` to execute the lightweight runtime contract regression. Full browser/runtime verification requires an installed node_modules tree.
 
 A detailed gap audit of all four November 18 PDFs is available in `docs/BIZCOM_FOUR_PDF_REQUIREMENTS_AUDIT_2026-11-19.md`. Missing approved imports remain in awaiting states and are **not** treated as completed features.
+
+## 24 Nov 2026 Media and Creative implementation
+
+This archive uses the same `client` + `server` npm workspaces and spreadsheet source directories as the user-uploaded November 23 project. It does not add Docker or migrate the database. The source-backed November 18 Media/Creative changes and remaining missing inputs are documented in [`docs/NOV24_MEDIA_CREATIVE_IMPLEMENTATION_AND_LIMITATIONS.md`](docs/NOV24_MEDIA_CREATIVE_IMPLEMENTATION_AND_LIMITATIONS.md).
+
+Static contract check: `npm run verify:media-creative`. Existing Creative check: `npm run verify:creative`.

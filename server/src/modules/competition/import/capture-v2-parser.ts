@@ -19,13 +19,9 @@ function isoDate(value:string):string|null {
   if(!value||/^(?:n\/a|\(not captured\)|not captured|-|pending)$/i.test(value))return null;
   if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
   if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)){
-    // Validate each component before calling Date.UTC; noUncheckedIndexedAccess
-    // correctly treats elements from a split string as potentially absent.
-    const [dayPart,monthPart,yearPart]=value.split('/');
-    if(!dayPart||!monthPart||!yearPart)return null;
-    const day=Number(dayPart),month=Number(monthPart),year=Number(yearPart);
+    const [day,month,year]=value.split('/').map(Number);
     const dt=new Date(Date.UTC(year,month-1,day));
-    return dt.getUTCDate()===day&&dt.getUTCMonth()+1===month&&dt.getUTCFullYear()===year?dt.toISOString().slice(0,10):null;
+    return dt.getUTCDate()===day&&dt.getUTCMonth()+1===month?dt.toISOString().slice(0,10):null;
   }
   const dt=new Date(value);return Number.isFinite(dt.getTime())?dt.toISOString().slice(0,10):null;
 }
@@ -65,13 +61,7 @@ function reportedPopulation(book:XLSX.WorkBook):number|null {
     /reported\s+(?:ads|total|population|count)\s*[:=]?\s*[~≈]?\s*(\d[\d,]*)/i,
     /[~≈]\s*(\d[\d,]*)\s+reported\s+(?:ads|creatives)/i,
   ];
-  for(const exp of expressions){
-    const match=exp.exec(cells);
-    const reported=match?.[1];
-    if(!reported)continue;
-    const count=numeric(reported);
-    if(count!=null&&count>0)return count;
-  }
+  for(const exp of expressions){const match=exp.exec(cells);if(match){const count=numeric(match[1]);if(count!=null&&count>0)return count;}}
   return null;
 }
 function signedHighlights(book:XLSX.WorkBook,config:CompetitionConfig):string[] {
@@ -101,7 +91,6 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
     const sourceRows=raw.filter((r)=>Object.values(r).some((v)=>text(v)));
     if(!sourceRows.length)continue;
     const sampleRow=sourceRows.find((r)=>get(r,'Capture date','Capture Date')||get(r,'Channel','Source'))??sourceRows[0];
-    if(!sampleRow)continue;
     const captureDate=isoDate(get(sampleRow,'Capture date','Capture Date'))??captureFromFilename(filename);
     if(!captureDate)throw new Error(`Competition V2 has no verifiable capture date: ${filename} / ${sheetName}`);
     const observations:CompetitionObservation[]=[];
@@ -113,7 +102,7 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
       const rawChannel=get(r,'Channel','Source');
       const rowChannel=/google/i.test(rawChannel)?'Google':/meta/i.test(rawChannel)?'Meta':channel;
       channel=rowChannel;
-      const rowDate:string=isoDate(get(r,'Capture date','Capture Date'))??captureDate;
+      const rowDate=isoDate(get(r,'Capture date','Capture Date'))??captureDate;
       const format=get(r,'Format','Ad format','Type');
       const page=get(r,'Competitor / Meta page','Competitor','Meta page');
       if(page&&!`${config.label} ${config.metaPage} ${config.id}`.toLowerCase().includes(page.toLowerCase())&&!page.toLowerCase().includes(config.label.toLowerCase())){

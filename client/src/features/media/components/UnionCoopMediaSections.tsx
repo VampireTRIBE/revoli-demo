@@ -19,7 +19,7 @@ export function UnionCoopReach({data}:{data?:UnionCoopMedia}) {
   if (!data?.dailyReach.length) return <AwaitingLine source={data?.reason??'Approved Union Coop daily page-reach file not supplied.'} owner="TBL / Media team"/>;
   const maximum=Math.max(...data.dailyReach.map(r=>r.pageReach),1);
   return <div className="v2-coop-daily" aria-label="Daily page reach by paid confirmation">
-    {data.dailyReach.map(r=><div className="v2-coop-daily-row" key={r.date}><span>{r.date}</span><div className="v2-coop-track"><i className={r.paidConfirmed?'paid':''} style={{width:`${100*r.pageReach/maximum}%`}}/></div><strong>{formatNumber(r.pageReach)}</strong><small>{r.paidConfirmed?'PAID CONFIRMED':'Not confirmed'}</small></div>)}
+    {data.dailyReach.map(r=><div className="v2-coop-daily-row" key={r.date}><span>{r.date}</span><div className="v2-coop-track"><i className={r.paidConfirmed?'paid':''} style={{width:`${100*r.pageReach/maximum}%`}}/></div><strong>{formatNumber(r.pageReach)}</strong><small className={`v2-delivery-chip ${r.paidConfirmed?'confirmed':'unconfirmed'}`} title="Paid confirmation comes from the approved daily-reach source, not from the chart">{r.paidConfirmed?'PAID CONFIRMED':'Not confirmed'}</small></div>)}
     <p className="v2-section-source">Page-level reach, not post-level organic reach. Paid status comes exclusively from approved source rows.</p>
   </div>;
 }

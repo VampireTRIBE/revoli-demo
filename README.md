@@ -344,3 +344,7 @@ A detailed gap audit of all four November 18 PDFs is available in `docs/BIZCOM_F
 This archive uses the same `client` + `server` npm workspaces and spreadsheet source directories as the user-uploaded November 23 project. It does not add Docker or migrate the database. The source-backed November 18 Media/Creative changes and remaining missing inputs are documented in [`docs/NOV24_MEDIA_CREATIVE_IMPLEMENTATION_AND_LIMITATIONS.md`](docs/NOV24_MEDIA_CREATIVE_IMPLEMENTATION_AND_LIMITATIONS.md).
 
 Static contract check: `npm run verify:media-creative`. Existing Creative check: `npm run verify:creative`.
+
+
+## 24 Nov Competition & visual update (existing structure preserved)
+See `docs/COMPETITION_VISUAL_NOV24_REQUIREMENTS_AND_SOURCE_AUDIT.md`. This release preserves the existing React/Express workspaces and spreadsheet-based source imports; no Docker or database migration is introduced.

@@ -1,5 +1,6 @@
 import path from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import AdmZip from 'adm-zip';
 import XLSX from 'xlsx';
 import { dateOnlyDifference } from '../calculations/competition-calculations.js';
 import { groupCompetitionFormat, groupCompetitionTheme } from '../config/competition.config.js';
@@ -15,13 +16,20 @@ function get(row:Row,...aliases:string[]):string {
   return '';
 }
 const numeric=(str:string):number|null=>{const n=Number(str.replace(/,/g,''));return str!==''&&Number.isFinite(n)?n:null;};
+function safeDestination(raw:string):string|null {
+  if(!raw || /^(?:n\/a|not captured|-)$/i.test(raw)) return null;
+  const formatted=/^https?:\/\//i.test(raw)?raw:/^[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/|$)/i.test(raw)?`https://${raw}`:'';
+  if(!formatted)return null;
+  try {const u=new URL(formatted);return ['http:','https:'].includes(u.protocol)?u.toString():null;}catch{return null;}
+}
+
 function isoDate(value:string):string|null {
   if(!value||/^(?:n\/a|\(not captured\)|not captured|-|pending)$/i.test(value))return null;
   if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
   if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)){
-    const [day,month,year]=value.split('/').map(Number);
+    const [day=0,month=0,year=0]=value.split('/').map(Number);
     const dt=new Date(Date.UTC(year,month-1,day));
-    return dt.getUTCDate()===day&&dt.getUTCMonth()+1===month?dt.toISOString().slice(0,10):null;
+    return dt.getUTCDate()===day&&dt.getUTCMonth()+1===month&&dt.getUTCFullYear()===year?dt.toISOString().slice(0,10):null;
   }
   const dt=new Date(value);return Number.isFinite(dt.getTime())?dt.toISOString().slice(0,10):null;
 }
@@ -32,10 +40,40 @@ function captureFromFilename(name:string):string|null {
 function rows(book:XLSX.WorkBook,sheetName:string):Row[] {
   const sheet=book.Sheets[sheetName];return sheet?XLSX.utils.sheet_to_json<Row>(sheet,{defval:'',raw:false}):[];
 }
-function assetEntries(book:XLSX.WorkBook,config:CompetitionConfig,captureDate:string,ads:CompetitionObservation[],channel:'Meta'|'Google') {
+/** Gallery files are approved by the workbook's Library ID-to-filename map.
+ * Never download/scrape imagery and never extract arbitrary files from a ZIP.
+ * Only use a sibling TBL gallery archive and exact approved basenames.
+ */
+function hydrateApprovedGalleryAsset(sourceFile:string, config:CompetitionConfig, captureDate:string, assetFile:string):boolean {
+  if (!/^[a-z0-9_-]+\.(?:png|jpg|jpeg|webp)$/i.test(assetFile)) return false;
+  const targetDir = path.resolve(resolveCompetitionAssetDirectory(),config.id,captureDate);
+  const destination = path.resolve(targetDir,assetFile);
+  if (existsSync(destination)) return true;
+  const baseDir = path.dirname(sourceFile);
+  if (!existsSync(baseDir)) return false;
+  const candidates = readdirSync(baseDir).filter((filename)=>{
+    if (!/\.zip$/i.test(filename) || !/(gallery|thumb|carrefour|lulu|unioncoop)/i.test(filename)) return false;
+    // A dated archive belongs only to the matching capture, never an older one.
+    const dated = /(\d{1,2})[-_ ]?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[-_ ]?(20\d{2})/i.exec(filename);
+    const archiveDate = dated ? isoDate(`${dated[1]} ${dated[2]} ${dated[3]}`) : null;
+    return !archiveDate || archiveDate === captureDate;
+  });
+  for (const filename of candidates) {
+    const archive = new AdmZip(path.join(baseDir,filename));
+    const entries = archive.getEntries().filter((entry)=>!entry.isDirectory && path.basename(entry.entryName).toLowerCase() === assetFile.toLowerCase());
+    if (entries.length !== 1 || entries[0] === undefined) continue;
+    const payload = entries[0].getData();
+    if (!payload.length || payload.length > 12_000_000) continue;
+    mkdirSync(targetDir,{recursive:true});
+    writeFileSync(destination,payload);
+    return true;
+  }
+  return false;
+}
+
+function assetEntries(book:XLSX.WorkBook,sourceFile:string,config:CompetitionConfig,captureDate:string,ads:CompetitionObservation[],channel:'Meta'|'Google') {
   const sheetName=book.SheetNames.find((s)=>/gallery/i.test(s));
   const sourceRows=sheetName?rows(book,sheetName):[];
-  const directory=path.resolve(resolveCompetitionAssetDirectory(),config.id,captureDate);
   const byId=new Map(ads.map((a)=>[a.libraryId,a]));
   const gallery:CompetitionGalleryEntry[]=[];
   for(const [index,row] of sourceRows.entries()) {
@@ -43,7 +81,7 @@ function assetEntries(book:XLSX.WorkBook,config:CompetitionConfig,captureDate:st
     if(!file)continue;
     const id=get(row,'Library ID','Ad Library ID');
     const ad=byId.get(id);
-    if (!/^[a-z0-9_-]+\.(?:png|jpg|jpeg|webp)$/i.test(file)||!ad||!existsSync(path.join(directory,file))) continue;
+    if (!/^[a-z0-9_-]+\.(?:png|jpg|jpeg|webp)$/i.test(file)||!ad||!hydrateApprovedGalleryAsset(sourceFile,config,captureDate,file)) continue;
     const group=numeric(get(row,'Row','Gallery row'))??1;
     const slot=numeric(get(row,'Slot','Position'))??(index+1);
     gallery.push({row:group,title:get(row,'Row title','Section','Category')||'Analyst-selected creative',slot,libraryId:id,caption:get(row,'Caption','Title')||'Captured ad',metaLine:get(row,'Meta line','Details')||`${channel} captured evidence`,chip:get(row,'Chip','Theme')||'Analyst selection',thumbnailFile:file,assetUrl:`/competition/assets/${config.id}/${captureDate}/${file}`,startDate:ad.startDate,daysRunning:ad.suppliedDaysRunning??ad.calculatedDaysRunning});
@@ -61,7 +99,7 @@ function reportedPopulation(book:XLSX.WorkBook):number|null {
     /reported\s+(?:ads|total|population|count)\s*[:=]?\s*[~≈]?\s*(\d[\d,]*)/i,
     /[~≈]\s*(\d[\d,]*)\s+reported\s+(?:ads|creatives)/i,
   ];
-  for(const exp of expressions){const match=exp.exec(cells);if(match){const count=numeric(match[1]);if(count!=null&&count>0)return count;}}
+  for(const exp of expressions){const match=exp.exec(cells);if(match){const count=numeric(match[1] ?? '');if(count!=null&&count>0)return count;}}
   return null;
 }
 function signedHighlights(book:XLSX.WorkBook,config:CompetitionConfig):string[] {
@@ -90,7 +128,7 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
     const raw=rows(book,sheetName);
     const sourceRows=raw.filter((r)=>Object.values(r).some((v)=>text(v)));
     if(!sourceRows.length)continue;
-    const sampleRow=sourceRows.find((r)=>get(r,'Capture date','Capture Date')||get(r,'Channel','Source'))??sourceRows[0];
+    const sampleRow:Row=sourceRows.find((r)=>get(r,'Capture date','Capture Date')||get(r,'Channel','Source'))??sourceRows[0]??{};
     const captureDate=isoDate(get(sampleRow,'Capture date','Capture Date'))??captureFromFilename(filename);
     if(!captureDate)throw new Error(`Competition V2 has no verifiable capture date: ${filename} / ${sheetName}`);
     const observations:CompetitionObservation[]=[];
@@ -102,7 +140,7 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
       const rawChannel=get(r,'Channel','Source');
       const rowChannel=/google/i.test(rawChannel)?'Google':/meta/i.test(rawChannel)?'Meta':channel;
       channel=rowChannel;
-      const rowDate=isoDate(get(r,'Capture date','Capture Date'))??captureDate;
+      const rowDate:string=isoDate(get(r,'Capture date','Capture Date'))??captureDate;
       const format=get(r,'Format','Ad format','Type');
       const page=get(r,'Competitor / Meta page','Competitor','Meta page');
       if(page&&!`${config.label} ${config.metaPage} ${config.id}`.toLowerCase().includes(page.toLowerCase())&&!page.toLowerCase().includes(config.label.toLowerCase())){
@@ -125,26 +163,33 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
         suppliedDaysRunning:suppliedDays,calculatedDaysRunning:calculatedDays,daysRunningDiscrepancy:start&&suppliedDays!=null?calculatedDays!==suppliedDays:false,
         status:get(r,'Status')||'(not captured)',platforms:get(r,'Platforms','Surface','Google surface')||'not captured',format,formatGroup:groupCompetitionFormat(config,format),
         theme:theme||null,themeGroup:groupCompetitionTheme(config,theme||null),featuredBrandProduct:get(r,'Featured brand / product','Brand','Product')||null,
-        adText:get(r,'Ad text (short)','Creative / copy (short)','Ad text')||null,clickDestination:get(r,'Click destination','Destination')||null,language:get(r,'Language')||null,
+        adText:get(r,'Ad text (short)','Creative / copy (short)','Ad text')||null,clickDestination:safeDestination(get(r,'Click destination','Destination')),language:get(r,'Language')||null,
         screenshotRef:get(r,'Screenshot ref','Screenshot batch','Shot')||null,screenshot:null,payerVerified:get(r,'Payer (verified)','Verified payer')||null,
         newSincePreviousCapture:/^yes$/i.test(newFlag),sourceFile:filename,sourceSheet:sheetName,sourceRow:index+2});
     }
     if(!observations.length)continue;
     if(observations.some((r)=>r.channel!==channel))throw new Error(`Mixed Google/Meta rows in V2 register ${sheetName}; separate channel-specific register sheets required.`);
-    const {gallery,screenshots}=assetEntries(book,config,captureDate,observations,channel);
+    const {gallery,screenshots}=assetEntries(book,file,config,captureDate,observations,channel);
     const importedThemeMix:MixRow[]=[];
     const themeSheet=book.SheetNames.find((name)=>/theme mix/i.test(name));
     if(themeSheet)for(const r of rows(book,themeSheet)){
-      const owner=get(r,'Competitor','Brand');
-      if(owner&&!config.label.toLowerCase().includes(owner.toLowerCase()))continue;
+      const owner=get(r,'Competitor','Brand','Meta page');
+      if(owner&&!(`${config.label} ${config.metaPage}`).toLowerCase().includes(owner.toLowerCase()))continue;
       const label=get(r,'Theme','Theme (analyst)'); const count=numeric(get(r,'Count','Ads'));
       if(label&&count!=null&&!/total/i.test(label))importedThemeMix.push({label,count,percentage:observations.length?count/observations.length:0});
     }
     const deltaName=book.SheetNames.find((name)=>/delta vs/i.test(name));
     const deltas=deltaName?rows(book,deltaName):[];
     const newCount=deltas.map((r)=>{
-      const label=get(r,'Metric','Card','Label').toLowerCase();
-      return /new since|new launch|newly observed/.test(label)?numeric(get(r,'Current','Capture 2','New','Value','Count')):null;
+      const owner=get(r,'Competitor','Brand','Meta page');
+      if(owner&&!(`${config.label} ${config.metaPage}`).toLowerCase().includes(owner.toLowerCase())) return null;
+      const label=get(r,'Metric','Card','Label','Measure').toLowerCase();
+      if(!/new since|new launch|newly observed|^new ads$|^new$/.test(label))return null;
+      // Some signed workbooks have one competitor per row; others have
+      // Carrefour and LuLu as separate columns on a shared Delta sheet.
+      const perCompetitor=config.id==='carrefour-uae'?get(r,'Carrefour UAE','Carrefour'):
+        config.id==='lulu-hypermarket'?get(r,'LuLu Hypermarket','LuLu','Lulu'):'';
+      return numeric(perCompetitor||get(r,'Current','Capture 2','New','Value','Count'));
     }).find((v)=>v!=null);
     const reportedCount: number|null = channel === 'Google' ? reportedPopulation(book) : null; // Never infer the total from the sample.
     captures.push({competitorId:config.id,competitor:config.label,clientId:config.clientId,clientLabel:config.clientLabel,metaPage:config.metaPage,channel,captureDate,

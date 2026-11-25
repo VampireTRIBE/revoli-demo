@@ -15,7 +15,8 @@ export function numberValue(value: unknown): number {
 
 export function optionalNumber(value: unknown): number | null {
   if (value === null || value === undefined || text(value) === '') return null;
-  const parsed = numberValue(value);
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  const parsed = typeof value === 'number' ? value : Number(value.replace(/,/g, '').trim());
   return Number.isFinite(parsed) ? parsed : null;
 }
 

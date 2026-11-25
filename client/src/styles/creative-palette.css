@@ -367,3 +367,29 @@
 @media (prefers-reduced-motion: reduce) {
   .creative-page, .creative-page .creative-post-card { animation: none; transition: none; }
 }
+
+/* Latest tab scope: Compare against is intentionally exclusive to Creative.
+   It remains visibly separated from Year/Month/Brand, not an extra filter. */
+.creative-page .creative-toolbar > .competition-context-dropdown {
+  flex: 0 1 242px;
+  width: min(242px, 100%);
+  min-width: 185px;
+  margin-left: 10px;
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+}
+.creative-page .creative-toolbar > .competition-context-dropdown .competition-context-trigger {
+  min-height: 42px;
+  width: 100%;
+  font-size: 12px;
+}
+@media (max-width: 640px) {
+  .creative-page .creative-toolbar > .competition-context-dropdown {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 12px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}

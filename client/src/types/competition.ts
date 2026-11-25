@@ -98,4 +98,5 @@ export interface CompetitionDashboard {
     unverifiedScreenshotAssociations: number;
   } | null;
   historyNote: string;
+  captureDeltaNote?: string;
 }

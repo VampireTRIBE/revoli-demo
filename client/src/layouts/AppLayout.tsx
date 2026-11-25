@@ -28,7 +28,7 @@ export function AppLayout() {
   const creativeClient = ({ 'union-coop': 'Union Coop', 'souq-al-bahar': 'Souq Al Bahar', 'souq-al-jubair': 'Souq Al Jubair', 'souq-al-haraj': 'Souq Al Haraj', 'souq-al-jubail': 'Souq Al Jubail', 'pocari-sweat': 'Pocari Sweat' } as Record<string, string>)[searchParams.get('brand') ?? ''] ?? 'Union Coop';
   const requestedClient = searchParams.get('client');
   const consumerClient = requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
-  const mediaClient = requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
+  const mediaClient = location.pathname.startsWith('/media') && requestedClient === 'union-coop' ? 'Union Coop' : 'Rivoli';
   const displayedClient = isCreative ? creativeClient : isGeo ? 'Union Coop' : isConsumer ? consumerClient : mediaClient;
   const [openedAt] = useState(() => new Date().toLocaleString('en-US'));
 

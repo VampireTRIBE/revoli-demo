@@ -1,0 +1,181 @@
+===== verify:creative
+PASS: Creative slots 1-4 render with bound client/year/month, and API errors precede loading state.
+RESULT PASS verify:creative
+===== verify:media-creative
+PASS Creative prepared workbook imported
+PASS Creative monthly KPI aggregation uses source post metrics
+PASS Creative KPI history display
+PASS Creative Top3 displays imported factors rather than unsigned prose
+PASS Creative plain heading
+PASS Signed Highlights required
+PASS Media source-backed section labels and Rivoli Competition
+PASS Media monthly histories
+PASS Media GA4 optional workbook
+PASS Media Union Coop optional workbook
+PASS Campaign Objectives only imported
+PASS Approved campaign asset mapping
+PASS Original npm workspace preserved
+PASS No Docker introduced
+All 14 source-contract checks passed. Browser and TS semantic compilation are separate checks.
+RESULT PASS verify:media-creative
+===== verify:competition-visual
+PASS Preserve npm workspaces
+PASS No new Docker infrastructure
+PASS Union Coop workbook v2 routing
+PASS Per-competitor delta routing
+PASS Signed-only Highlights
+PASS Approved-only ZIP/gallery joins
+PASS Meta and Google channel chip
+PASS Dark source strip and off selector
+PASS Thin awaiting state
+PASS Google sample vs population
+PASS EDIT Meta Capture 2 preserved
+PASS EDIT Google Capture 1 preserved
+PASS All 15 EDIT images preserved
+13/13 source checks passed
+RESULT PASS verify:competition-visual
+===== verify:spreadsheets
+PASS 80 original spreadsheet/CSV mappings (79 unchanged, 1 intentionally replaced by the new approved import), 6 categories
+PASS Original SHA-256 checksums for unchanged sources and approved override checksums
+RESULT PASS verify:spreadsheets
+===== verify:creative-brands
+PASS: brand-specific selector periods, Pocari paid mode, source-labelled Souq account data and identity guards.
+PASS: executed backend getCreativeOptions with source fixtures, including all six brands and brand-specific periods.
+RESULT PASS verify:creative-brands
+===== verify:nov24-imports
+OK spreadsheets data/media/rivoli/Rivoli-Consumer-GA4-Import-v4.xlsx
+OK spreadsheets data/highlights/tbl/TBL-Reads-Import-Template-and-First-Fill.xlsx
+OK spreadsheets data/creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx
+OK spreadsheets data/competition/union-coop/Competition-Capture-UnionCoop-Carrefour-LuLu-01-Oct-2026.xlsx
+OK spreadsheets data/competition/union-coop/Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx
+OK spreadsheets data/competition/rivoli/EDIT-AdLibrary-Capture2-03Nov2026.xlsx
+OK spreadsheets data/competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx
+OK spreadsheets data/competition/rivoli/EDIT-Capture2-Thumbnails.zip
+All 8 new source imports retained
+RESULT PASS verify:nov24-imports
+===== verify:creative-v2
+PASS Creative actual service runtime: Aug/Sep reporting completeness, Stories and published output.
+PASS: Creative slots 1-4 render with bound client/year/month, and API errors precede loading state.
+PASS: executed backend getCreativeOptions with source fixtures, including all six brands and brand-specific periods.
+RESULT PASS verify:creative-v2
+===== verify:nov18
+PASS GA4 v4 available
+PASS Union Coop Creative source available
+PASS Union Coop October and November competition captures
+PASS EDIT Meta and Google captures
+PASS Signed-only highlight hero
+PASS Four neutral Creative sections
+PASS Campaign objectives are source-only
+PASS Media GA4 independently rendered
+PASS Media independent from Creative API failure at startup
+PASS Union Coop optional comments import route
+PASS Competitor comparison on Creative and Media only (latest UI scope)
+PASS Media is Rivoli only (latest UI scope)
+PASS Source assets preserved
+All November 18 source/data readiness checks passed. Not a browser/TypeScript build certification.
+RESULT PASS verify:nov18
+===== verify:media-ui
+PASS GA4 monthly bars omit unobserved months
+PASS GA4 chart labels use compact ticks and sufficient axis width
+PASS GA4 net revenue is separate from item revenue
+PASS Missing spend is n/a, not a zero-filled overview
+PASS Coverage withheld when full two-account spend is absent
+PASS Revenue coverage history only compares matching source periods
+PASS Acquisition cards do not turn missing sources into zeros
+PASS Campaign objectives are only source-backed
+PASS Campaign register groups by objective
+PASS Original campaign names accessible on hover
+PASS Campaign thumbnails require actual approved file on disk
+PASS Source short campaign name is imported, not synthesized
+PASS Media has four filters and the separate Rivoli/EDIT comparison
+PASS Original v2 GA4 workbook retained
+PASS 14/14 Media source and UI contracts (not a browser runtime check)
+RESULT PASS verify:media-ui
+===== verify:tab-scope
+PASS: Rivoli Media compares EDIT; Union Coop Creative compares Carrefour and LuLu; Consumer and Search have no comparison controls.
+RESULT PASS verify:tab-scope
+===== verify:latest
+PASS Rivoli-only Media
+PASS Media compares only approved Rivoli EDIT client
+PASS Union Coop Creative comparison gated by exact brand
+PASS Source competitor IDs scoped by client
+PASS No comparison control on Consumer/Search
+PASS Exact five Media section titles and definitions
+PASS Exact four Creative section titles
+PASS Signed only Highlights and one top-level pending state
+PASS Section anatomy with source-backed deltas and gap-preserving bars
+PASS Campaign objectives only source supplied, ranked within bucket
+PASS Media GA4 shows verified periods and avoids fake zero months
+PASS Ad register opens immediate searchable modal
+PASS Competition sample/census separated
+PASS Source workbooks retained
+PASS Visual color tokens consistent with supplied reference
+PASS No Docker or MongoDB migration added
+16/16 latest requirement source-contract checks passed.
+RESULT PASS verify:latest
+===== verify:pdf-parity
+PASS exact Creative four-section source labels
+PASS signed highlight, one tab-level pending state
+PASS distinct source-backed delta and absolute pair
+PASS gap-preserving eight-period bars
+PASS Carrefour/LuLu Creative scope
+PASS Rivoli-only Media with EDIT competitor
+PASS Creative competitor capture summary matches reference
+PASS Creative competitor register immediately opens as dialog
+PASS Meta and Google separate source chips
+PASS no large empty paid creative cards
+PASS source-backed signed-only Competition import
+PASS all 6 V2 design tokens
+PASS existing client and server unchanged workspaces
+13/13 PDF visual/source contracts passed; not a browser rendering test.
+RESULT PASS verify:pdf-parity
+PASS 68 unique registered ads, 36 new, 15 campaign-tagged, average 39.9, max 168, zero date discrepancies
+PASS gallery: 15 valid ID joins, 15 images exist, rows 4/4/4/3
+{
+  "workbook": "UnionCoop-CLEO-Market-Import.xlsx",
+  "capture": "2026-11-02",
+  "sheet_names": [
+    "README - Display Rules",
+    "Market Questions",
+    "Share of Voice by Topic",
+    "Position by Engine",
+    "Visibility Funnel",
+    "Citation Domains",
+    "Language of the Market"
+  ],
+  "data_rows_by_sheet": {
+    "Market Questions": 12,
+    "Share of Voice by Topic": 6,
+    "Position by Engine": 6,
+    "Visibility Funnel": 4,
+    "Citation Domains": 6,
+    "Language of the Market": 11
+  },
+  "all_topics": {
+    "answers": 815,
+    "union_coop_percent": 3,
+    "carrefour_percent": 47,
+    "lulu_percent": 38
+  },
+  "question_results": {
+    "appeared": 3,
+    "wins": 0,
+    "supplied_questions": 12
+  },
+  "funnel": {
+    "answers_analysed": 48,
+    "recommended": 1,
+    "recommended_percent": "2.1%"
+  },
+  "conclusion": "Raw XLSX structure and key values validated. TypeScript parser/runtime tests require npm dependencies."
+}
+
+TypeScript syntax: 129 files, zero parse diagnostics.
+CSS syntax: 16 stylesheets, zero top-level errors.
+
+Dependency install:
+npm error code ENOTCACHED
+npm error request to https://registry.npmjs.org/zod/-/zod-4.6.5.tgz failed: cache mode is 'only-if-cached' but no cached response is available.
+npm error A complete log of this run can be found in: /home/oai/.npm/_logs/2026-11-24T17_36_09_772Z-debug-0.log
+
+Full build/API/browser tests not verified.

@@ -145,6 +145,7 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     availabilityMessage: null,
     sample: { logged: selectedCapture.observations.length, reported: selectedCapture.reportedPopulation ?? null, sampleOnly: selectedChannel === 'Google' },
     signedHighlights: selectedCapture.highlights ?? [],
+    captureDeltaNote: selectedCapture.captureDeltaNote,
     capture: { ...base.capture, firstCapture: earlier.length === 0 },
     activity: {
       activeAds: active.length,
@@ -163,7 +164,7 @@ export function getCompetitionDashboard(filter: CompetitionFilter): CompetitionD
     },
     gallery: selectedCapture.gallery ?? [],
     campaignPlatformMix: mixBy(active, (ad) => ad.campaignPlatform ?? null),
-    longestRunning: (selectedChannel === 'Google' ? [] : [...active])
+    longestRunning: (selectedChannel === 'Google' ? [] : active.filter((row) => row.startDateAvailable !== false && row.calculatedDaysRunning >= 0))
       .sort((left, right) => right.calculatedDaysRunning - left.calculatedDaysRunning || left.libraryId.localeCompare(right.libraryId))
       .slice(0, 3),
     formatMix: mixBy(active, (row) => row.formatGroup),

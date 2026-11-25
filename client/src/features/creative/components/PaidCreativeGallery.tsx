@@ -1,14 +1,14 @@
 import type { PaidCreativePost } from '../../../types/creative';
 
 export function PaidCreativeGallery({ records }: { records: PaidCreativePost[] }) {
-  if (!records.length) return <div className="creative-placeholder-panel">Data not available</div>;
+  if (!records.length) return <div className="v2-gallery-awaiting">AWAITING · No matching paid detail records · Owner: Media team</div>;
   return <div className="creative-gallery">
     {records.map((record) => {
       const content = <article className="creative-post-card">
-        <div className="creative-media">
+        <div className={record.imageUrl ? "creative-media" : "v2-paid-image-missing"}>
           {record.imageUrl
             ? <img className="creative-image" src={record.imageUrl} alt={record.caption ?? record.postType} loading="lazy" />
-            : <div className="creative-placeholder" aria-label="Image not available">Image not available</div>}
+            : <div className="v2-gallery-awaiting" aria-label="Image not available">Approved thumbnail awaiting</div>}
           <span className={`creative-type-badge ${record.postType.toLowerCase()}`}>{record.postType.toUpperCase()}</span>
         </div>
         <div className="creative-post-meta">

@@ -1,0 +1,16 @@
+verify_brand_reference_update.cjs 0
+verify_campaign_objectives.cjs 0
+verify_competition_visual_nov24.cjs 0
+verify_creative_brand_coverage.cjs 0
+verify_creative_brand_options.cjs 0
+verify_creative_render_contract.cjs 0
+verify_creative_runtime_v2.cjs 0
+verify_latest_nov18.cjs 0
+verify_media_creative_nov24.cjs 0
+verify_media_ui_reporting.cjs 0
+verify_nov18_implementation.cjs 0
+verify_nov24_import_paths.cjs 0
+verify_nov25_media_regression.cjs 0
+verify_pdf_parity.cjs 0
+verify_spreadsheet_layout.cjs 0
+verify_tab_scope.cjs 0

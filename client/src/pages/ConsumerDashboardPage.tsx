@@ -12,17 +12,19 @@ const api = async <T,>(path:string,params?:Record<string,number>) => (await http
 
 export function ConsumerDashboardPage() {
   const [params,setParams]=useSearchParams();
+  useEffect(()=>{if(!params.has('competition'))return;const next=new URLSearchParams(params);next.delete('competition');setParams(next,{replace:true});},[params,setParams]);
   const client=params.get('client')==='union-coop'?'union-coop':'rivoli';
   const options=useQuery({queryKey:['consumer','options'],queryFn:()=>api<ConsumerOptions>('/consumer/options')});
   const year=Number(params.get('year'))||options.data?.defaultSelection?.year;
   const month=params.has('month')?Number(params.get('month')):options.data?.defaultSelection?.month;
   useEffect(()=>{ if(!params.has('year')&&options.data?.defaultSelection) setParams({year:String(options.data.defaultSelection.year),month:String(options.data.defaultSelection.month),client},{replace:true}); },[options.data,params,setParams,client]);
+  const comments=useQuery({queryKey:['consumer','union-comments',year,month],queryFn:()=>api<UnionCoopComments>('/consumer/union-comments',{year:year!,month:month??0}),enabled:Boolean(client==='union-coop'&&year)});
   const dashboard=useQuery({queryKey:['consumer','dashboard',year,month],queryFn:()=>api<ConsumerDashboard>('/consumer/dashboard',{year:year!,month:month!}),enabled:Boolean(year&&month!==undefined)});
   const months=options.data?.years.find((row)=>row.year===year)?.months??[];
   return <section className="consumer-page">
     <div className="consumer-heading"><div><h2>Consumer <span className="reference-badge live">IMPORTED DATA</span></h2><p>{client==='rivoli'?'Rivoli customer behaviour · directional · baselines pending':'Union Coop · customer comment categories · import pending'}</p></div><div className="consumer-filters"><label><span>Client</span><select value={client} onChange={(event)=>setParams({year:String(year??2026),month:String(month??0),client:event.target.value})}><option value="rivoli">Rivoli</option><option value="union-coop">Union Coop</option></select></label><label><span>Year</span><select value={year??''} onChange={(event)=>setParams({year:event.target.value,month:'0',client})}>{options.data?.years.map((row)=><option key={row.year}>{row.year}</option>)}</select></label><label><span>Month</span><select value={month??0} onChange={(event)=>setParams({year:String(year),month:event.target.value,client})}>{months.map((row)=><option key={row.month} value={row.month}>{row.label}{row.partial?' (partial)':''}</option>)}</select></label></div></div>
-    {client==='union-coop' ? <SectionAnatomy number={1} label="What customers are saying" question="What themes appear in customer comments" definition="Monthly counts of contest entries, product questions, complaints and praise, from the verified comment-type export."><AwaitingLine source="Union Coop monthly comment-type export has not been supplied; no category counts can be reported." owner="TBL"/></SectionAnatomy> : <><TblReadsStrip client="Rivoli" section="Consumer" year={year} month={month} />
-    {dashboard.isLoading?<div className="consumer-state">Loading Consumer data...</div>:dashboard.isError||!dashboard.data?<div className="consumer-state error">Consumer data could not be loaded.</div>:<ConsumerContent data={dashboard.data}/>}</>} 
+    {client==='union-coop' ? <><TblReadsStrip client="Union Coop" section="Consumer" year={year} month={month} /><SectionAnatomy number={1} label="What customers are saying" question="What themes appear in customer comments" definition="Monthly counts of contest entries, product questions, complaints and praise, from the verified comment-type export."><UnionCoopCommentContent data={comments.data} error={comments.isError} loading={comments.isLoading}/></SectionAnatomy></> : <><TblReadsStrip client="Rivoli" section="Consumer" year={year} month={month} />
+    {dashboard.isLoading?<div className="consumer-state">Loading Consumer data...</div>:dashboard.isError||!dashboard.data?<div className="consumer-state error">Consumer data could not be loaded.</div>:<ConsumerContent data={dashboard.data}/>}</>}
   </section>;
 }
 
@@ -54,3 +56,13 @@ function MiniTrend({values}:{values:number[]}) { if(!values.length)return null; 
 const num=(value:number|null)=>value==null?'N/A':value.toLocaleString();
 const ratePct=(value:number|null)=>value==null?'N/A':`${(value*100).toFixed(1)}%`;
 const deltaPct=(value:number|null)=>value==null?'N/A':`${value>0?'+':''}${(value*100).toFixed(1)}%`;
+
+interface UnionCoopComments { available:boolean; sourceFile:string; reason:string|null; categories:Array<{category:string;count:number}>; total:number|null; year:number;month:number; }
+function UnionCoopCommentContent({data,error,loading}:{data?:UnionCoopComments;error:boolean;loading:boolean}) {
+  if (loading) return <div className="v2-highlights-loading" role="status">Loading approved Union Coop comment counts...</div>;
+  if (error || !data?.available) return <AwaitingLine source={data?.reason ?? 'Union Coop monthly comment-type export has not been supplied; no category counts can be reported.'} owner="TBL" />;
+  return <div className="consumer-card-grid" aria-label="Imported Union Coop comment categories">
+    {data.categories.map((item)=><article className="consumer-card" key={item.category}><span>{item.category}</span><strong>{item.count.toLocaleString('en-US')}</strong><p>Counted comments · approved monthly import</p></article>)}
+    <p className="v2-section-source">Source: {data.sourceFile}. Period: {data.year}-{String(data.month).padStart(2,'0')}. No sentiment or success assessment is inferred.</p>
+  </div>;
+}

@@ -47,6 +47,7 @@ function sheetRows(book: XLSX.WorkBook, sheet: string): Array<Record<string, unk
   return source ? XLSX.utils.sheet_to_json<Record<string, unknown>>(source, {defval:null, raw:true}) : [];
 }
 export interface Ga4Channel {year:number;month:number;channel:string;sessions:number|null;revenueAed:number|null;}
+export interface Ga4ItemPurchaseBreakdown {year:number;month:number;itemRevenueAed:number;reportedPurchases:number;totalsConsistent:boolean;}
 export interface Ga4Summary {year:number;month:number;netRevenueAed:number|null;firstTimePurchasers:number|null;refundsAed:number|null;}
 /** Import the GA4 v4 workbook by its approved sheet schema, preserving signed
  * channel revenue (including unattributed refunds in Unassigned). Never use
@@ -54,7 +55,7 @@ export interface Ga4Summary {year:number;month:number;netRevenueAed:number|null;
 export function getGa4V4(year?: number, month?: number) {
   const sourceFile = 'Rivoli-Consumer-GA4-Import-v4.xlsx';
   const file = workbookPath(sourceFile, ['media/rivoli','consumer/rivoli']);
-  const missing = {available:false,sourceFile,channels:[] as Ga4Channel[],summaries:[] as Ga4Summary[],reason:'Rivoli GA4 v4 import has not been supplied.'};
+  const missing = {available:false,sourceFile,channels:[] as Ga4Channel[],summaries:[] as Ga4Summary[],itemPurchaseBreakdown:[] as Ga4ItemPurchaseBreakdown[],reason:'Rivoli GA4 v4 import has not been supplied.'};
   if (!file) return missing;
   const book = XLSX.readFile(file, {cellDates:true});
   if (!book.Sheets['Monthly Series'] || !book.Sheets['Channel Revenue']) return {
@@ -97,8 +98,23 @@ export function getGa4V4(year?: number, month?: number) {
       return {...missing,reason:`GA4 ${summary.year}-${String(summary.month).padStart(2,'0')} channel/net revenue reconciliation failed: channel sum ${sum}, monthly net ${summary.netRevenueAed}.`};
     }
   }
+  // Only use the ALL BRANDS row. The top-ten brand rows are not a complete total.
+  // The supplied v4 sheet's printed total columns disagree with the components;
+  // preserve the source discrepancy and expose the component-derived ratio separately.
+  const itemPurchaseBreakdown:Ga4ItemPurchaseBreakdown[]=sheetRows(book,'New vs Established').flatMap(row=>{
+    const date=parseMonth(getValue(row,'Month'));
+    if(!date || String(getValue(row,'Brand')??'').trim().toUpperCase()!=='ALL BRANDS') return [];
+    const np=numberOrNull(getValue(row,'New: purchases'));
+    const ep=numberOrNull(getValue(row,'Established: purchases'));
+    const nr=numberOrNull(getValue(row,'New: item revenue'));
+    const er=numberOrNull(getValue(row,'Established: item revenue'));
+    if(np===null||ep===null||nr===null||er===null||!Number.isInteger(np)||!Number.isInteger(ep)||np+ep<=0) return [];
+    const reportedPurchases=np+ep, itemRevenueAed=nr+er;
+    const totalsConsistent=numberOrNull(getValue(row,'Total purchases'))===reportedPurchases && numberOrNull(getValue(row,'Total item revenue'))===itemRevenueAed;
+    return [{...date,itemRevenueAed,reportedPurchases,totalsConsistent}];
+  });
   const within=(row:{year:number;month:number})=>(!year||row.year===year)&&(!month||row.month===month);
-  return {available:true,sourceFile,channels:channels.filter(within),summaries:summaries.filter(within),reason:null};
+  return {available:true,sourceFile,channels:channels.filter(within),summaries:summaries.filter(within),itemPurchaseBreakdown:itemPurchaseBreakdown.filter(within),reason:null};
 }
 
 export interface CoopBurst {year:number;month:number;name:string;platform:string;objective:string;spendAed:number|null;publicViews:number|null;knownViews:number|null;boostedPosts:number|null;startDate:string;endDate:string;}

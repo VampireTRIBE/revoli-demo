@@ -49,7 +49,7 @@ export function MediaPeriodFilters({
       </select></label>
       <label><span>Month</span><select value={month ?? ''} disabled={!year} onChange={(event) => onChange(year, event.target.value ? Number(event.target.value) : undefined)}>
         <option value="">All Months</option>
-        {months.map((entry) => <option value={entry.month} key={entry.month}>{entry.label}{entry.partial ? ' (partial)' : ''}</option>)}
+        {months.map((entry) => <option value={entry.month} key={entry.month}>{entry.label}</option>)}
       </select></label>
       <FilterDropdown label="Segment" value={segment} options={segmentOptions} allLabel="All Segments" loadingLabel="Loading segments..." disabled={segmentsLoading} onChange={onSegmentChange} />
       <FilterDropdown label="Brand" value={brand} options={brandOptions} allLabel="All Brands" loadingLabel="Loading brands..." disabled={brandsLoading} onChange={onBrandChange} />

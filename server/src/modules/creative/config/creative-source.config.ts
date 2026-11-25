@@ -49,7 +49,7 @@ export const creativeBrands = [
     aliases: ['pocari sweat', 'pocari', 'pocarisweat'],
     postLevelAvailable: false,
     paidPostLevelAvailable: true,
-    accountLevelAvailable: false,
+    accountLevelAvailable: true,
   },
 ] as const;
 

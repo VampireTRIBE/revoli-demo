@@ -27,7 +27,7 @@ export function CountUpValue({ value }: { value: string }) {
       frame = window.requestAnimationFrame(draw);
     };
     frame = window.requestAnimationFrame(draw);
-    return () => window.cancelAnimationFrame(frame);
+    return () => { window.cancelAnimationFrame(frame); }; 
   }, [value]);
   return <>{shown}</>;
 }

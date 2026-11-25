@@ -35,7 +35,7 @@ export function activeObservations(capture: CompetitionCapture): CompetitionObse
 }
 
 export function averageDays(rows: CompetitionObservation[]): number | null {
-  const eligible = rows.filter((row) => Number.isFinite(row.calculatedDaysRunning) && row.calculatedDaysRunning >= 0);
+  const eligible = rows.filter((row) => row.startDateAvailable !== false && Number.isFinite(row.calculatedDaysRunning) && row.calculatedDaysRunning >= 0);
   if (!eligible.length) return null;
   return eligible.reduce((sum, row) => sum + row.calculatedDaysRunning, 0) / eligible.length;
 }

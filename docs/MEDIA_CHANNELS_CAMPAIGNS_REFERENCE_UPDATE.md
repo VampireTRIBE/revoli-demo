@@ -1,0 +1,18 @@
+# Media channels, campaigns and Union Coop reference update
+
+Baseline: Bizcom-Engine-Nov24-Stepwise-Full-Updated.zip. Existing React/Express/Vite workspaces, spreadsheet services and source folders preserved. No Docker or database migration.
+
+## Changes
+
+1. Channels: native SVG charts with fixed viewBox and responsive sizing replace GA4 ResponsiveContainer charts. The actual workbook provides 17 channel rows each in September and October. Sessions are 618,864 and 781,706; channel net-revenue sums AED 1,863,333 and AED 3,026,635. Monthly net-revenue summaries are AED 1,863,332 and AED 3,026,634 (AED 1 reconciliation difference per month); they remain separate. No empty months or invented observations. Exact values below charts and in accessible chart labels/tooltips.
+2. TBL first fill: the supplied workbook's Read Me explicitly instructs displaying the authored tab-level bullets. These are annual context and lack Signed/Approved columns. The API keeps them separate from signed reads, and the UI labels them with their actual source period and unrecorded sign-off. Section highlights and competition draft highlights still require explicit approval. No month-specific statements are invented. Monthly pending text is replaced by clearly labelled annual context when available; if neither exists, pending remains truthful.
+3. Campaigns: if selected month has no campaign rows, automatically show available same-year source register with the same brand/segment and platform, explicitly marked as not selected-month data. Meta's supplied stage values map exactly to Traffic (77 source rows) and Awareness (6 source rows). This is explicit imported stage information, not a campaign-name heuristic. Google campaign type is not an objective; no unsupported Conversion labels. Meta lacks result denominators, so rankings are withheld. Objective buckets and full register stay separated; approved thumbnail/short name fields are retained; absent thumbnail shows n/a and absent short name shows shortened original label, explicitly marked not supplied. Original string remains on hover. No synthetic thumbnails.
+4. Union Coop Media: restored a separate client-selectable view per the latest request, overriding the earlier Rivoli-only scope. Rivoli remains the default with EDIT; Union Coop has Carrefour/LuLu and reference sections Spend and return, Paid beside organic, Bursts, Competition. Source-backed burst KPI cards and paid-confirmed reach entries are supported. The approved burst register, daily reach data, analytics and named Media Build Brief DOCX are not present in the baseline; thin awaiting lines identify owners. Exact parity with the complete canvas cannot be verified without them. All Creative comparison behavior remains intact.
+
+## Verification
+
+- Ten existing verification commands passed: media-ui, tab-scope, latest, nov18, media-creative, pdf-parity, competition-visual, creative-v2, spreadsheets, nov24-imports. Old assertions about Rivoli-only Media and the original Recharts implementation were updated to the new requirements.
+- 130 TypeScript/TSX files passed syntax parsing (not semantic compilation).
+- Actual GA4 channel workbook independently read: 34 channel rows; both monthly aggregates verified.
+- Actual chart component transpiled and executed in an isolated JSX fixture, then its rendered SVG checked with Chromium at 1440, 1024, 768 and 390px. Each chart had two visible nonzero bars and no horizontal page overflow. This is not a live React/Express end-to-end test.
+- npm ci --offline --ignore-scripts --no-audit --no-fund failed ENOTCACHED on zod-4.6.5.tgz. Full build and real application browser/API regression remain unverified.

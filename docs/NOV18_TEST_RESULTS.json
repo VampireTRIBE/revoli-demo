@@ -1,0 +1,74 @@
+{
+  "typescript_syntax": {
+    "file_count": 129,
+    "failures": []
+  },
+  "css_syntax": {
+    "file_count": 16,
+    "failures": []
+  },
+  "source_contracts": [
+    {
+      "command": "verify:latest",
+      "passed": true
+    },
+    {
+      "command": "verify:nov18",
+      "passed": true
+    },
+    {
+      "command": "verify:tab-scope",
+      "passed": true
+    },
+    {
+      "command": "verify:creative-v2",
+      "passed": true
+    },
+    {
+      "command": "verify:creative-brands",
+      "passed": true
+    },
+    {
+      "command": "verify:media-creative",
+      "passed": true
+    },
+    {
+      "command": "verify:media-ui",
+      "passed": true
+    },
+    {
+      "command": "verify:competition-visual",
+      "passed": true
+    },
+    {
+      "command": "verify:spreadsheets",
+      "passed": true
+    },
+    {
+      "command": "verify:nov24-imports",
+      "passed": true
+    }
+  ],
+  "preservation": {
+    "baseline_files": 342,
+    "missing_files": [],
+    "modified_files": [
+      "README.md",
+      "client/src/features/competition/components/ContextualCompetition.tsx",
+      "client/src/features/competition/hooks/use-competition-data.ts",
+      "client/src/features/media/components/CampaignSection.tsx",
+      "client/src/pages/CreativeDashboardPage.tsx",
+      "client/src/styles/bizcom-v2.css",
+      "package.json",
+      "scripts/verify_nov18_implementation.cjs",
+      "scripts/verify_tab_scope.cjs"
+    ],
+    "new_files": [
+      "scripts/verify_latest_nov18.cjs",
+      "docs/NOV18_COMPLETE_IMPLEMENTATION_AUDIT.md"
+    ],
+    "unchanged_source_assets": 114
+  },
+  "full_build": "NOT VERIFIED; npm install failed (zod tarball absent offline, npm Exit handler never called online)",
+  "browser_test": "NOT RUN; application dependencies unavailable"
+}

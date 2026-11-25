@@ -338,6 +338,10 @@ function aggregateCampaignRows(rows: CampaignRecord[]): CampaignRecord[] {
       spend: current.spend + row.spend,
       // An aggregate with conflicting or absent approved objectives is not ranked.
       objective: current.objective && current.objective === row.objective ? current.objective : null,
+      objectiveSource: current.objective && current.objective === row.objective ? current.objectiveSource ?? row.objectiveSource : null,
+      shortName: current.shortName === row.shortName ? current.shortName : null,
+      thumbnailFile: current.thumbnailFile === row.thumbnailFile ? current.thumbnailFile : null,
+      views: addOptional(current.views, row.views),
       claims: addOptional(current.claims, row.claims),
       impressions: addOptional(current.impressions, row.impressions),
       interactions: addOptional(current.interactions, row.interactions),
@@ -349,8 +353,8 @@ function aggregateCampaignRows(rows: CampaignRecord[]): CampaignRecord[] {
 }
 
 function addOptional(left?: number, right?: number): number | undefined {
-  if (left === undefined && right === undefined) return undefined;
-  return (left ?? 0) + (right ?? 0);
+  if (left == null || right == null || !Number.isFinite(left) || !Number.isFinite(right)) return undefined;
+  return left + right;
 }
 
 export async function getBrands(filter: MediaFilter) {

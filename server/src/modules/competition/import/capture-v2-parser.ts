@@ -25,7 +25,7 @@ function safeDestination(raw:string):string|null {
 
 function isoDate(value:string):string|null {
   if(!value||/^(?:n\/a|\(not captured\)|not captured|-|pending)$/i.test(value))return null;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(value)){const dt=new Date(`${value}T00:00:00Z`);return Number.isFinite(dt.getTime())&&dt.toISOString().slice(0,10)===value?value:null;}
   if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)){
     const [day=0,month=0,year=0]=value.split('/').map(Number);
     const dt=new Date(Date.UTC(year,month-1,day));
@@ -154,7 +154,8 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
       const libraryId=hasCapturedId?rawId:`not-captured-${sheetName.replace(/[^a-z0-9]/gi,'').toLowerCase()}-${index+2}`;
       if(duplicates.has(libraryId)){duplicateRows++;continue;}
       duplicates.add(libraryId);
-      const start=isoDate(get(r,'Start date','Start Date'));
+      const rawStart=isoDate(get(r,'Start date','Start Date'));
+      const start=rawStart && rawStart <= captureDate ? rawStart : null;
       const suppliedDays=numeric(get(r,'Days running','Age (days)'));
       const calculatedDays=start?dateOnlyDifference(captureDate,start):0;
       const theme=get(r,'Theme','Theme (analyst)');
@@ -166,7 +167,7 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
         theme:theme||null,themeGroup:groupCompetitionTheme(config,theme||null),featuredBrandProduct:get(r,'Featured brand / product','Brand','Product')||null,
         adText:get(r,'Ad text (short)','Creative / copy (short)','Ad text')||null,clickDestination:safeDestination(get(r,'Click destination','Destination')),language:get(r,'Language')||null,
         screenshotRef:get(r,'Screenshot ref','Screenshot batch','Shot')||null,screenshot:null,payerVerified:get(r,'Payer (verified)','Verified payer')||null,
-        newSincePreviousCapture:/^yes$/i.test(newFlag),sourceFile:filename,sourceSheet:sheetName,sourceRow:index+2});
+        newSincePreviousCapture:hasCapturedId && /^yes$/i.test(newFlag),sourceFile:filename,sourceSheet:sheetName,sourceRow:index+2});
     }
     if(!observations.length)continue;
     if(observations.some((r)=>r.channel!==channel))throw new Error(`Mixed Google/Meta rows in V2 register ${sheetName}; separate channel-specific register sheets required.`);
@@ -194,10 +195,13 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
     }
     const deltaName=book.SheetNames.find((name)=>/delta vs/i.test(name));
     let newCount:number|null=null;
+    let captureDeltaNote:string|undefined;
     if(deltaName){
       const sheet=book.Sheets[deltaName];
       const matrix=sheet?XLSX.utils.sheet_to_json<unknown[]>(sheet,{header:1,defval:'',raw:false}):[];
       const head=matrix[0]?.map(text)??[];
+      const noteRow=matrix.find((row)=>/^reading note$/i.test(text(row[0])));
+      captureDeltaNote=noteRow?.slice(1).map(text).filter(Boolean).join(' ')||undefined;
       const col=head.findIndex((str)=>str.toLowerCase().includes(config.id==='carrefour-uae'?'carrefour':'lulu'));
       if(col>0){
         for(const row of matrix.slice(1)) {
@@ -217,7 +221,7 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
     captures.push({competitorId:config.id,competitor:config.label,clientId:config.clientId,clientLabel:config.clientLabel,metaPage:config.metaPage,channel,captureDate,
       sourceFile:filename,observations,screenshots,gallery,importedThemeMix:importedThemeMix.length?importedThemeMix:undefined,
       launchesSincePreviousCapture:newCount??(observations.some((r)=>r.newSincePreviousCapture)?observations.filter((r)=>r.newSincePreviousCapture).length:undefined),
-      reportedPopulation:reportedCount,sampleSize:observations.length,highlights:signedHighlights(book,config),
+      captureDeltaNote,reportedPopulation:reportedCount,sampleSize:observations.length,highlights:signedHighlights(book,config),
       audit:{sourceRows:sourceRows.length,acceptedRows:observations.length,malformedRows,duplicateRows,conflictingDuplicateRows:0,
         daysRunningDiscrepancies:observations.filter((r)=>r.daysRunningDiscrepancy).length,verifiedScreenshotAssociations:gallery.length,unverifiedScreenshotAssociations:0}});
   }

@@ -360,3 +360,20 @@ See `docs/COMPETITION_VISUAL_NOV24_REQUIREMENTS_AND_SOURCE_AUDIT.md`. This relea
 The eight workbooks/assets in `Bizcom-Engine-Imports-All-24Nov2026.zip` have been merged into the existing categorized spreadsheet directories. No new infrastructure or deployment structure is required. Rivoli GA4 v4 adds complete September/October channel and first-time-purchaser values. Both 1 Oct and 18 Nov Union Coop competitor captures are included, with missing Library IDs kept separate from genuine IDs.
 
 Run `npm run verify:nov24-imports` to confirm all eight files are present and `npm run verify:spreadsheets` to verify original source-file provenance. Detailed import figures, editorial restrictions, and the outstanding approved-data dependencies are in `docs/NOV24_ALL_IMPORTS_INTEGRATION.md`.
+
+
+## Final stepwise delivery
+
+See [the November 18 implementation and test audit](docs/STEPWISE_FINAL_IMPLEMENTATION.md). All eight files from the final imports upload are already integrated and checksum-matched. For spreadsheet-only operation leave `MONGODB_URI` unset.
+
+## Latest Media reference update
+See `docs/MEDIA_CHANNELS_CAMPAIGNS_REFERENCE_UPDATE.md`. Media has a separate Union Coop reference view and defaults to Rivoli. Missing approved sources remain awaiting.
+
+
+### Campaign objectives and approved creative metadata
+
+Run `npm run verify:campaign-objectives` for targeted calculation regression checks. See [campaign objective and metadata report](docs/CAMPAIGN_OBJECTIVES_AND_CREATIVE_METADATA.md) for available source classifications, result denominators, and the exact optional metadata columns and thumbnail location.
+
+### Creative brands and Union Coop Media reference
+
+`npm run verify:brand-reference` runs the actual CSV parser and account aggregation checks. Creative Account / content exposes supplied source metrics for Bahar, Jubair and Pocari; Pocari Paid remains separate. Haraj and Jubail await identity-matched data. Union Coop Media is available via the Media client selector and has the four-section reference layout, with spend and reach awaiting their imports. See `docs/CREATIVE_BRANDS_UNION_COOP_MEDIA_UPDATE.md` for scope and limitations.

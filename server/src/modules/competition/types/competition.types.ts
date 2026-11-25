@@ -88,6 +88,7 @@ export interface CompetitionCapture {
   gallery?: CompetitionGalleryEntry[];
   importedThemeMix?: MixRow[];
   launchesSincePreviousCapture?: number;
+  captureDeltaNote?: string;
   audit: {
     sourceRows: number;
     acceptedRows: number;
@@ -180,4 +181,5 @@ export interface CompetitionDashboard {
   screenshots: CompetitionScreenshot[];
   audit: CompetitionCapture['audit'] | null;
   historyNote: string;
+  captureDeltaNote?: string;
 }

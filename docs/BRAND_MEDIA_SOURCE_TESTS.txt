@@ -1,0 +1,142 @@
+=== scripts/verify_brand_reference_update.cjs
+souq-al-bahar 1528 daily observations; 4 summary blocks; facebook, instagram
+souq-al-jubair 1596 daily observations; 6 summary blocks; facebook
+pocari-sweat 274 daily observations; 2 summary blocks; instagram
+Follower stock: 2026-01-01 14519 to 2026-10-01 15104
+souq-al-bahar Aug facebook Views 3436 days 31
+souq-al-bahar Aug facebook Average daily viewers 67.29032258064517 days 31
+souq-al-bahar Aug facebook Content interactions 6 days 31
+souq-al-bahar Aug facebook Follows 7 days 31
+souq-al-bahar Aug facebook Profile / page visits 505 days 31
+souq-al-bahar Aug instagram Views 9502 days 31
+souq-al-bahar Aug instagram Average daily reach 53.16129032258065 days 31
+souq-al-bahar Aug instagram Content interactions 73 days 31
+souq-al-bahar Aug instagram Follows 89 days 28
+souq-al-bahar Aug instagram Profile / page visits 679 days 31
+souq-al-jubair Aug facebook Views 2809 days 31
+souq-al-jubair Aug facebook Average daily viewers 24.774193548387096 days 31
+souq-al-jubair Aug facebook Content interactions 19 days 31
+souq-al-jubair Aug facebook Follows 27 days 31
+souq-al-jubair Aug facebook Profile / page visits 807 days 31
+souq-al-jubair Aug facebook Link clicks 0 days 31
+PASS: actual CSV import, source identity, summary counts, latest follower stock, account aggregations and Union Coop layout wiring.
+=== scripts/verify_campaign_objectives.cjs
+PASS campaign calculation regression: objective/platform/measure separation, cost formulas, missing denominators, zero spend, fractional conversions, strict aggregation and conflicting metadata.
+=== scripts/verify_competition_visual_nov24.cjs
+PASS Preserve npm workspaces
+PASS No new Docker infrastructure
+PASS Union Coop workbook v2 routing
+PASS Per-competitor delta routing
+PASS Signed-only Highlights
+PASS Approved-only ZIP/gallery joins
+PASS Meta and Google channel chip
+PASS Dark source strip and off selector
+PASS Thin awaiting state
+PASS Google sample vs population
+PASS EDIT Meta Capture 2 preserved
+PASS EDIT Google Capture 1 preserved
+PASS All 15 EDIT images preserved
+13/13 source checks passed
+=== scripts/verify_creative_brand_coverage.cjs
+PASS: brand-specific selector periods, Pocari paid mode, source-labelled Souq account data and identity guards.
+=== scripts/verify_creative_brand_options.cjs
+PASS: executed backend getCreativeOptions with source fixtures, including all six brands and brand-specific periods.
+=== scripts/verify_creative_render_contract.cjs
+PASS: Creative slots 1-4 render with bound client/year/month, and API errors precede loading state.
+=== scripts/verify_creative_runtime_v2.cjs
+PASS Creative actual service runtime: Aug/Sep reporting completeness, Stories and published output.
+=== scripts/verify_latest_nov18.cjs
+PASS Separate Rivoli and Union Coop Media
+PASS Media compares only approved Rivoli EDIT client
+PASS Union Coop Creative comparison gated by exact brand
+PASS Source competitor IDs scoped by client
+PASS No comparison control on Consumer/Search
+PASS Exact five Media section titles and definitions
+PASS Exact four Creative section titles
+PASS Signed only Highlights and one top-level pending state
+PASS Section anatomy with source-backed deltas and gap-preserving bars
+PASS Campaign objectives only source supplied, ranked within bucket
+PASS Media GA4 shows verified periods and avoids fake zero months
+PASS Ad register opens immediate searchable modal
+PASS Competition sample/census separated
+PASS Source workbooks retained
+PASS Visual color tokens consistent with supplied reference
+PASS No Docker or MongoDB migration added
+16/16 latest requirement source-contract checks passed.
+=== scripts/verify_media_creative_nov24.cjs
+PASS Creative prepared workbook imported
+PASS Creative monthly KPI aggregation uses source post metrics
+PASS Creative KPI history display
+PASS Creative Top3 displays imported factors rather than unsigned prose
+PASS Creative plain heading
+PASS Signed Highlights required
+PASS Media source-backed section labels and Rivoli Competition
+PASS Media monthly histories
+PASS Media GA4 optional workbook
+PASS Media Union Coop optional workbook
+PASS Campaign Objectives only imported
+PASS Approved campaign asset mapping
+PASS Original npm workspace preserved
+PASS No Docker introduced
+All 14 source-contract checks passed. Browser and TS semantic compilation are separate checks.
+=== scripts/verify_media_ui_reporting.cjs
+PASS GA4 monthly bars omit unobserved months
+PASS GA4 chart labels use compact ticks and sufficient axis width
+PASS GA4 net revenue is separate from item revenue
+PASS Missing spend is n/a, not a zero-filled overview
+PASS Coverage withheld when full two-account spend is absent
+PASS Revenue coverage history only compares matching source periods
+PASS Acquisition cards do not turn missing sources into zeros
+PASS Campaign objectives are only source-backed
+PASS Campaign register groups by objective
+PASS Original campaign names accessible on hover
+PASS Campaign thumbnails require actual approved file on disk
+PASS Source short campaign name is imported, not synthesized
+PASS Media has four filters and the separate Rivoli/EDIT comparison
+PASS Original v2 GA4 workbook retained
+PASS 14/14 Media source and UI contracts (not a browser runtime check)
+=== scripts/verify_nov18_implementation.cjs
+PASS GA4 v4 available
+PASS Union Coop Creative source available
+PASS Union Coop October and November competition captures
+PASS EDIT Meta and Google captures
+PASS Signed-only highlight hero
+PASS Four neutral Creative sections
+PASS Campaign objectives are source-only
+PASS Media GA4 independently rendered
+PASS Media independent from Creative API failure at startup
+PASS Union Coop optional comments import route
+PASS Competitor comparison on Creative and Media only (latest UI scope)
+PASS Media includes separate requested Union Coop reference view
+PASS Source assets preserved
+All November 18 source/data readiness checks passed. Not a browser/TypeScript build certification.
+=== scripts/verify_nov24_import_paths.cjs
+OK spreadsheets data/media/rivoli/Rivoli-Consumer-GA4-Import-v4.xlsx
+OK spreadsheets data/highlights/tbl/TBL-Reads-Import-Template-and-First-Fill.xlsx
+OK spreadsheets data/creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx
+OK spreadsheets data/competition/union-coop/Competition-Capture-UnionCoop-Carrefour-LuLu-01-Oct-2026.xlsx
+OK spreadsheets data/competition/union-coop/Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx
+OK spreadsheets data/competition/rivoli/EDIT-AdLibrary-Capture2-03Nov2026.xlsx
+OK spreadsheets data/competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx
+OK spreadsheets data/competition/rivoli/EDIT-Capture2-Thumbnails.zip
+All 8 new source imports retained
+=== scripts/verify_pdf_parity.cjs
+PASS exact Creative four-section source labels
+PASS signed highlight, one tab-level pending state
+PASS distinct source-backed delta and absolute pair
+PASS gap-preserving eight-period bars
+PASS Carrefour/LuLu Creative scope
+PASS Rivoli Media with EDIT competitor
+PASS Creative competitor capture summary matches reference
+PASS Creative competitor register immediately opens as dialog
+PASS Meta and Google separate source chips
+PASS no large empty paid creative cards
+PASS source-backed signed-only Competition import
+PASS all 6 V2 design tokens
+PASS existing client and server unchanged workspaces
+13/13 PDF visual/source contracts passed; not a browser rendering test.
+=== scripts/verify_spreadsheet_layout.cjs
+PASS 80 original spreadsheet/CSV mappings (79 unchanged, 1 intentionally replaced by the new approved import), 6 categories
+PASS Original SHA-256 checksums for unchanged sources and approved override checksums
+=== scripts/verify_tab_scope.cjs
+PASS: Rivoli Media compares EDIT; Union Coop Media and Creative compare Carrefour and LuLu; Consumer and Search have no comparison controls.

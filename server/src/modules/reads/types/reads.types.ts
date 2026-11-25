@@ -15,7 +15,7 @@ export interface TblReadsResponse {
   client: string;
   section: TblRead['section'];
   period: string;
-  reads: TblRead[];
+  reads: TblRead[]; firstFill?: TblRead[]; firstFillPeriod?: string;
   pending: boolean;
   sourceFile: string;
 }

@@ -18,7 +18,14 @@
     "verify:creative-brands": "node scripts/verify_creative_brand_coverage.cjs && node scripts/verify_creative_brand_options.cjs",
     "verify:nov24-imports": "node scripts/verify_nov24_import_paths.cjs",
     "verify:creative-v2": "node scripts/verify_creative_runtime_v2.cjs && node scripts/verify_creative_render_contract.cjs && node scripts/verify_creative_brand_options.cjs",
-    "verify:creative-media-runtime": "npm run test --workspace server -- creative-media-regression.test.ts"
+    "verify:creative-media-runtime": "npm run test --workspace server -- creative-media-regression.test.ts",
+    "verify:nov18": "node scripts/verify_nov18_implementation.cjs",
+    "verify:media-ui": "node scripts/verify_media_ui_reporting.cjs",
+    "verify:tab-scope": "node scripts/verify_tab_scope.cjs",
+    "verify:latest": "node scripts/verify_latest_nov18.cjs",
+    "verify:pdf-parity": "node scripts/verify_pdf_parity.cjs",
+    "verify:campaign-objectives": "node scripts/verify_campaign_objectives.cjs",
+    "verify:brand-reference": "node scripts/verify_brand_reference_update.cjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

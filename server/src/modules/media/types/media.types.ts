@@ -64,6 +64,7 @@ export interface CampaignRecord {
   stage: string;
   campaignType: string;
   objective?: 'Conversion' | 'Traffic' | 'Awareness' | null;
+  objectiveSource?: string | null;
   shortName?: string | null;
   thumbnailFile?: string | null;
   mappingSource: string;
@@ -73,6 +74,7 @@ export interface CampaignRecord {
   impressions?: number;
   interactions?: number;
   clicks?: number;
+  views?: number;
   calculationBasis?: string;
 }
 

@@ -269,6 +269,9 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
           ? `No account-level observations are available for ${brand.label} in the selected period.`
           : `No separate account-level summary export is configured for ${brand.label}.`,
       dailyMetrics: accountDailyMetrics,
+      monthlyMetrics: Array.from({length:12},(_,i)=>i+1).flatMap(month=>
+        summarizeAccountMetrics(dataset.accountDailyMetrics.filter(row=>row.brandId===brand.id&&row.year===selected.year&&row.month===month))
+          .map(metric=>({...metric,month,complete:metric.observedDays===new Date(Date.UTC(selected.year,month,0)).getUTCDate()}))),
       wholePeriodSummaries: accountSummaries,
       audit: dataset.accountAudit,
     },
@@ -355,25 +358,28 @@ function summarizeAccountMetrics(rows: CreativeSourceDataset['accountDailyMetric
     groups.set(key, current);
   }
   const nonAdditive = new Set(['reach', 'viewers']);
-  const metricOrder = ['views', 'viewers', 'reach', 'contentInteractions', 'follows', 'visits', 'linkClicks'];
+  const metricOrder = ['views', 'viewers', 'reach', 'contentInteractions', 'follows', 'followersTotal', 'visits', 'linkClicks'];
   return [...groups.values()].map((group) => {
     const first = group[0];
     if (!first) throw new Error('Account metric group was unexpectedly empty.');
     const dates = group.map((row) => row.date).sort();
     const useAverage = nonAdditive.has(first.metric);
+    const stock = first.metric === 'followersTotal';
+    // A daily follower total is a stock; use the latest observed value.
+    const latest = [...group].sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
     const total = group.reduce((sum, row) => sum + row.value, 0);
     return {
       platform: first.platform,
       metric: first.metric,
       label: useAverage ? `Average daily ${first.metricLabel.toLowerCase()}` : first.metricLabel,
-      aggregation: useAverage ? 'daily-average-and-peak' : 'sum',
-      value: useAverage ? total / group.length : total,
+      aggregation: stock ? 'last-observation' : useAverage ? 'daily-average-and-peak' : 'sum',
+      value: stock ? (latest?.value ?? null) : useAverage ? total / group.length : total,
       peak: useAverage ? Math.max(...group.map((row) => row.value)) : null,
-      observedDays: group.length,
+      observedDays: new Set(dates).size,
       periodStart: dates[0] ?? null,
       periodEnd: dates.at(-1) ?? null,
       sourceFiles: [...new Set(group.map((row) => row.sourceFile))],
-      note: useAverage
+      note: stock ? "Latest observed follower stock, not the sum of daily follower totals." : useAverage
         ? `${first.metricLabel} is shown as a daily average and peak. Daily values are not summed or labelled as unique monthly audience.`
         : `Sum of supplied daily ${first.metricLabel.toLowerCase()} observations. Missing dates are not converted to zero.`,
     } satisfies CreativeAccountMetricSummary;

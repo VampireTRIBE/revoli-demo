@@ -1,5 +1,5 @@
 import { http } from '../../../api/http';
-import type { ApiResponse, CampaignData, FunnelData, MediaFilter, OrganicData, Overview, PerformanceData, Periods, PlatformData, ReconciliationData } from '../../../types/media';
+import type { ApiResponse, CampaignData, FunnelData, Ga4V4, MediaFilter, MediaMonthlyHistory, OrganicData, Overview, PerformanceData, Periods, PlatformData, ReconciliationData, UnionCoopMedia } from '../../../types/media';
 
 const params = (filter: MediaFilter) => ({
   ...(filter.year ? { year: filter.year } : {}),

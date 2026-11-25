@@ -27,7 +27,8 @@ function isoDate(value:string):string|null {
   if(!value||/^(?:n\/a|\(not captured\)|not captured|-|pending)$/i.test(value))return null;
   if(/^\d{4}-\d{2}-\d{2}$/.test(value)){const dt=new Date(`${value}T00:00:00Z`);return Number.isFinite(dt.getTime())&&dt.toISOString().slice(0,10)===value?value:null;}
   if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)){
-    const [day=0,month=0,year=0]=value.split('/').map(Number);
+    const [day,month,year]=value.split('/').map(Number);
+    if(day===undefined||month===undefined||year===undefined)return null;
     const dt=new Date(Date.UTC(year,month-1,day));
     return dt.getUTCDate()===day&&dt.getUTCMonth()+1===month&&dt.getUTCFullYear()===year?dt.toISOString().slice(0,10):null;
   }
@@ -128,7 +129,8 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
     const raw=rows(book,sheetName);
     const sourceRows=raw.filter((r)=>Object.values(r).some((v)=>text(v)));
     if(!sourceRows.length)continue;
-    const sampleRow:Row=sourceRows.find((r)=>get(r,'Capture date','Capture Date')||get(r,'Channel','Source'))??sourceRows[0]??{};
+    const sampleRow=sourceRows.find((r)=>get(r,'Capture date','Capture Date')||get(r,'Channel','Source'))??sourceRows[0];
+    if(!sampleRow)continue;
     const captureDate=isoDate(get(sampleRow,'Capture date','Capture Date'))??captureFromFilename(filename);
     if(!captureDate)throw new Error(`Competition V2 has no verifiable capture date: ${filename} / ${sheetName}`);
     const observations:CompetitionObservation[]=[];
@@ -138,7 +140,7 @@ export function parseCompetitionCaptureV2(file:string,config:CompetitionConfig):
     for(const [index,r] of sourceRows.entries()){
       const rawId=get(r,'Library ID','Ad Library ID','ID');
       const rawChannel=get(r,'Channel','Source');
-      const rowChannel=/google/i.test(rawChannel)?'Google':/meta/i.test(rawChannel)?'Meta':channel;
+      const rowChannel:'Meta'|'Google'=/google/i.test(rawChannel)?'Google':/meta/i.test(rawChannel)?'Meta':channel;
       channel=rowChannel;
       const rowDate:string=isoDate(get(r,'Capture date','Capture Date'))??captureDate;
       const format=get(r,'Format','Ad format','Type');

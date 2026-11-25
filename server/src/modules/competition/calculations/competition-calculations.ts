@@ -35,19 +35,19 @@ export function activeObservations(capture: CompetitionCapture): CompetitionObse
 }
 
 export function averageDays(rows: CompetitionObservation[]): number | null {
-  const eligible = rows.filter((row) => Number.isFinite(row.calculatedDaysRunning) && row.calculatedDaysRunning >= 0);
+  const eligible = rows.filter((row) => row.startDateAvailable !== false && Number.isFinite(row.calculatedDaysRunning) && row.calculatedDaysRunning >= 0);
   if (!eligible.length) return null;
   return eligible.reduce((sum, row) => sum + row.calculatedDaysRunning, 0) / eligible.length;
 }
 
 export function firstObserved(current: CompetitionCapture, earlier: CompetitionCapture[]): string[] | null {
   if (!earlier.length) return null;
-  const seen = new Set(earlier.flatMap((capture) => capture.observations.map((row) => row.libraryId)));
-  return [...new Set(current.observations.map((row) => row.libraryId))].filter((id) => !seen.has(id));
+  const seen = new Set(earlier.flatMap((capture) => capture.observations.filter((row) => row.libraryIdAvailable !== false).map((row) => row.libraryId)));
+  return [...new Set(current.observations.filter((row) => row.libraryIdAvailable !== false).map((row) => row.libraryId))].filter((id) => !seen.has(id));
 }
 
 export function noLongerObserved(current: CompetitionCapture, previous: CompetitionCapture | undefined): string[] | null {
   if (!previous) return null;
-  const currentIds = new Set(current.observations.map((row) => row.libraryId));
-  return [...new Set(previous.observations.map((row) => row.libraryId))].filter((id) => !currentIds.has(id));
+  const currentIds = new Set(current.observations.filter((row) => row.libraryIdAvailable !== false).map((row) => row.libraryId));
+  return [...new Set(previous.observations.filter((row) => row.libraryIdAvailable !== false).map((row) => row.libraryId))].filter((id) => !currentIds.has(id));
 }

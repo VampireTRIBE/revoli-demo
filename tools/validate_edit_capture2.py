@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 import posixpath
 
 ROOT = Path(__file__).resolve().parents[1]
-BOOK = ROOT / 'spreadsheets data/compititaion-tab/EDIT-AdLibrary-Capture2-03Nov2026.xlsx'
+BOOK = ROOT / 'spreadsheets data/competition/rivoli/EDIT-AdLibrary-Capture2-03Nov2026.xlsx'
 ASSETS = ROOT / 'server/data/competition-assets/edit-by-ahmed-seddiqi/2026-11-03'
 S = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'

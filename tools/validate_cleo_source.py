@@ -12,7 +12,7 @@ from xml.etree import ElementTree as ET
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
-FILE = ROOT / 'spreadsheets data' / 'creative-tab' / 'UnionCoop-CLEO-Market-Import.xlsx'
+FILE = ROOT / 'spreadsheets data' / 'search' / 'union-coop' / 'UnionCoop-CLEO-Market-Import.xlsx'
 MAIN = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 REL = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 

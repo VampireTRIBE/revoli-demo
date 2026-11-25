@@ -28,8 +28,8 @@ const REQUIRED_HEADERS = [
 
 export function resolveCompetitionSourceDirectory(): string {
   const candidates = [
-    path.resolve(process.cwd(), 'spreadsheets data', 'compititaion-tab'),
-    path.resolve(process.cwd(), '..', 'spreadsheets data', 'compititaion-tab'),
+    path.resolve(process.cwd(), 'spreadsheets data', 'competition'),
+    path.resolve(process.cwd(), '..', 'spreadsheets data', 'competition'),
   ];
   const directory = candidates.find(existsSync);
   if (!directory) throw new Error(`Competition source directory not found. Checked: ${candidates.join(', ')}`);
@@ -62,15 +62,12 @@ export function parseCompetitionSources(): CompetitionSourceDataset {
     const matchedConfigs = competitionConfigs.filter((config) => config.workbookPattern.test(filename));
     if (!matchedConfigs.length) continue;
     const workbook = XLSX.readFile(file, { cellDates: false, raw: false });
-    // v2 workbooks have one Register sheet per competitor, plus separate Delta,
-    // Theme Mix, Draft Highlights and Gallery sheets. Always use the v2 parser
-    // for this format, even if its Register has the legacy header set: the old
-    // parser silently discarded the analyst's approved supporting sheets.
+    // Union Coop 01 Oct uses "Carrefour Capture"/"LuLu Capture" sheets;
+    // 18 Nov uses separate "Register" sheets and attached Theme/Delta sheets.
+    // The V2 importer supports both while preserving rows with missing IDs.
     if (/^Competition-Capture-UnionCoop-Carrefour-LuLu-/i.test(filename)
-      && workbook.SheetNames.some((name) => /^(carrefour|lulu|lu\s*lu).*register$/i.test(name.trim()))) {
-      for (const config of matchedConfigs) {
-        captures.push(...parseCompetitionCaptureV2(file, config));
-      }
+      && workbook.SheetNames.some((name) => /^(carrefour|lulu|lu\s*lu).*(register|capture)$/i.test(name.trim()))) {
+      for (const config of matchedConfigs) captures.push(...parseCompetitionCaptureV2(file,config));
       continue;
     }
     const captureSheets = workbook.SheetNames.filter((sheetName) => {

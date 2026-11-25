@@ -22,7 +22,7 @@ export default function App() {
     <Route path="/creative" element={<CreativeErrorBoundary><CreativeDashboardPage /></CreativeErrorBoundary>}/>
     <Route path="/consumer" element={<ConsumerDashboardPage/>}/>
     <Route path="/business" element={<PlaceholderPage heading="Business"/>}/>
-    <Route path="/competition" element={<Navigate to="/media?competition=edit-by-ahmed-seddiqi" replace/>}/>
+    <Route path="/competition" element={<Navigate to="/creative?brand=union-coop" replace/>}/>
     <Route path="*" element={<Navigate to="/media" replace/>}/>
   </Route></Routes>;
 }

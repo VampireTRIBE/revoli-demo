@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { isAxiosError } from 'axios';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -10,10 +11,10 @@ import { UnavailableCreativeSection } from '../features/creative/components/Unav
 import { useCreativeDashboard, useCreativeOptions } from '../features/creative/hooks/use-creative-data';
 import { CompetitionDropdown, ContextualCompetitionPanel, useContextualCompetition } from '../features/competition/components/ContextualCompetition';
 import { TblReadsStrip } from '../features/reads/TblReadsStrip';
-import { DeltaLine, SectionAnatomy, SparkBars } from '../components/v2/Reporting';
+import { AwaitingLine, DeltaLine, SectionAnatomy, SparkBars } from '../components/v2/Reporting';
 import { CountUpValue } from '../components/v2/CountUpValue';
 import { CleoMarketPanel } from '../features/creative/cleo/CleoMarketPanel';
-import type { CreativeDashboard, CreativeMonthlyKpi } from '../types/creative';
+import type { CreativeDashboard, CreativeMonthlyKpi, CreativeAccountMetricSummary } from '../types/creative';
 import '../styles/reference-creative.css';
 
 type MainTab = 'organic' | 'paid';
@@ -27,45 +28,82 @@ export function CreativeDashboardPage() {
     month: numberParam(searchParams.get('month')),
     brand: searchParams.get('brand') || undefined,
   }), [searchParams]);
-  const competitionContext = useContextualCompetition(creativeCompetitionClient(filter.brand), filter.year, filter.month, searchParams.get('competition') || undefined);
+  // Only Union Coop has approved Creative competitors. Other Creative brands
+  // must never inherit the Carrefour/LuLu selector or stale capture results.
+  const creativeCompetitionEnabled = filter.brand === 'union-coop';
+  const competitionContext = useContextualCompetition(
+    creativeCompetitionEnabled ? 'union-coop' : 'no-approved-creative-competitors',
+    filter.year, filter.month,
+    creativeCompetitionEnabled ? searchParams.get('competition') || undefined : undefined,
+  );
 
   useEffect(() => {
     const defaults = options.data?.defaultSelection;
-    if (!defaults || (filter.year && filter.month !== undefined && filter.brand)) return;
-    setSearchParams({ year: String(defaults.year), month: String(defaults.month), brand: defaults.brand }, { replace: true });
+    if (!defaults) return;
+    const selectedBrand = options.data?.brands.some((brand) => brand.id === filter.brand) ? filter.brand! : defaults.brand;
+    const brandYears = options.data?.brandYears?.[selectedBrand] ?? options.data?.years ?? [];
+    const year = brandYears.some((item) => item.year === filter.year) ? filter.year! : (brandYears[0]?.year ?? defaults.year);
+    const availableMonths = brandYears.find((entry) => entry.year === year)?.months ?? [];
+    const month = availableMonths.some((entry) => entry.month === filter.month)
+      ? filter.month!
+      : selectedBrand === 'pocari-sweat' ? 0
+        : availableMonths.filter((entry) => entry.month > 0 && !entry.partial).at(-1)?.month
+        ?? availableMonths.at(-1)?.month ?? 0;
+    if (filter.year !== year || filter.month !== month || filter.brand !== selectedBrand) {
+      setSearchParams({ year: String(year), month: String(month), brand: selectedBrand }, { replace: true });
+    }
   }, [filter.brand, filter.month, filter.year, options.data, setSearchParams]);
+
+  useEffect(() => {
+    // Pocari only has a whole-export paid source. Make that available evidence
+    // visible on selection instead of opening the empty Organic tab.
+    setMainTab(filter.brand === 'pocari-sweat' ? 'paid' : 'organic');
+  }, [filter.brand]);
 
   const dashboard = useCreativeDashboard(filter);
   const onFilterChange = (next: { year?: number; month?: number; brand?: string }) => {
-    const year = next.year ?? filter.year;
-    const availableMonths = options.data?.years.find((entry) => entry.year === year)?.months ?? [];
-    const month = next.month !== undefined && availableMonths.some((entry) => entry.month === next.month)
-      ? next.month
-      : availableMonths.filter((entry) => !entry.partial).at(-1)?.month ?? availableMonths.at(-1)?.month;
-    setSearchParams({ year: String(year ?? ''), month: String(month ?? ''), brand: next.brand ?? filter.brand ?? '' });
+    const nextBrand = next.brand ?? filter.brand ?? options.data?.defaultSelection?.brand ?? 'union-coop';
+    const brandYears = options.data?.brandYears?.[nextBrand] ?? options.data?.years ?? [];
+    const year = next.year && brandYears.some((entry) => entry.year === next.year)
+      ? next.year : brandYears.some((entry) => entry.year === filter.year)
+        ? filter.year! : (brandYears[0]?.year ?? 2026);
+    const availableMonths = brandYears.find((entry) => entry.year === year)?.months ?? [];
+    const brandChanged = nextBrand !== filter.brand;
+    const requestedMonth = next.month ?? (brandChanged && nextBrand === 'pocari-sweat' ? 0 : filter.month);
+    const month = availableMonths.some((entry) => entry.month === requestedMonth)
+      ? requestedMonth!
+      : (brandChanged && nextBrand !== 'union-coop')
+        ? (availableMonths.find((entry) => entry.month === 0)?.month ?? availableMonths.at(-1)?.month ?? 0)
+        : (availableMonths.filter((entry) => entry.month > 0 && !entry.partial).at(-1)?.month
+          ?? availableMonths.at(-1)?.month ?? 0);
+    setSearchParams({ year: String(year), month: String(month), brand: nextBrand });
   };
-  const onMainTabChange = (nextTab: MainTab) => setMainTab(nextTab);
+  const onMainTabChange = (nextTab: MainTab) => {
+    setMainTab(nextTab);
+    if (nextTab === 'paid' && filter.brand === 'pocari-sweat' && filter.month !== 0) onFilterChange({ month: 0 });
+  };
 
-  if (options.isError) return <section className="creative-page"><div className="creative-error" role="alert">Creative source options could not be loaded. Confirm the API is running.</div></section>;
+  if (options.isError) return <section className="creative-page"><div className="creative-error" role="alert"><p>{creativeRequestError(options.error, 'options')}</p><button type="button" onClick={() => void options.refetch()}>Retry loading Creative</button></div></section>;
+  if (options.data && !options.data.defaultSelection) return <section className="creative-page"><div className="v2-search-await" role="status">AWAITING · No valid Creative reporting periods are available in the uploaded sources.</div></section>;
 
   return <section className="creative-page">
     <div className="creative-heading">
       <h2>Creative <span className="reference-badge live">UPLOADED DATA</span></h2>
-      <div className="creative-toolbar">{options.data ? <CreativeFilters options={options.data} {...filter} onChange={onFilterChange} /> : <div className="creative-loading">Loading filters...</div>}<CompetitionDropdown context={competitionContext} /></div>
+      <div className="creative-toolbar">{options.data ? <CreativeFilters options={options.data} {...filter} onChange={onFilterChange} /> : <div className="creative-loading">Loading filters...</div>}{creativeCompetitionEnabled ? <CompetitionDropdown context={competitionContext} /> : null}</div>
     </div>
     <TblReadsStrip client={creativeReadsClient(filter.brand)} section="Creative" year={filter.year} month={filter.month} />
-    {dashboard.isError ? <div className="creative-error" role="alert">Creative data could not be loaded. Check the selected year, month, and brand, and confirm the Creative API is available.</div> : dashboard.isLoading || !dashboard.data ? <div className="creative-loading" role="status">Loading organic and paid creative performance...</div> : <>
+    {dashboard.isError ? <div className="creative-error" role="alert"><p>{creativeRequestError(dashboard.error, 'dashboard')}</p><button type="button" onClick={() => void dashboard.refetch()}>Retry Creative data</button></div> : dashboard.isLoading || !dashboard.data ? <div className="creative-loading" role="status">Loading organic and paid creative performance...</div> : <>
       <CreativeSummary data={dashboard.data} />
       <div className="creative-subtabs creative-main-tabs" role="tablist" aria-label="Creative data type">
-        <button type="button" className={mainTab === 'organic' ? 'active' : ''} onClick={() => onMainTabChange('organic')}>Organic ({dashboard.data.brand.label})</button>
+        <button type="button" className={mainTab === 'organic' ? 'active' : ''} onClick={() => onMainTabChange('organic')}>{dashboard.data.brand.id === 'union-coop' ? 'Organic' : 'Account / content'} ({dashboard.data.brand.label})</button>
         <button type="button" className={mainTab === 'paid' ? 'active' : ''} onClick={() => onMainTabChange('paid')}>Paid (Meta + Google)</button>
       </div>
-      {mainTab === 'organic' ? <OrganicPanel data={dashboard.data} /> : <PaidPanel data={dashboard.data} />}
+      {mainTab === 'organic' ? dashboard.data.brand.id === 'union-coop' ? <OrganicPanel data={dashboard.data} /> : <AccountCreativePanel key={dashboard.data.brand.id} data={dashboard.data}/> : <PaidPanel data={dashboard.data} />}
       <OverallMethod data={dashboard.data} />
-      <section className="creative-competition-strip creative-mt"><div className="creative-section-heading"><h3>Competition · Meta Ad Library</h3><span>Activity, not spend</span></div>
+      {creativeCompetitionEnabled ? <section className="creative-competition-strip creative-mt"><div className="creative-section-heading"><h3>Competition · imported ad activity</h3><span>Meta Ad Library / Google Ads Transparency Center · activity, not spend</span></div>
         {!competitionContext.selectedCompetitor ? <p>Choose an approved competitor from the Competition selector above. If its capture is absent, no competitor measurements are shown.</p> : null}
         <ContextualCompetitionPanel context={competitionContext} view="creative" />
-      </section>
+      </section> : null}
       {dashboard.data.brand.id === 'union-coop' ? <CleoMarketPanel /> : null}
     </>}
   </section>;
@@ -73,18 +111,19 @@ export function CreativeDashboardPage() {
 
 function DataDepth({ data }: { data: CreativeDashboard }) {
   const brand = data.brand.id;
+  if (['souq-al-haraj', 'souq-al-jubail'].includes(brand)) {
+    return <span className="creative-depth" title="No approved CSV identifies this exact brand">Data depth: awaiting verified source</span>;
+  }
   const depth = brand === 'union-coop' ? 3 : brand === 'pocari-sweat' ? 2 : 1;
-  const detail = ['souq-al-haraj', 'souq-al-jubail'].includes(brand)
-    ? 'Awaiting the verified Souqs Creative Import v2 before per-post Level 2 can be claimed.'
-    : undefined;
-  return <span className="creative-depth" title={detail}>Data depth: Level {depth} of 3{detail ? ' · awaiting import' : ''}</span>;
+  return <span className="creative-depth">Data depth: Level {depth} of 3</span>;
 }
 function CreativeSummary({ data }: { data: CreativeDashboard }) {
-  return <>
-    <div className="creative-verdict"><b>Four slots. One verified source per metric.</b> Each page displays Output, Attention, Engagement, and Top content. Missing imported values remain n/a with reasons. Nothing in Creative is scored before baselines are signed.</div>
-    <div className="creative-summary-head creative-mt"><div><strong>{data.brand.label}</strong><span>{data.periodLabel}</span></div><DataDepth data={data} /></div>
-    <div className="creative-note creative-mt">Unscored - baselines pending. Organic / boosted and Paid Meta measurements remain separate. {data.partial ? 'The selected source period is partial.' : ''}</div>
-  </>;
+  return <div className="v2-creative-status-line" aria-label="Creative reporting context">
+    <div className="v2-creative-reporting-period"><strong>{data.brand.label}</strong><span>{data.periodLabel}</span></div>
+    <DataDepth data={data} />
+    <span className="v2-creative-status-chip">UNSCORED · BASELINES PENDING</span>
+    <small>Organic, boosted and paid sources remain separate. {data.partial ? 'Partial month: no previous-period delta.' : 'Missing metrics display n/a with the source reason.'}</small>
+  </div>;
 }
 export function CreativeSlot({ number, title, subtitle, children, client, year, month }: { number: number; title: string; subtitle: string; children: ReactNode; client: string; year: number; month: number }) {
   const name = number === 1 ? 'Output' : number === 2 ? 'Attention' : number === 3 ? 'Engagement' : 'Top content';
@@ -95,7 +134,7 @@ export function CreativeSlot({ number, title, subtitle, children, client, year, 
   </SectionAnatomy>;
 }
 type CreativeKpiKey = keyof Pick<CreativeMonthlyKpi,
-  'posts' | 'reels' | 'reach' | 'views' | 'actions' | 'frequency' |
+  'posts' | 'reels' | 'publishedOutput' | 'stories' | 'reach' | 'views' | 'actions' | 'frequency' |
   'activeEngagementRate' | 'medianEngagementRate' | 'medianFrequency' |
   'bestEngagementRate' | 'giveawayShare' | 'nonGiveawayMedian' | 'follows'>;
 
@@ -106,20 +145,67 @@ function creativeHistory(data: CreativeDashboard, key: CreativeKpiKey, rate = fa
   const available = new Map(rows.filter((row) => row.year === year).map((row) => [row.month, row]));
   const currentValue = available.get(month)?.[key];
   if (typeof currentValue !== 'number' || !Number.isFinite(currentValue)) return undefined;
-  const prevValue = available.get(month - 1)?.[key];
+  const previousKpi = available.get(month - 1);
+  const prevValue = previousKpi?.[key];
+  const currentIsPartial = data.partial || available.get(month)?.partial === true;
+  const previousIsPartial = previousKpi?.partial === true;
   const series = Array.from({ length: Math.min(8, month) }, (_, index) => {
     const sourceMonth = month - Math.min(8, month) + index + 1;
     const value = available.get(sourceMonth)?.[key];
-    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+    return typeof value === 'number' && Number.isFinite(value) ? (rate ? value * 100 : value) : null;
   });
   const monthName = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 2, 1)));
   return {
     series,
-    previous: !data.partial && typeof prevValue === 'number' && Number.isFinite(prevValue) ? (rate ? prevValue * 100 : prevValue) : null,
+    previous: !currentIsPartial && !previousIsPartial && typeof prevValue === 'number' && Number.isFinite(prevValue) ? (rate ? prevValue * 100 : prevValue) : null,
     current: rate ? currentValue * 100 : currentValue,
     period: `${monthName} ${year}`,
     kind: rate ? 'points' as const : 'relative' as const,
   };
+}
+
+function accountHistory(data: CreativeDashboard, metric: CreativeAccountMetricSummary): CreativeCardHistory | undefined {
+  const month=data.filter.month;
+  if(month<1||metric.value==null)return undefined;
+  const rows=(data.accountLevel.monthlyMetrics??[]).filter(row=>row.platform===metric.platform&&row.metric===metric.metric);
+  const current=rows.find(row=>row.month===month), previous=rows.find(row=>row.month===month-1);
+  if(!current)return undefined;
+  const series=Array.from({length:Math.min(8,month)},(_,i)=>rows.find(row=>row.month===month-Math.min(8,month)+i+1)?.value??null);
+  return {series,current:metric.value,previous:current.complete&&previous?.complete?previous.value:null,period:new Intl.DateTimeFormat('en',{month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(data.filter.year,month-2,1))),kind:'relative'};
+}
+
+function AccountCreativePanel({data}:{data:CreativeDashboard}) {
+  const account=data.accountLevel;
+  const platforms=Array.from(new Set([...account.dailyMetrics.map(row=>row.platform),...account.wholePeriodSummaries.map(row=>row.platform)]));
+  const [selected,setSelected]=useState<string>('');
+  const platform=platforms.includes(selected as typeof platforms[number])?selected:platforms[0];
+  const metrics=account.dailyMetrics.filter(row=>row.platform===platform);
+  const summaries=account.wholePeriodSummaries.filter(row=>row.platform===platform);
+  const scope={client:data.brand.label,readSection:'Creative' as const,year:data.filter.year,month:data.filter.month};
+  const output=summaries.filter(row=>/published content|feed summary|stories summary/i.test(row.title));
+  const detail=(row:CreativeAccountMetricSummary)=>`${row.observedDays} observed days · ${formatShortDate(row.periodStart)} to ${formatShortDate(row.periodEnd)} · ${row.aggregation==='daily-average-and-peak'?'daily average, not unique audience':row.aggregation==='last-observation'?'latest stock':'sum of observations'} · ${row.sourceFiles.map(file=>file.split('/').at(-1)).join(', ')}`;
+  const cards=(rows:CreativeAccountMetricSummary[])=>rows.length?<div className="creative-paid-source-grid v2-brand-metrics">{rows.map(row=><CreativeSourceMetric key={row.metric} label={row.label} value={formatAccountMetric(row.value,row.aggregation)} detail={detail(row)} history={accountHistory(data,row)}/>)}</div>:<AwaitingLine source="No matching daily account observations in this period." owner="TBL"/>;
+  if(!account.available)return <AwaitingLine source={data.organic.availabilityMessage??account.message??'Approved account or post-level export not supplied.'} owner="TBL"/>;
+  return <div className="v2-account-creative" aria-label="Available source-backed account metrics">
+    <p className="v2-section-definition">Account reporting only. Post-level rankings, unique monthly reach and organic/paid separation are not inferred from aggregate exports. Changes require two full daily windows; partial-month observations remain visible without a delta.</p>
+    <div className="creative-subtabs" role="group" aria-label="Account platform">{platforms.map(item=><button type="button" key={item} className={platform===item?'active':''} aria-pressed={platform===item} onClick={()=>setSelected(item)}>{displayPlatform(item)}</button>)}</div>
+    <SectionAnatomy {...scope} number={1} label="Output" question="What was published, with how much effort" definition="Source-reported publishing counts. Whole-export summaries are not monthly totals.">
+      {output.length?<>{output.map(section=><div key={section.sourceFile}><p className="v2-section-definition">{section.title} · {section.reportingScope}</p><div className="creative-paid-source-grid v2-brand-metrics">{section.rows.filter(row=>/posts|stories|photos|reels/i.test(row.label)).map(row=><CreativeSourceMetric key={row.label} label={row.label} value={formatNumber(row.values[0]??null)} detail={section.sourceFile.split('/').at(-1)}/>)}</div></div>)}</>:<AwaitingLine source="Published content counts not supplied for this platform." owner="TBL"/>}
+    </SectionAnatomy>
+    <SectionAnatomy {...scope} number={2} label="Attention" question="Who saw it" definition="Daily views, reach and viewers retain their source aggregation; follower totals are stocks, not daily sums.">
+      {cards(metrics.filter(row=>['views','reach','viewers','followersTotal'].includes(row.metric)))}
+      {metrics.filter(row=>row.metric==='followersTotal'&&data.filter.month===0).map(row=><div key={row.metric} className="v2-brand-follower-history"><p>Monthly last-observed follower totals (including partial end dates)</p><SparkBars values={(account.monthlyMetrics??[]).filter(m=>m.metric===row.metric&&m.platform===platform).slice(-8).map(m=>m.value)}/></div>)}
+      {data.brand.id==='pocari-sweat'?summaries.map(section=><div key={section.sourceFile} className="creative-paid-source-grid v2-brand-metrics">{section.rows.filter(row=>/^(Reach|Impressions)$/.test(row.label)).map(row=><CreativeSourceMetric key={row.label} label={`${section.title.startsWith('Stories')?'Stories':'Feed'} ${row.label.toLowerCase()}`} value={formatNumber(row.values[0]??null)} detail="Whole export · attribution not inferred"/>)}</div>):null}
+    </SectionAnatomy>
+    <SectionAnatomy {...scope} number={3} label="Engagement" question="How people responded" definition="Source-reported interactions and account actions; no per-post engagement rate is inferred.">
+      {metrics.some(row=>['contentInteractions','follows','visits','linkClicks'].includes(row.metric))?cards(metrics.filter(row=>['contentInteractions','follows','visits','linkClicks'].includes(row.metric))):data.brand.id!=='pocari-sweat'?<AwaitingLine source="Account interaction observations not supplied." owner="TBL"/>:null}
+      {data.brand.id==='pocari-sweat'?summaries.map(section=><div key={section.sourceFile} className="creative-paid-source-grid v2-brand-metrics">{section.rows.filter(row=>/^(Likes|Comments|Replies|Exits)$/.test(row.label)).map(row=><CreativeSourceMetric key={row.label} label={`${section.title.startsWith('Stories')?'Stories':'Feed'} ${row.label.toLowerCase()}`} value={formatNumber(row.values[0]??null)} detail="Whole export · source count"/>)}</div>):null}
+    </SectionAnatomy>
+    <SectionAnatomy {...scope} number={4} label="Top content" question="What worked and why" definition="Only source-backed content detail. Format breakdowns are not a per-post ranking.">
+      {data.paid.meta.available?<><p className="v2-section-definition">Paid records from the whole export, ordered by spend; not an organic Top 3.</p><PaidCreativeGallery records={data.paid.meta.records}/></>:<AwaitingLine source="Post-level metrics, approved Top 3 and thumbnails have not been supplied for this account." owner="TBL"/>}
+      {platform==='facebook'||platform==='instagram'?<details className="creative-method"><summary>Source account and format summaries</summary><AccountLevelSection data={data} platform={platform}/></details>:null}
+    </SectionAnatomy>
+  </div>;
 }
 
 function OrganicPanel({ data }: { data: CreativeDashboard }) {
@@ -138,18 +224,21 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
   const follows = insights.cuts.find((row) => row.cut.toLowerCase() === 'follows');
   const isSouq = data.brand.id.startsWith('souq-');
   const reason = isSouq
-    ? 'AWAITING: The approved Souqs-Creative-Import.xlsx v2 is not supplied. Legacy account exports cannot be reassigned to the approved brand identities.'
+    ? (data.organic.availabilityMessage ?? 'AWAITING: Approved post-level Souq Creative import not supplied. Account CSV observations remain separately available for source-labelled brands.')
     : data.brand.id === 'pocari-sweat'
       ? 'AWAITING: Full paid ad-level export and approved post-level Creative analysis (owner: TBL to confirm).'
       : (data.organic.availabilityMessage ?? 'No approved post-level import for this brand and period.');
-  const rawReason = data.brand.id === 'union-coop' ? 'Not supplied by the prepared Union Coop workbook. Stories/output ratio cannot be verified.' : reason;
+  const rawReason = data.brand.id === 'union-coop' ? 'Awaiting a comparable monthly publishing summary.' : reason;
+  const selectedBenchmark = data.filter.month > 0 ? insights.trend.find((row) => row.year === data.filter.year && row.month === data.filter.month) : null;
+  const storyShare = selectedBenchmark && selectedBenchmark.publishedOutput > 0
+    ? selectedBenchmark.stories / selectedBenchmark.publishedOutput : null;
   return <>
-    <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={1} title="Output & Effort" subtitle="Published content and effort against measured return. Never estimate missing Stories.">
+    <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={1} title="Output" subtitle="Published content and effort against measured return. Never estimate missing Stories.">
       <div className="creative-paid-source-grid">
         <CreativeSourceMetric history={creativeHistory(data,'posts')} label="Ranking-eligible posts (reach ≥500)" value={hasPosts ? formatNumber(currentKpi?.posts ?? postCount) : 'n/a'} detail={hasPosts ? 'Eligible per-post records only; not an all-published total' : reason} />
         <CreativeSourceMetric history={creativeHistory(data,'reels')} label="Ranking-eligible reels (reach ≥500)" value={hasPosts ? formatNumber(currentKpi?.reels ?? reelCount) : 'n/a'} detail={hasPosts ? 'Eligible per-post records only; not an all-published total' : reason} />
-        <CreativeSourceMetric label="Stories published" value="n/a" detail={rawReason} />
-        <CreativeSourceMetric label="Effort versus return" value="n/a" detail={rawReason} />
+        <CreativeSourceMetric history={creativeHistory(data,'stories')} label="Stories published" value={selectedBenchmark ? formatNumber(selectedBenchmark.stories) : 'n/a'} detail={selectedBenchmark ? 'Monthly Benchmarks · all published Stories; excluded from eligible post counts' : rawReason} />
+        <CreativeSourceMetric history={creativeHistory(data,'publishedOutput')} label="Publishing output" value={selectedBenchmark ? formatNumber(selectedBenchmark.publishedOutput) : 'n/a'} detail={storyShare != null ? `${formatPercent(storyShare, 1)} Stories in the approved monthly output; engagement measured on eligible posts only` : rawReason} />
       </div>
     </CreativeSlot>
     <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={2} title="Attention" subtitle="Reach, views, frequency and account-level trends. Platforms are never combined.">
@@ -175,7 +264,7 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
           <CreativeSourceMetric history={creativeHistory(data,'activeEngagementRate',true)} label="Active engagement" value={formatPercent(currentKpi?.activeEngagementRate ?? data.organic.activeEngagementRate, 2)} detail={`${formatNumber(currentKpi?.actions ?? data.organic.activeActions)} actions / ${formatNumber(currentKpi?.reach ?? data.organic.summedPostReach)} matched reach`} />
         </div>
         <div className="creative-grid two creative-mt">
-          <CreativeSourceMetric history={creativeHistory(data,'giveawayShare',true)} label="Earned vs rented · giveaway actions" value={giveaway?.shareOfTotalActions != null ? formatPercent(giveaway.shareOfTotalActions, 1) : 'n/a'} detail={giveaway?.posts != null ? `${formatNumber(giveaway.posts)} giveaway posts · approved Creative Cuts` : 'No giveaway action-share cut for this selected period'} />
+          <CreativeSourceMetric history={creativeHistory(data,'giveawayShare',true)} label="Giveaway share of actions" value={giveaway?.shareOfTotalActions != null ? formatPercent(giveaway.shareOfTotalActions, 1) : 'n/a'} detail={giveaway?.posts != null ? `${formatNumber(giveaway.posts)} giveaway posts · approved Creative Cuts` : 'No giveaway action-share cut for this selected period'} />
           <CreativeSourceMetric history={creativeHistory(data,'nonGiveawayMedian',true)} label="Non-giveaway median" value={nonGiveaway?.medianActiveEngagementRate != null ? formatPercent(nonGiveaway.medianActiveEngagementRate, 2) : 'n/a'} detail={nonGiveaway?.posts != null ? `${formatNumber(nonGiveaway.posts)} non-giveaway posts · approved Creative Cuts` : 'No non-giveaway cut for this selected period'} />
         </div>
         {insights.cuts.filter((row) => row.cut === 'Action mix').length ? <div className="creative-card creative-mt"><h3>Action mix · supplied cut</h3><div className="creative-action-list">{insights.cuts.filter((row) => row.cut === 'Action mix').map((row) => <div key={row.value}><span>{row.value}</span><b>{row.shareOfTotalActions != null ? formatPercent(row.shareOfTotalActions, 1) : 'n/a (share unavailable)'}</b></div>)}</div></div> : <div className="creative-awaiting creative-mt">Action mix: n/a. Compatible action-share cuts are not supplied for this period.</div>}
@@ -185,7 +274,7 @@ function OrganicPanel({ data }: { data: CreativeDashboard }) {
     <CreativeSlot client={creativeReadsClient(data.brand.id)} year={data.filter.year} month={data.filter.month} number={4} title="Top content" subtitle="CEO view: the imported Top 3 and band summary. Full details are available on demand.">
       {hasPosts ? <>
         {top3.length ? <div className="creative-top-three">{top3.map((post) => <article className="creative-card creative-top-card" key={`${post.postId}:${post.rank}`}>
-          <div className="creative-top-image">{post.imageUrl ? <img src={post.imageUrl} alt={`Imported creative ${post.postId}`} loading="lazy" /> : <div>Thumbnail awaiting verified monthly asset</div>}</div>
+          {post.imageUrl ? <div className="creative-top-image"><img src={post.imageUrl} alt={`Imported creative ${post.postId}`} loading="lazy" /></div> : <div className="v2-gallery-awaiting" role="status">AWAITING · Approved thumbnail · Owner: TBL</div>}
           <div className="creative-top-meta"><span>#{post.rank} · {post.postType} · {post.date}</span><strong>{formatPercent(post.activeEngagementRate, 2)}</strong><small>{formatNumber(post.activeActions)} actions / {formatNumber(post.reach)} reach</small><p>{post.theme !== 'Untagged' ? `Tagged theme: ${post.theme}. ` : ''}{post.language} · {post.day} · {post.timeSlot}{post.giveaway ? ' · Giveaway' : ''}</p><p className="creative-source-factors">Imported factors: {post.postType}, {post.language}, {post.day}, {post.timeSlot}{post.giveaway ? ', giveaway' : ''}. These are source fields, not an analyst verdict.</p>{post.caption ? <p className="creative-source-caption" title={post.caption}>{post.caption}</p> : null}{post.postUrl ? <a href={post.postUrl} target="_blank" rel="noopener noreferrer">View source post</a> : null}</div>
         </article>)}</div> : <div className="creative-awaiting">Monthly Top 3: n/a (prepared monthly ranking not supplied for this period).</div>}
         {top3.length ? <p className="creative-support">Rankings, factors and captions imported from UnionCoop-Creative-WhyItWorked-Import.xlsx. No signed why-it-worked prose is included; editorial statements are omitted until approved.</p> : null}
@@ -260,15 +349,22 @@ function AccountLevelSection({ data, platform }: { data: CreativeDashboard; plat
 function MetaPaid({ data }: { data: CreativeDashboard }) {
   const paid = data.paid.meta;
   const account = paid.accountSummary;
+  const scope={client:data.brand.label,readSection:'Creative' as const,year:data.filter.year,month:data.filter.month};
   return <>
     <div className="creative-note accent"><b>Paid Meta subset for {data.brand.label}.</b> {paid.coverageLabel}. Metrics cover {paid.reportingPeriodLabel}; they are not assigned to the posts&apos; publication month. {paid.audit.identityRule}</div>
+    <SectionAnatomy {...scope} number={1} label="Output" question="What was published, with how much effort" definition="Paid account summary and the separately supplied five-record detail subset.">
     <div className="creative-paid-source-grid creative-mt" aria-label="Available paid source metrics">
       <CreativeSourceMetric label="Paid posts" value={formatNumber(account.paidPostCount)} detail={`${paid.detailRecordCount} have ad-level detail`} />
       <CreativeSourceMetric label="Paid spend" value={formatAed(paid.totalSpendAed)} detail={`${paid.detailRecordCount}-record detail subset`} />
       <CreativeSourceMetric label="Paid clicks" value={formatNumber(paid.totalPaidClicks)} detail={`${paid.detailRecordCount}-record detail subset`} />
+    </div></SectionAnatomy>
+    <SectionAnatomy {...scope} number={2} label="Attention" question="Who saw it" definition="Matching paid account impressions and reach, never combined with organic views."><div className="creative-paid-source-grid">
       <CreativeSourceMetric label="Account paid impressions" value={formatNumber(account.paidImpressions)} detail="12-post account summary" />
       <CreativeSourceMetric label="Account paid reach" value={formatNumber(account.paidReach)} detail="12-post account summary" />
       <CreativeSourceMetric label="Paid frequency" value={formatRatio(account.frequency)} detail="Account impressions / account reach" />
+    </div>
+    {account.paidReachConflict ? <div className="creative-note creative-mt"><b>Paid reach source check.</b> Posts-summary reports {formatNumber(account.paidReach)}; performance-statistics reports {formatNumber(account.performancePaidReachControl)}. Posts-summary remains the configured basis.</div> : null}
+    </SectionAnatomy><SectionAnatomy {...scope} number={3} label="Engagement" question="How people responded" definition="Paid comments, likes and matched detail CTR. Shares and saves were not supplied."><div className="creative-paid-source-grid">
       <CreativeSourceMetric label="Paid likes" value={formatNumber(account.paidLikes)} detail="Passive; excluded from earned actions" />
       <CreativeSourceMetric label="Paid comments" value={formatNumber(account.paidComments)} detail="Account summary; shares and saves missing" />
       <CreativeSourceMetric label="Average paid likes / post" value={formatNumber(account.averageLikesPerPaidPost)} detail="Supplied average-performance value" />
@@ -276,12 +372,12 @@ function MetaPaid({ data }: { data: CreativeDashboard }) {
       <CreativeSourceMetric label="Measured comment rate" value={formatPercent(account.measuredCommentRate, 4)} detail="Comments / account paid reach" />
       <CreativeSourceMetric label="Source engagement rate" value={formatSourcePercent(account.suppliedEngagementRatePercent)} detail="Supplied column; definition not provided" />
     </div>
-    {account.paidReachConflict ? <div className="creative-note creative-mt"><b>Paid reach source check.</b> The selected posts-summary row reports {formatNumber(account.paidReach)}, while performance-statistics reports {formatNumber(account.performancePaidReachControl)}. The dashboard keeps posts-summary as the configured basis and does not combine the conflicting totals or choose the larger value.</div> : null}
     <div className="creative-grid three creative-mt">
       <CreativeMetricCard label="Paid CTR" value={formatPercent(paid.paidCtr, 3)} detail={`${formatNumber(paid.totalPaidClicks)} paid clicks / ${formatNumber(paid.totalPaidImpressions)} paid impressions`} />
       <CreativeMetricCard label="Paid active engagement" value="N/A" detail={`Measured comments / reach is ${formatPercent(account.measuredCommentRate, 4)}. Paid shares and saves are not supplied.`} unavailable />
       <CreativeMetricCard label="Earned actions" value="N/A" detail={`${formatNumber(account.paidComments)} paid comments are measured. Paid shares and saves are required but unavailable.`} unavailable />
     </div>
+    </SectionAnatomy><SectionAnatomy {...scope} number={4} label="Top content" question="What worked and why" definition="Supplied paid creative records ordered by budget, not an approved organic Top 3 or a performance verdict.">
     <div className="creative-card creative-mt"><h3>Video creatives ranked by budget</h3><PaidCreativeGallery records={paid.videos} /></div>
     <div className="creative-card creative-mt"><h3>Static creatives ranked by budget</h3><PaidCreativeGallery records={paid.statics} /></div>
     <details className="creative-method">
@@ -299,6 +395,7 @@ function MetaPaid({ data }: { data: CreativeDashboard }) {
       </tbody></table></div>
       <p>Paid CTR uses matching detail totals: {formatNumber(paid.totalPaidClicks)} paid clicks / {formatNumber(paid.totalPaidImpressions)} paid impressions = {formatPercent(paid.paidCtr, 3)}. The account summary separately supplies {formatNumber(account.paidImpressions)} impressions, {formatNumber(account.paidReach)} reach, {formatNumber(account.paidLikes)} likes, {formatNumber(account.paidComments)} comments, and a {formatSourcePercent(account.suppliedEngagementRatePercent)} engagement-rate column. Its definition is not supplied, so it is displayed only as a source value. No Paid Creative score is generated.</p>
     </details>
+    </SectionAnatomy>
   </>;
 }
 
@@ -317,13 +414,10 @@ function CreativeSourceMetric({ label, value, detail, history }: { label: string
 
 function MetaUnavailable({ message }: { message: string }) {
   return <>
-    <div className="creative-grid four">
-      {['Paid CTR', 'Paid active engagement', 'Earned actions'].map((label) => <CreativeMetricCard key={label} label={label} value="Data not available" detail={message} unavailable />)}
-    </div>
-    <UnavailableCreativeSection title="Video creatives ranked by budget" message={message} />
-    <UnavailableCreativeSection title="Static creatives ranked by budget" message={message} />
-    <details className="creative-method"><summary>Full ad-level detail</summary><p>Data not available. No paid ad-level rows are present in the supplied files.</p></details>
-    <details className="creative-method"><summary>How the paid metrics are computed</summary><p>Data not available. Required paid inputs are not supplied for this Brand and period.</p></details>
+    <div className="v2-search-await" role="status"><span className="v2-awaiting-dot"/><div><b>AWAITING</b> {message} · Owner: Media team. No paid ad-level measurements are substituted from other periods.</div></div>
+    <details className="creative-method"><summary>Paid reporting source requirements</summary>
+      <p>Paid CTR and spend-ranked creatives require the approved platform ad-level export with a matching reporting period. Annual or unrelated campaign totals must not be shown as monthly results.</p>
+    </details>
   </>;
 }
 
@@ -331,7 +425,7 @@ function OverallMethod({ data }: { data: CreativeDashboard }) {
   return <details className="creative-method creative-overall-method">
     <summary>Data coverage and calculation notes</summary>
     <p>No composite Creative score or 0-100 component scores are generated. Organic and Paid display only compatible raw metrics from their respective sources.</p>
-    <p><b>Organic source selection:</b> {data.sourceAudit.sourceSelectionRule} {data.sourceAudit.conflictingPostCount} Post IDs contain conflicting values and are reported without double-counting.</p>
+    {data.brand.id === 'union-coop' ? <p><b>Organic source selection:</b> {data.sourceAudit.sourceSelectionRule} {data.sourceAudit.conflictingPostCount} Post IDs contain conflicting values and are reported without double-counting.</p> : <p>Account observations, whole-export summaries and paid detail are separate source grains. Missing post-level metrics are not inferred.</p>}
     {data.paid.meta.available ? <p><b>Paid source coverage:</b> {data.paid.meta.coverageLabel}. Paid metrics are kept under {data.brand.label} and are not combined with another Brand or reporting grain.</p> : null}
   </details>;
 }
@@ -362,7 +456,7 @@ function formatAed(value: number | null): string {
   return value == null ? 'N/A' : `AED ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function formatAccountMetric(value: number | null, aggregation: 'sum' | 'daily-average-and-peak'): string {
+function formatAccountMetric(value: number | null, aggregation: CreativeAccountMetricSummary['aggregation']): string {
   if (value == null) return 'N/A';
   return value.toLocaleString('en-US', { maximumFractionDigits: aggregation === 'daily-average-and-peak' ? 1 : 0 });
 }
@@ -381,13 +475,6 @@ function displayPlatform(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function creativeCompetitionClient(brand?: string): string {
-  if (brand === 'union-coop') return 'union-coop';
-  if (brand === 'souq-al-bahar') return 'souq-al-bahar';
-  if (brand === 'souq-al-jubair') return 'souq-al-jubair';
-  return brand ?? 'union-coop';
-}
-
 function creativeReadsClient(brand?: string): string {
   return brand === 'union-coop' ? 'Union Coop' : brand === 'pocari-sweat' ? 'Pocari Sweat' : brand === 'souq-al-bahar' ? 'Souq Al Bahar' : brand === 'souq-al-jubair' ? 'Souq Al Jubair' : brand === 'souq-al-haraj' ? 'Souq Al Haraj' : brand === 'souq-al-jubail' ? 'Souq Al Jubail' : 'Union Coop';
 }
@@ -397,3 +484,13 @@ function compactLabel(value: string): string {
   return clean.length > 46 ? `${clean.slice(0, 45)}…` : clean;
 }
 
+
+/** User-facing diagnosis without exposing internal parser paths or stack traces. */
+function creativeRequestError(error: unknown, endpoint: 'options' | 'dashboard'): string {
+  if (isAxiosError(error)) {
+    if (!error.response) return 'The Creative API is unreachable. Start the Express server on port 5000 (npm run dev --workspace server) and retry.';
+    if (error.response.status >= 500) return `Creative ${endpoint} failed on the server (HTTP ${error.response.status}). Review the server terminal for the workbook import error.`;
+    return `Creative ${endpoint} request failed (HTTP ${error.response.status}). Check the requested reporting period and API route.`;
+  }
+  return `Creative ${endpoint} could not be loaded. Check the Express server log and retry.`;
+}

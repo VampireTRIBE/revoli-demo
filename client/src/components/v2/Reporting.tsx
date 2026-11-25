@@ -13,8 +13,10 @@ export function SectionAnatomy({number,label,question,definition,children,client
   const reads = useQuery({queryKey:['v2-section-highlights',client,readSection,year,month], enabled:Boolean(client&&readSection&&year&&month!==undefined),
     queryFn:async()=> (await http.get<{data:TblReadsResponse}>('/reads',{params:{client,section:readSection,year,month}})).data.data });
   const highlight = reads.data?.reads.find((r) => {
-    const linked = r.linkedCard.toLowerCase();
-    return linked === String(number) || linked.includes(`${String(number).padStart(2,'0')}`) || linked === label.toLowerCase();
+    const linked = r.linkedCard.toLowerCase().trim();
+    const normalizedLabel = label.toLowerCase().trim();
+    const index = String(number).padStart(2,'0');
+    return linked === String(number) || linked === index || linked === normalizedLabel || linked === `${readSection?.toLowerCase()} ${index}` || linked === `${index} · ${normalizedLabel}` || linked === `${readSection?.toLowerCase()} ${index} · ${normalizedLabel}`;
   });
   return <section className="v2-report-section" aria-label={`${label}: ${question}`}>
     <header className="v2-section-header"><span className="v2-section-index">{String(number).padStart(2,'0')}</span><h3>{label}</h3><span className="v2-section-question">{question}</span></header>
@@ -37,11 +39,22 @@ export function SparkBars({values}: {values:Array<number|null|undefined>}) {
     <i key={i} className={i===lastActual?'current':''} style={{height:`${Math.max(3,Math.round(Math.max(0,v)/top*100))}%`}}/>
   )}</div>;
 }
+function displayDeltaValue(value: number, kind: 'relative' | 'points'): string {
+  const normalized = Math.abs(value) >= 100 ? Math.round(value).toLocaleString('en-US')
+    : Number(value.toFixed(2)).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  return `${normalized}${kind === 'points' ? '%' : ''}`;
+}
+
+/** The chip and absolute pair are separate visual elements, as specified by Section anatomy.
+ * Rates are expressed as percentage-point changes, never relative percent changes. */
 export function DeltaLine({previous,current,period,partial=false,kind='relative'}:{previous:number|null;current:number|null;period:string;partial?:boolean;kind?:'relative'|'points'}) {
-  if(partial||previous==null||current==null||!Number.isFinite(previous)||!Number.isFinite(current)||(kind==='relative'&&previous===0))return null;
-  const difference=current-previous;
-  const change=kind==='relative'?100*difference/Math.abs(previous):difference;
-  return <span className={`v2-delta ${difference>0?'positive':difference<0?'negative':'neutral'}`} title={`Compared with ${period}`}>
-    {difference>0?'▲':difference<0?'▼':'='} {difference>0?'+':''}{change.toFixed(1)}{kind==='relative'?'%':' pts'} · {previous.toLocaleString()} → {current.toLocaleString()} · vs {period}
+  if (partial || previous == null || current == null || !Number.isFinite(previous) || !Number.isFinite(current) || (kind === 'relative' && previous === 0)) return null;
+  const difference = current - previous;
+  const change = kind === 'relative' ? 100 * difference / Math.abs(previous) : difference;
+  const direction = difference > 0 ? 'positive' : difference < 0 ? 'negative' : 'neutral';
+  const arrow = difference > 0 ? '▲' : difference < 0 ? '▼' : '=';
+  return <span className={`v2-delta v2-delta-block ${direction}`} title={`Compared with ${period}`}>
+    <span className="v2-delta-chip">{arrow} {change > 0 ? '+' : ''}{Number(change.toFixed(1)).toLocaleString('en-US')}{kind === 'relative' ? '%' : ' pts'}</span>
+    <span className="v2-delta-pair">{displayDeltaValue(previous,kind)} → {displayDeltaValue(current,kind)} · vs {period}</span>
   </span>;
 }

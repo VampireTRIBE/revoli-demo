@@ -1,0 +1,106 @@
+{
+  "baseline": "Bizcom-Engine-Nov24-All-Imports-Integrated-Full (3).zip",
+  "imports": "Bizcom-Engine-Imports-All-24Nov2026(1).zip",
+  "originalFiles": 327,
+  "originalDataFilesUnchanged": 118,
+  "matchedImports": [
+    {
+      "filename": "Rivoli-Consumer-GA4-Import-v4.xlsx",
+      "path": "spreadsheets data/media/rivoli/Rivoli-Consumer-GA4-Import-v4.xlsx",
+      "sha256": "35265f2a84732d2a0c892deaee0954d22007d8660a15af00f69c9e3719a4503c",
+      "bytes": 14866
+    },
+    {
+      "filename": "TBL-Reads-Import-Template-and-First-Fill.xlsx",
+      "path": "spreadsheets data/highlights/tbl/TBL-Reads-Import-Template-and-First-Fill.xlsx",
+      "sha256": "5a8a5180ade4316c081cd1eaa41b04beddd66e45a79b28b6f36dcae55d9d0714",
+      "bytes": 8221
+    },
+    {
+      "filename": "UnionCoop-Creative-WhyItWorked-Import.xlsx",
+      "path": "spreadsheets data/creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx",
+      "sha256": "139a8e7ba0e5931175baef4e4c4447480e664f13a268913c9633f8219e5db040",
+      "bytes": 87112
+    },
+    {
+      "filename": "EDIT-AdLibrary-Capture2-03Nov2026.xlsx",
+      "path": "spreadsheets data/competition/rivoli/EDIT-AdLibrary-Capture2-03Nov2026.xlsx",
+      "sha256": "409bb8c01a6cfce04adcf0c13738d7218744caf9fce0939d7eec52cfbf28bc98",
+      "bytes": 18316
+    },
+    {
+      "filename": "EDIT-Capture2-Thumbnails.zip",
+      "path": "spreadsheets data/competition/rivoli/EDIT-Capture2-Thumbnails.zip",
+      "sha256": "a2a579206415df308fc84c4b653096c7df111dfcd884f06ba082791cb377a98f",
+      "bytes": 1479364
+    },
+    {
+      "filename": "Competition-Capture-UnionCoop-Carrefour-LuLu-01-Oct-2026.xlsx",
+      "path": "spreadsheets data/competition/union-coop/Competition-Capture-UnionCoop-Carrefour-LuLu-01-Oct-2026.xlsx",
+      "sha256": "cba2725af6730038eda0b3b8d8d0b446d3ccc10201cabcb37669edc29760ac19",
+      "bytes": 2521525
+    },
+    {
+      "filename": "Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx",
+      "path": "spreadsheets data/competition/union-coop/Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx",
+      "sha256": "c82db719f122d1342d8f201747ccad8d2554094765ea9ebb046fd4d5c77270a8",
+      "bytes": 22218
+    },
+    {
+      "filename": "EDIT-Google-Capture1-18Nov2026.xlsx",
+      "path": "spreadsheets data/competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx",
+      "sha256": "791c608d55871d8e8b5e0f65b02b5182cdba8b1ffd291a3c70386b88c9fbc8e4",
+      "bytes": 11114
+    }
+  ],
+  "modifiedBaselineFiles": [
+    "client/src/App.tsx",
+    "client/src/components/v2/CountUpValue.tsx",
+    "client/src/components/v2/Reporting.tsx",
+    "client/src/features/competition/components/ContextualCompetition.tsx",
+    "client/src/features/competition/hooks/use-competition-data.ts",
+    "client/src/features/media/components/CampaignSection.tsx",
+    "client/src/features/media/components/Ga4Channels.tsx",
+    "client/src/features/media/components/MediaConsumerAlignment.tsx",
+    "client/src/features/media/components/OverviewCards.tsx",
+    "client/src/features/media/components/UnionCoopMediaSections.tsx",
+    "client/src/features/reads/TblReadsStrip.tsx",
+    "client/src/layouts/AppLayout.tsx",
+    "client/src/pages/ConsumerDashboardPage.tsx",
+    "client/src/pages/CreativeDashboardPage.tsx",
+    "client/src/pages/MediaDashboardPage.tsx",
+    "client/src/pages/SearchDashboardPage.tsx",
+    "client/src/styles/bizcom-v2.css",
+    "client/src/styles/creative-palette.css",
+    "client/src/styles/media-palette.css",
+    "client/src/types/competition.ts",
+    "client/src/types/creative.ts",
+    "package.json",
+    "scripts/verify_media_creative_nov24.cjs",
+    "server/src/modules/competition/calculations/competition-calculations.ts",
+    "server/src/modules/competition/import/capture-v2-parser.ts",
+    "server/src/modules/competition/services/competition.service.ts",
+    "server/src/modules/competition/types/competition.types.ts",
+    "server/src/modules/consumer/controllers/consumer.controller.ts",
+    "server/src/modules/consumer/routes/consumer.routes.ts",
+    "server/src/modules/creative/import/creative-source-parser.ts",
+    "server/src/modules/creative/services/creative.service.ts",
+    "server/src/modules/creative/types/creative.types.ts",
+    "server/src/modules/media/import/source-parser.ts",
+    "server/src/modules/reads/services/reads.service.ts",
+    "server/src/server.ts",
+    "server/tests/creative-calculations.test.ts",
+    "server/tests/nov24-approved-imports.test.ts"
+  ],
+  "newFilesBeforeFinalReport": [
+    "scripts/verify_creative_runtime_v2.cjs",
+    "scripts/verify_latest_nov18.cjs",
+    "scripts/verify_media_ui_reporting.cjs",
+    "scripts/verify_nov18_implementation.cjs",
+    "scripts/verify_pdf_parity.cjs",
+    "scripts/verify_tab_scope.cjs",
+    "server/src/modules/consumer/services/union-comments.service.ts",
+    "server/tests/creative-media-regression.test.ts",
+    "server/tests/union-comments-import.test.ts"
+  ]
+}

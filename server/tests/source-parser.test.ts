@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { parseMediaSources } from '../src/modules/media/import/source-parser.js';
 import { reconcileImport } from '../src/modules/media/import/reconciliation.js';
 
-const sourceDirectory = resolve(process.cwd(), '../spreadsheets data/media-tab');
+const sourceDirectory = resolve(process.cwd(), '../spreadsheets data/media/rivoli');
 const sourcePaths = readdirSync(sourceDirectory)
   .filter((name) => !name.startsWith('~$') && name.toLowerCase().endsWith('.xlsx'))
   .map((name) => resolve(sourceDirectory, name));
@@ -13,7 +13,8 @@ describe('supplied Media source parser', () => {
   const dataset = parseMediaSources(sourcePaths);
 
   it('detects every supplied workbook and reporting period', () => {
-    expect(dataset.sourceFiles).toHaveLength(6);
+    expect(dataset.sourceFiles).toContain('Rivoli-Consumer-GA4-Import-v4.xlsx');
+    expect(dataset.sourceFiles).toHaveLength(sourcePaths.length);
     expect(dataset.periods).toHaveLength(9);
     expect(dataset.periods[0]?.periodKey).toBe('2026-01');
     expect(dataset.periods.at(-1)).toMatchObject({
@@ -54,6 +55,19 @@ describe('supplied Media source parser', () => {
       expect(googleCampaigns.reduce((total, row) => total + (row.interactions ?? 0), 0)).toBe(googlePlatforms.reduce((total, row) => total + (row.interactions ?? 0), 0));
       expect(Math.abs(googleCampaigns.reduce((total, row) => total + (row.claims ?? 0), 0) - googlePlatforms.reduce((total, row) => total + row.claims, 0))).toBeLessThan(0.31);
     });
+  });
+
+  it('retains zero-spend Meta rows and only source-approved campaign objectives', () => {
+    const meta = dataset.campaigns.filter(row => row.platform === 'Meta Ads');
+    const google = dataset.campaigns.filter(row => row.platform === 'Google Ads');
+    expect(meta).toHaveLength(83);
+    expect(meta.filter(row => row.objective === 'Traffic')).toHaveLength(77);
+    expect(meta.filter(row => row.objective === 'Awareness')).toHaveLength(6);
+    expect(meta.filter(row => row.spend === 0)).toHaveLength(14);
+    expect(meta.every(row => row.objectiveSource?.includes('Stage (loader spec)'))).toBe(true);
+    expect(google).toHaveLength(145);
+    expect(google.every(row => !row.objective)).toBe(true);
+    expect(dataset.campaigns.every(row => !row.shortName && !row.thumbnailFile)).toBe(true);
   });
 
   it('matches the reconciled January site controls', () => {

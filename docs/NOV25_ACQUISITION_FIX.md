@@ -1,0 +1,7 @@
+# Media acquisition cost fix
+
+October is selectable from GA4 v4 but no October advertising or legacy reconciled site-purchase records were supplied. No prior-month or yearly spend was substituted. Missing cards now use a compact awaiting message, and an entirely unavailable platform table becomes a period-specific awaiting line. Available-month metrics remain visible.
+
+The GA4 v4 New vs Established sheet has an ALL BRANDS row for September and October. Its printed Total purchases and Total item revenue do not reconcile to the new and established components. October components report 1,334 + 729 purchases and AED 2,101,943 + 1,187,244 gross item revenue. The separately labelled provisional ratio is AED 3,289,187 / 2,063 = AED 1,594.37. It is not a verified order AOV or net revenue and does not appear for brand/segment filters. The workbook is unchanged. September component totals are 1,245 purchases and AED 2,253,199. TBL must confirm the inconsistent source totals and supply October paid exports and reconciled order data.
+
+Previous Media year-scoped filter fixes and clean month labels are preserved. No database migration or unrelated changes. Verification: `node scripts/verify_media_filter_fix.cjs` (real workbook cells through an adapter, TypeScript syntax, no browser/database), `node scripts/verify_media_ui_reporting.cjs`, and `node scripts/verify_latest_nov18.cjs`. Full build/browser not tested because project dependencies are unavailable in this environment.

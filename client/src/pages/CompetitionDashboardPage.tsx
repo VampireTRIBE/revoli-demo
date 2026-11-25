@@ -133,7 +133,7 @@ function LongestRunning({ data }: { data: CompetitionDashboard }) {
         <div className="competition-creative-body">
           <span className="competition-format">{ad.formatGroup}</span>
           <h4>{ad.featuredBrandProduct ?? 'Featured product not supplied'}</h4>
-          <dl><div><dt>Start date</dt><dd>{formatDate(ad.startDate)}</dd></div><div><dt>Days running</dt><dd>{ad.calculatedDaysRunning}</dd></div><div><dt>Library ID</dt><dd>{ad.libraryId}</dd></div></dl>
+          <dl><div><dt>Start date</dt><dd>{formatDate(ad.startDate)}</dd></div><div><dt>Days running</dt><dd>{ad.calculatedDaysRunning}</dd></div><div><dt>Library ID</dt><dd>{ad.libraryIdAvailable === false ? '(not captured)' : ad.libraryId}</dd></div></dl>
           {ad.screenshot?.multiAd ? <small>Full screenshot contains {ad.screenshot.libraryIds.length} ads; this is not an individual crop.</small> : null}
           <CompetitionSourceLabel value={data.sourceLabel} />
         </div>
@@ -173,7 +173,7 @@ function AdDetails({ data }: { data: CompetitionDashboard }) {
 }
 
 function AdDetailRow({ row }: { row: CompetitionObservation }) {
-  return <tr><td className="competition-id">{row.libraryId}</td><td>{formatDate(row.startDate)}</td><td className="num">{row.calculatedDaysRunning}{row.daysRunningDiscrepancy ? ' ⚠' : ''}</td><td><span className="competition-status">{row.status}</span></td><td>{row.platforms}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td><td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer" aria-label={`Open destination for Library ID ${row.libraryId}`}><ExternalLink size={14} /> Open</a> : 'N/A'}</td></tr>;
+  return <tr><td className="competition-id">{row.libraryIdAvailable === false ? '(not captured)' : row.libraryId}</td><td>{formatDate(row.startDate)}</td><td className="num">{row.calculatedDaysRunning}{row.daysRunningDiscrepancy ? ' ⚠' : ''}</td><td><span className="competition-status">{row.status}</span></td><td>{row.platforms}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td><td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer" aria-label={`Open destination for Library ID ${row.libraryId}`}><ExternalLink size={14} /> Open</a> : 'N/A'}</td></tr>;
 }
 
 function CreativeGallery({ data, onClose }: { data: CompetitionDashboard; onClose: () => void }) {

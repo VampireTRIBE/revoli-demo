@@ -8,8 +8,8 @@ let sourceCache: MediaDataset | null = null;
 
 function sourceDirectory(): string {
   const candidates = [
-    resolve(process.cwd(), 'spreadsheets data/media-tab'),
-    resolve(process.cwd(), '../spreadsheets data/media-tab'),
+    resolve(process.cwd(), 'spreadsheets data/media/rivoli'),
+    resolve(process.cwd(), '../spreadsheets data/media/rivoli'),
   ];
   const found = candidates.find((candidate) => existsSync(candidate));
   if (!found) throw new Error(`Source data directory not found. Checked: ${candidates.join(', ')}`);
@@ -92,9 +92,11 @@ function enrichLegacyCampaignMetrics(databaseDataset: MediaDataset, source: Medi
       interactions: row.interactions ?? match.interactions,
       clicks: row.clicks ?? match.clicks,
       claims: row.claims ?? match.claims,
-      objective: row.objective ?? match.objective,
-      shortName: row.shortName ?? match.shortName,
-      thumbnailFile: row.thumbnailFile ?? match.thumbnailFile,
+      views: row.views ?? match.views,
+      objective: match.objective ?? null,
+      objectiveSource: match.objectiveSource ?? null,
+      shortName: match.shortName ?? row.shortName,
+      thumbnailFile: match.thumbnailFile ?? row.thumbnailFile,
       calculationBasis: row.calculationBasis ?? match.calculationBasis,
     };
   });

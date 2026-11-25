@@ -2,18 +2,19 @@ export type CreativeScoringMode = 'disabled' | 'html-reference';
 
 export interface CreativeOptions {
   years: Array<{ year: number; months: Array<{ month: number; label: string; partial: boolean; coverageEnd: string }> }>;
+  brandYears?: Record<string, Array<{ year: number; months: Array<{ month: number; label: string; partial: boolean; coverageEnd: string }> }>>;
   brands: Array<{ id: string; label: string; postLevelAvailable: boolean; paidPostLevelAvailable: boolean; accountLevelAvailable: boolean }>;
   defaultSelection: { year: number; month: number; brand: string } | null;
   timezone: string;
 }
 
-export type CreativeAccountMetricKey = 'views' | 'viewers' | 'reach' | 'contentInteractions' | 'follows' | 'visits' | 'linkClicks';
+export type CreativeAccountMetricKey = 'views' | 'viewers' | 'reach' | 'contentInteractions' | 'follows' | 'visits' | 'linkClicks' | 'followersTotal';
 
 export interface CreativeAccountMetricSummary {
   platform: 'instagram' | 'facebook' | 'tiktok' | 'unknown';
   metric: CreativeAccountMetricKey;
   label: string;
-  aggregation: 'sum' | 'daily-average-and-peak';
+  aggregation: 'sum' | 'daily-average-and-peak' | 'last-observation';
   value: number | null;
   peak: number | null;
   observedDays: number;
@@ -125,6 +126,9 @@ export interface CreativePost {
 export interface PreparedCreativeBenchmark {
   year: number;
   month: number;
+  publishedOutput: number;
+  stories: number;
+  partial: boolean;
   eligiblePosts: number;
   rankingEligiblePosts: number;
   medianActiveEngagementRate: number;
@@ -186,6 +190,7 @@ export interface CreativeDashboard {
     available: boolean;
     message: string | null;
     dailyMetrics: CreativeAccountMetricSummary[];
+    monthlyMetrics?: Array<CreativeAccountMetricSummary & {month: number; complete: boolean}>;
     wholePeriodSummaries: CreativeAccountSummarySection[];
     audit: CreativeAccountSourceAudit;
   };
@@ -267,6 +272,9 @@ export interface CreativeDashboard {
 export interface CreativeMonthlyKpi {
   year: number;
   month: number;
+  publishedOutput: number | null;
+  stories: number | null;
+  partial: boolean;
   posts: number;
   reels: number;
   reach: number;

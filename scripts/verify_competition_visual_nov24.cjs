@@ -14,8 +14,8 @@ const tests = [
   ['Dark source strip and off selector', () => ['COMPETITOR VIEW','Off - own performance'].every((x)=>read('client/src/features/competition/components/ContextualCompetition.tsx').includes(x))],
   ['Thin awaiting state', () => read('client/src/features/competition/components/ContextualCompetition.tsx').includes('role="status"')],
   ['Google sample vs population', () => ['reportedPopulation','sampleSize'].every((x)=>read('server/src/modules/competition/import/capture-v2-parser.ts').includes(x))],
-  ['EDIT Meta Capture 2 preserved', () => fs.existsSync(path.join(root,'spreadsheets data/compititaion-tab/EDIT-AdLibrary-Capture2-03Nov2026.xlsx'))],
-  ['EDIT Google Capture 1 preserved', () => fs.existsSync(path.join(root,'spreadsheets data/compititaion-tab/EDIT-Google-Capture1-18Nov2026.xlsx'))],
+  ['EDIT Meta Capture 2 preserved', () => fs.existsSync(path.join(root,'spreadsheets data/competition/rivoli/EDIT-AdLibrary-Capture2-03Nov2026.xlsx'))],
+  ['EDIT Google Capture 1 preserved', () => fs.existsSync(path.join(root,'spreadsheets data/competition/rivoli/EDIT-Google-Capture1-18Nov2026.xlsx'))],
   ['All 15 EDIT images preserved', () => fs.readdirSync(path.join(root,'server/data/competition-assets/edit-by-ahmed-seddiqi/2026-11-03')).filter((x)=>/\.png$/.test(x)).length===15],
 ];
 let failed=0;

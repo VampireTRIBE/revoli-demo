@@ -18,6 +18,7 @@ export interface CompetitionObservation {
   clientLabel: string;
   metaPage: string;
   libraryId: string;
+  libraryIdAvailable?: boolean;
   captureDate: string;
   startDate: string;
   suppliedDaysRunning: number | null;
@@ -97,4 +98,5 @@ export interface CompetitionDashboard {
     unverifiedScreenshotAssociations: number;
   } | null;
   historyNote: string;
+  captureDeltaNote?: string;
 }

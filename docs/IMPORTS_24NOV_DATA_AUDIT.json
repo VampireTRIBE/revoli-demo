@@ -1,0 +1,108 @@
+{
+  "sourceArchive": "Bizcom-Engine-Imports-All-24Nov2026.zip",
+  "files": [
+    {
+      "name": "Rivoli-Consumer-GA4-Import-v4.xlsx",
+      "bytes": 14866,
+      "sha256": "35265f2a84732d2a0c892deaee0954d22007d8660a15af00f69c9e3719a4503c"
+    },
+    {
+      "name": "TBL-Reads-Import-Template-and-First-Fill.xlsx",
+      "bytes": 8221,
+      "sha256": "5a8a5180ade4316c081cd1eaa41b04beddd66e45a79b28b6f36dcae55d9d0714"
+    },
+    {
+      "name": "UnionCoop-Creative-WhyItWorked-Import.xlsx",
+      "bytes": 87112,
+      "sha256": "139a8e7ba0e5931175baef4e4c4447480e664f13a268913c9633f8219e5db040"
+    },
+    {
+      "name": "Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx",
+      "bytes": 22218,
+      "sha256": "c82db719f122d1342d8f201747ccad8d2554094765ea9ebb046fd4d5c77270a8"
+    },
+    {
+      "name": "EDIT-Google-Capture1-18Nov2026.xlsx",
+      "bytes": 11114,
+      "sha256": "791c608d55871d8e8b5e0f65b02b5182cdba8b1ffd291a3c70386b88c9fbc8e4"
+    },
+    {
+      "name": "EDIT-Capture2-Thumbnails.zip",
+      "bytes": 1479364,
+      "sha256": "a2a579206415df308fc84c4b653096c7df111dfcd884f06ba082791cb377a98f"
+    },
+    {
+      "name": "Competition-Capture-UnionCoop-Carrefour-LuLu-01-Oct-2026.xlsx",
+      "bytes": 2521525,
+      "sha256": "cba2725af6730038eda0b3b8d8d0b446d3ccc10201cabcb37669edc29760ac19"
+    },
+    {
+      "name": "EDIT-AdLibrary-Capture2-03Nov2026.xlsx",
+      "bytes": 18316,
+      "sha256": "409bb8c01a6cfce04adcf0c13738d7218744caf9fce0939d7eec52cfbf28bc98"
+    }
+  ],
+  "ga4": [
+    {
+      "month": "2026-09",
+      "netRevenueAed": 1863332,
+      "firstTimePurchasers": 1060,
+      "channelRows": 17,
+      "channelRevenueTotal": 1863333,
+      "channelToNetDifferenceAed": 1,
+      "unassignedRevenueAed": -202434
+    },
+    {
+      "month": "2026-10",
+      "netRevenueAed": 3026634,
+      "firstTimePurchasers": 1712,
+      "channelRows": 17,
+      "channelRevenueTotal": 3026635,
+      "channelToNetDifferenceAed": 1,
+      "unassignedRevenueAed": -237851
+    }
+  ],
+  "unionCoopCompetition": [
+    {
+      "date": "2026-10-01",
+      "sheet": "Carrefour Capture",
+      "loggedRows": 30,
+      "readableLibraryIds": 29,
+      "unreadableLibraryIdRows": 1,
+      "distinctReadableLibraryIds": 29
+    },
+    {
+      "date": "2026-10-01",
+      "sheet": "LuLu Capture",
+      "loggedRows": 24,
+      "readableLibraryIds": 24,
+      "unreadableLibraryIdRows": 0,
+      "distinctReadableLibraryIds": 24
+    },
+    {
+      "date": "2026-11-18",
+      "sheet": "Carrefour Register",
+      "loggedRows": 57,
+      "readableLibraryIds": 56,
+      "unreadableLibraryIdRows": 1,
+      "distinctReadableLibraryIds": 56
+    },
+    {
+      "date": "2026-11-18",
+      "sheet": "LuLu Register",
+      "loggedRows": 54,
+      "readableLibraryIds": 39,
+      "unreadableLibraryIdRows": 15,
+      "distinctReadableLibraryIds": 39
+    }
+  ],
+  "highlights": {
+    "sheet": "Reads",
+    "hasSignedColumn": false,
+    "shownAsApproved": false
+  },
+  "souqs": {
+    "sourceFilesProvidedForHaraj": false,
+    "sourceFilesProvidedForJubail": false
+  }
+}

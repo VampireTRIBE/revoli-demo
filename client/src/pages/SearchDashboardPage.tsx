@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GeoDashboardPage } from './GeoDashboardPage';
 import '../styles/bizcom-v2.css';
@@ -5,6 +6,7 @@ import '../styles/bizcom-v2.css';
 /** Search is the single client-facing home for classic and AI search. */
 export function SearchDashboardPage() {
   const [params, setParams] = useSearchParams();
+  useEffect(() => {if(!params.has('competition'))return;const next=new URLSearchParams(params);next.delete('competition');setParams(next,{replace:true});},[params,setParams]);
   const panel = params.get('panel') === 'ai' ? 'ai' : 'classic';
   return <section className="v2-search-page" aria-label="Search reporting">
     <div className="v2-search-head"><div><span className="v2-eyebrow">Search intelligence</span><h2>Search</h2><p>Classic search and AI search are separate sources and measurement systems.</p></div><span className="v2-unscored">UNSCORED · BASELINES PENDING</span></div>

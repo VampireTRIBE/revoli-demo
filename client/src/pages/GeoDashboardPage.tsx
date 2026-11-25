@@ -157,7 +157,7 @@ export function GeoDashboardPage() {
         </select></label></div>
     </header>
     {query.isLoading ? <div className="geo-status" role="status"><Database size={22} />Loading approved CLEO workbook data...</div>
-      : query.isError || !data ? <div className="geo-status geo-error" role="alert"><AlertCircle size={24} /><div><strong>GEO import unavailable</strong><p>The GEO view uses the backend CLEO import. Check <code>spreadsheets data/creative-tab/UnionCoop-CLEO-Market-Import.xlsx</code> and the server's /api/v1/creative/cleo endpoint.</p><button onClick={() => void query.refetch()} type="button">Try again</button></div></div>
+      : query.isError || !data ? <div className="geo-status geo-error" role="alert"><AlertCircle size={24} /><div><strong>GEO import unavailable</strong><p>The GEO view uses the backend CLEO import. Check <code>spreadsheets data/search/union-coop/UnionCoop-CLEO-Market-Import.xlsx</code> and the server's /api/v1/creative/cleo endpoint.</p><button onClick={() => void query.refetch()} type="button">Try again</button></div></div>
       : <>
         <div className="geo-capture-strip"><div><span className="geo-live-dot" />VERIFIED IMPORT STRUCTURE <span className="geo-muted">/</span> CLEO CAPTURE #{data.availableCaptures.length} <span className="geo-muted">/</span> <CalendarDays size={14} aria-hidden="true" /> {captureLabel(data.captureDate)}</div><span>Not a composite GEO score</span></div>
         <div className="geo-kpi-grid">

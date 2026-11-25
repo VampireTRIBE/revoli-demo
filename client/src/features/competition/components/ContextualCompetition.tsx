@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { ChevronDown, ExternalLink, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { CompetitionDashboard, CompetitionMixRow, CompetitionScreenshot } from '../../../types/competition';
 import { useCompetitionDashboard, useCompetitionOptions } from '../hooks/use-competition-data';
@@ -10,10 +10,11 @@ import { CompetitionChannelChip } from './CompetitionChannelChip';
 import { MediaCompetitionPanel } from './MediaCompetitionPanel';
 import '../../../styles/reference-competition.css';
 
-export type CompetitionContextView = 'creative' | 'media';
+export type CompetitionContextView = 'creative' | 'media' | 'consumer' | 'search';
 
 export function useContextualCompetition(clientId: string, year?: number, month?: number, initialCompetitor?: string) {
-  const options = useCompetitionOptions(clientId);
+  const approvedClient = clientId !== 'no-approved-creative-competitors';
+  const options = useCompetitionOptions(clientId, approvedClient);
   const [selectedCompetitor, setSelectedCompetitor] = useState<string | undefined>(initialCompetitor);
   const [captureDate, setCaptureDate] = useState<string>();
   const [channel, setChannel] = useState<'Meta' | 'Google'>('Meta');
@@ -32,18 +33,20 @@ export function useContextualCompetition(clientId: string, year?: number, month?
     if (initialCompetitor && options.data?.competitors.some((item) => item.id === initialCompetitor)) setSelectedCompetitor(initialCompetitor);
   }, [initialCompetitor, options.data]);
 
-  const dashboard = useCompetitionDashboard({ year, month, competitor: selectedCompetitor, captureDate, channel });
+  // A brand switch must not request or briefly display a prior client's capture.
+  const activeCompetitor = approvedClient && options.data?.competitors.some((item) => item.id === selectedCompetitor) ? selectedCompetitor : undefined;
+  const dashboard = useCompetitionDashboard({ year, month: month || undefined, competitor: activeCompetitor, captureDate, channel });
   return {
     clientId,
     year,
     month,
     options,
     dashboard,
-    selectedCompetitor,
+    selectedCompetitor: activeCompetitor,
     captureDate,
     channel,
     selectChannel: (value: 'Meta' | 'Google') => {setChannel(value);setCaptureDate(undefined);},
-    selectCompetitor: (value?: string) => { setSelectedCompetitor(value); setCaptureDate(undefined); },
+    selectCompetitor: (value?: string) => { setSelectedCompetitor(value); setCaptureDate(undefined); setChannel('Meta'); },
     selectCapture: setCaptureDate,
     close: () => { setSelectedCompetitor(undefined); setCaptureDate(undefined); },
   };
@@ -107,10 +110,10 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
   const data = context.dashboard.data;
   const allDates = data?.capture.allAvailableDates ?? [];
   const showCaptureSelector = allDates.length > 1 || Boolean(data && !data.available && allDates.length);
-  return <section className="competition-context-panel competition-mt" aria-label={`${view === 'creative' ? 'Creative' : 'Media'} Competition context`}>
-    <div className="v2-competition-source" role="note">COMPETITOR VIEW · Viewing {data?.competitor.label ?? 'selected competitor'} · {context.channel === 'Google' ? 'Google Ads Transparency Center' : 'Meta Ad Library'} · activity, not spend</div>
+  return <section className="competition-context-panel competition-mt" aria-label={`${view.charAt(0).toUpperCase() + view.slice(1)} Competition context`}>
+    <div className="v2-competition-source" role="note">COMPETITOR VIEW · Viewing {data?.competitor.label ?? context.options.data?.competitors.find((item) => item.id === context.selectedCompetitor)?.label ?? 'selected competitor'} · {context.channel === 'Google' ? 'Google Ads Transparency Center' : 'Meta Ad Library'} · activity, not spend{data?.capture.date ? ` · ${formatDate(data.capture.date)}` : ''}</div>
     <div className="competition-context-heading">
-      <div><h3>{view === 'creative' ? 'Creative Competition' : 'Media Competition'}</h3><CompetitionChannelChip channel={context.channel}/><p>{data?.competitor.label ?? 'Selected competitor'}{context.channel === 'Meta' && data?.competitor.metaPage ? ` · Meta page ${data.competitor.metaPage}` : ''}</p></div>
+      <div><h3>{view.charAt(0).toUpperCase() + view.slice(1)} Competition</h3><CompetitionChannelChip channel={context.channel}/><p>{data?.competitor.label ?? 'Selected competitor'}{context.channel === 'Meta' && data?.competitor.metaPage ? ` · Meta page ${data.competitor.metaPage}` : ''}</p></div>
       <div className="competition-context-actions">
         {context.clientId === 'rivoli-shop' ? <div className="v2-channel-switch" role="group" aria-label="Competition capture channel">
           <button type="button" className={context.channel==='Meta'?'selected':''} aria-pressed={context.channel==='Meta'} onClick={()=>context.selectChannel('Meta')}>Meta</button>
@@ -130,36 +133,76 @@ export function ContextualCompetitionPanel({ context, view }: { context: Competi
           : !data.available ? <UnavailableContext data={data} allDates={allDates} onSelectCapture={context.selectCapture} />
             : <>
               {data.signedHighlights?.length ? <div className="v2-competition-highlights"><strong>Highlights this month · {data.capture.date?.slice(0,7)}</strong>{data.signedHighlights.map((line,i)=><p key={i}>{line}</p>)}</div> : null}
-              <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Competition capture is independent of the ${formatMonth(context.year, context.month)} Media reporting period`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
-              {view === 'creative' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionPanel data={data} />}
+              <div className="competition-context-capture"><div><span>Selected capture</span><strong>{formatDate(data.capture.date)}</strong><small>{data.capture.matchesReportingPeriod ? 'Matches the page reporting month' : `Competition capture is independent of the ${formatMonth(context.year, context.month)} ${view} reporting period`}</small></div><CompetitionSourceLabel value={data.sourceLabel} /></div>
+              {context.clientId === 'union-coop' ? <CreativeCompetitionView data={data} /> : <MediaCompetitionPanel data={data} />}
             </>}
   </section>;
 }
 
+/** Render the two Union Coop competitors using capture facts first: this is
+ * an ad-activity view, not a performance or spend dashboard. */
 function CreativeCompetitionView({ data }: { data: CompetitionDashboard }) {
-  const featured = useMemo(() => countLabels(data.observations.map((row) => row.featuredBrandProduct)), [data.observations]);
-  return <>
-    <div className="competition-grid competition-grid-two competition-mt">
-      <MixCard title="Format mix" rows={data.formatMix} source={data.sourceLabel} channel={data.channel} />
-      <MixCard title="Theme mix" rows={data.themeMix} source={data.sourceLabel} channel={data.channel} />
-      <MixCard title="Language mix" rows={data.languageMix} source={data.sourceLabel} channel={data.channel} />
-      <article className="competition-card competition-mix-card"><CompetitionChannelChip channel={data.channel}/><h3>Featured brands / products</h3><div className="competition-mix-list">{featured.length ? featured.map((row) => <div className="competition-mix-copy" key={row.label}><span>{row.label}</span><strong>{row.count}</strong></div>) : <div className="competition-empty">Data not available</div>}</div><CompetitionSourceLabel value={data.sourceLabel} /></article>
+  const supplier = data.themeMix.find((row) => /supplier(?:[- ]funded)?(?: brand)?/i.test(row.label));
+  const longest = data.longestRunning
+    .filter((row) => row.startDateAvailable !== false && Number.isFinite(row.calculatedDaysRunning))
+    .reduce<number | null>((top, row) => Math.max(top ?? 0, row.calculatedDaysRunning), null);
+  const firstObserved = data.capture.firstCapture ? null : (data.launches.sincePreviousCapture ?? data.activity.firstObservedAds);
+  const launchGroups = data.launches.groups.filter((row) => row.startDate && row.count > 0);
+  return <div className="v2-capture-composition">
+    <div className="v2-capture-kpis" aria-label="Verified competition capture summary">
+      <CaptureFact label="Live ads" value={data.activity.activeAds} detail={`${data.observations.length} logged observations · Meta Ad Library`} channel={data.channel} />
+      <CaptureFact label="New since previous capture" value={firstObserved} detail={data.capture.firstCapture ? 'Baseline capture: no earlier comparison' : 'First observed, not proven newly created'} channel={data.channel} />
+      <CaptureFact label="Average days running" value={data.activity.averageDaysRunning} detail={longest == null ? 'Longest: n/a (dates not captured)' : `Longest observed: ${Math.round(longest)} days`} channel={data.channel} />
+      <CaptureFact label="Supplier-funded theme" value={supplier?.count ?? null} detail={supplier ? `${supplier.count} of ${data.observations.length} registered · analyst-tagged` : 'Not separately tagged in this capture'} channel={data.channel} />
     </div>
-    <div className="competition-grid competition-grid-two competition-mt">
-      <article className="competition-card competition-summary-card"><CompetitionChannelChip channel={data.channel}/><h3>Ad language · text vs artwork</h3><p>The available capture has a single general Language field; separate artwork-language and text-language fields have not been supplied. These breakdowns are n/a until the approved import contains both.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
-      <article className="competition-card competition-summary-card"><CompetitionChannelChip channel={data.channel}/><h3>Prize mechanics · theirs vs ours</h3><p>n/a (capture has no analyst-approved prize-mechanics count and no matching Union Coop giveaway comparison for this window). No giveaways are inferred from ad text.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
-      <article className="competition-card competition-summary-card"><CompetitionChannelChip channel={data.channel}/><h3>Launch tempo</h3><p>{data.launches.startedInSelectedMonth != null ? `${formatNumber(data.launches.startedInSelectedMonth)} ads with supplied start dates during the page month.` : 'n/a (no verified same-month ad starts).'} Their first observed ads versus our own posts: n/a until the matching captures and output import are provided.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
-      <article className="competition-card competition-summary-card"><CompetitionChannelChip channel={data.channel}/><h3>Creative lens availability</h3><p>Theme mix above uses analyst-tagged capture fields. Ad text and artwork language, prize mechanics, and same-window brand publishing counts must arrive through approved source columns. No speculative comparison is produced.</p><CompetitionSourceLabel value={data.sourceLabel} /></article>
+    <div className="v2-capture-content">
+      <section className="competition-card v2-capture-themes" aria-label="Captured themes">
+        <CompetitionChannelChip channel={data.channel}/>
+        <h3>Theme mix</h3>
+        <p className="v2-section-definition">Analyst-tagged advertising themes from the selected capture. Supplier brands stay separate.</p>
+        {data.themeMix.length ? <div className="competition-mix-list">
+          {data.themeMix.map((row) => <div key={row.label}>
+            <div className="competition-mix-copy"><span>{row.label}</span><strong>{row.count}</strong></div>
+            <div className="competition-mix-track"><span style={{width:`${Math.max(0,Math.min(100,row.percentage*100))}%`}}/></div>
+          </div>)}
+        </div> : <div className="v2-gallery-awaiting" role="status">AWAITING · Theme categories were not captured · Owner: TBL</div>}
+        <CompetitionSourceLabel value={data.sourceLabel}/>
+      </section>
+      <section className="competition-card v2-capture-wall" aria-label="The competitor's wall">
+        <CompetitionChannelChip channel={data.channel}/>
+        <h3>The competitor's wall</h3>
+        <p className="v2-section-definition">Only approved analyst-selected thumbnails from the matching capture.</p>
+        {data.screenshots.length ? <div className="competition-gallery">{data.screenshots.map((screenshot) => <article className="competition-gallery-card" key={screenshot.ref}>
+          <CompetitionImage screenshot={screenshot} label={screenshot.ref}/>
+          <div><h4>{screenshot.ref}</h4><small>{screenshot.libraryIds.length} linked ad ID(s)</small></div>
+        </article>)}</div> : <div className="v2-gallery-awaiting" role="status">AWAITING · Carrefour/LuLu approved gallery thumbnails have not been supplied. Owner: TBL.</div>}
+        <CompetitionSourceLabel value={data.sourceLabel}/>
+      </section>
     </div>
-    {data.screenshots.length ? <details className="competition-card competition-context-gallery competition-mt">
-      <summary>Creative gallery ({data.screenshots.length}) · {data.channel}</summary>
-      <div className="competition-gallery">{data.screenshots.map((screenshot) => <article className="competition-gallery-card" key={screenshot.ref}><CompetitionChannelChip channel={data.channel}/>
-        <CompetitionImage screenshot={screenshot} label={screenshot.ref} />
-        <div><h4>{screenshot.ref}</h4><p>{screenshot.multiAd ? `${screenshot.libraryIds.length} ads appear in this full screenshot` : 'One ad appears in this screenshot'}</p><div className="competition-gallery-ids">{screenshot.libraryIds.map((id) => <span key={id}>{id}</span>)}</div><CompetitionSourceLabel value={data.sourceLabel} /></div>
-      </article>)}</div>
-    </details> : <div className="v2-gallery-awaiting" role="status">AWAITING · Approved competitor thumbnails not supplied for this capture. Owner: TBL.</div>}
-    <CreativeDetailTable data={data} />
-  </>;
+    <section className="competition-card v2-capture-launches" aria-label="Launch waves">
+      <CompetitionChannelChip channel={data.channel}/><h3>Launch waves</h3>
+      {launchGroups.length ? <div className="v2-launch-waves">{launchGroups.map((row) => <div key={row.startDate}><span>{formatDate(row.startDate)}</span><strong>{row.count} observed</strong></div>)}</div>
+        : <p className="v2-section-definition">No dated ad starts available for this capture; dates are not inferred.</p>}
+      <p className="v2-section-definition">First observation describes a capture change, not a stopped campaign or advertising result.</p>
+      {data.captureDeltaNote ? <p className="v2-section-source">Source delta sheet: {data.captureDeltaNote}</p> : null}
+      <CompetitionSourceLabel value={data.sourceLabel}/>
+    </section>
+    <CreativeDetailTable data={data}/>
+    <details className="competition-card v2-capture-extra"><summary>Additional imported format, language and product breakdowns</summary>
+      <div className="competition-grid competition-grid-two competition-mt">
+        <MixCard title="Format mix" rows={data.formatMix} source={data.sourceLabel} channel={data.channel}/>
+        <MixCard title="Language mix" rows={data.languageMix} source={data.sourceLabel} channel={data.channel}/>
+      </div>
+    </details>
+  </div>;
+}
+
+function CaptureFact({label,value,detail,channel}:{label:string;value:number|null|undefined;detail:string;channel:'Meta'|'Google'}) {
+  return <article className="competition-card v2-capture-fact"><CompetitionChannelChip channel={channel}/>
+    <span className="v2-capture-fact-label">{label}</span>
+    <strong>{value == null || !Number.isFinite(value) ? 'n/a' : Number.isInteger(value) ? value.toLocaleString('en-US') : value.toFixed(1)}</strong>
+    <small>{detail}</small>
+  </article>;
 }
 
 function MixCard({ title, rows, source, channel }: { title: string; rows: CompetitionMixRow[]; source: string; channel: 'Meta' | 'Google' }) {
@@ -167,7 +210,47 @@ function MixCard({ title, rows, source, channel }: { title: string; rows: Compet
 }
 
 function CreativeDetailTable({ data }: { data: CompetitionDashboard }) {
-  return <section className="competition-card competition-details competition-mt"><CompetitionChannelChip channel={data.channel}/><div className="competition-card-heading"><div><h3>Creative detail</h3><p>Original analyst labels remain unchanged.</p></div></div><div className="competition-table-wrap"><table><thead><tr><th>Library ID</th><th>Start date</th><th>Format</th><th>Theme</th><th>Language</th><th>Featured brand / product</th><th>Ad text</th><th>Destination</th></tr></thead><tbody>{data.observations.map((row) => <tr key={row.libraryId}><td>{row.libraryId}</td><td>{row.startDateAvailable === false ? '(not captured)' : formatDate(row.startDate)}</td><td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td><td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td><td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> Open</a> : 'N/A'}</td></tr>)}</tbody></table></div><CompetitionSourceLabel value={data.sourceLabel} /></section>;
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [search, setSearch] = useState('');
+  // All rows remain in the full source register. The landing page stays concise.
+  // Search covers captured fields only, never inferred advertising results.
+  const rows = data.observations.filter((row) =>
+    [row.libraryId, row.startDate, row.format, row.theme, row.language, row.featuredBrandProduct,
+      row.adText, row.clickDestination].filter(Boolean).join(' ').toLowerCase().includes(search.trim().toLowerCase()));
+  return <section className="competition-card competition-details competition-mt" aria-label="Competition ad register">
+    <CompetitionChannelChip channel={data.channel} />
+    <div className="competition-card-heading">
+      <div><h3>Ad register</h3><p>{data.observations.length} logged {data.channel} ad observations. Activity, not spend.</p></div>
+      <button className="competition-register-open" type="button" onClick={() => {setSearch('');dialogRef.current?.showModal();}}>
+        See all {data.observations.length} ads
+      </button>
+    </div>
+    <CompetitionSourceLabel value={data.sourceLabel} />
+    <dialog ref={dialogRef} className="competition-register-dialog" aria-label="Complete competitor ad register"
+      onClick={(event) => { if (event.target === dialogRef.current) dialogRef.current?.close(); }}>
+      <div className="competition-register-dialog-inner">
+        <div className="competition-register-dialog-header">
+          <div><h2>Complete {data.competitor.label} register</h2><p>{data.channel} · {data.capture.date} · activity, not spend · {rows.length} of {data.observations.length} logged</p></div>
+          <button type="button" onClick={() => dialogRef.current?.close()} aria-label="Close ad register">Close ×</button>
+        </div>
+        <label className="competition-register-search">Search captured fields
+          <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Library ID, format, theme, text or destination" />
+        </label>
+        <div className="competition-table-wrap" role="region" aria-label="Scroll ad register" tabIndex={0}>
+          <table><thead><tr><th>Library ID</th><th>Start date</th><th>Format</th><th>Theme</th><th>Language</th><th>Featured brand / product</th><th>Ad text</th><th>Destination</th></tr></thead>
+            <tbody>{rows.map((row,index) => <tr key={`${row.libraryId}-${index}`}>
+              <td>{row.libraryIdAvailable === false ? '(not captured)' : row.libraryId}</td>
+              <td>{row.startDateAvailable === false ? '(not captured)' : formatDate(row.startDate)}</td>
+              <td>{row.format}</td><td>{row.theme ?? 'N/A'}</td><td>{row.language ?? 'N/A'}</td>
+              <td>{row.featuredBrandProduct ?? 'N/A'}</td><td className="competition-copy-cell">{row.adText ?? 'N/A'}</td>
+              <td>{row.clickDestination ? <a href={row.clickDestination} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> Open</a> : 'N/A'}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+        {!rows.length ? <p role="status">No records match this search.</p> : null}
+      </div>
+    </dialog>
+  </section>;
 }
 
 function CompetitionImage({ screenshot, label }: { screenshot: CompetitionScreenshot; label: string }) {
@@ -186,12 +269,6 @@ function UnavailableContext({ data, allDates, onSelectCapture }: { data: Competi
 
 function CompetitionState({ children, error = false }: { children: React.ReactNode; error?: boolean }) {
   return <div className={`competition-state${error ? ' error' : ''}`}>{children}</div>;
-}
-
-function countLabels(values: Array<string | null>): Array<{ label: string; count: number }> {
-  const counts = new Map<string, number>();
-  for (const value of values) if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
-  return [...counts.entries()].map(([label, count]) => ({ label, count })).sort((left, right) => right.count - left.count || left.label.localeCompare(right.label));
 }
 
 function formatDate(value: string | null): string { return value ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`)) : 'N/A'; }

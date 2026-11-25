@@ -5,13 +5,13 @@ const assert = require('node:assert/strict');
 const root=path.resolve(__dirname,'..');
 const read=(filename)=>fs.readFileSync(path.join(root,filename),'utf8');
 const checks=[
-  ['Creative prepared workbook imported', fs.existsSync(path.join(root,'spreadsheets data/creative-tab/UnionCoop-Creative-WhyItWorked-Import.xlsx'))],
+  ['Creative prepared workbook imported', fs.existsSync(path.join(root,'spreadsheets data/creative/union-coop/UnionCoop-Creative-WhyItWorked-Import.xlsx'))],
   ['Creative monthly KPI aggregation uses source post metrics', read('server/src/modules/creative/services/creative.service.ts').includes('buildPreparedMonthlyKpis(prepared, selected.year)')],
   ['Creative KPI history display', read('client/src/pages/CreativeDashboardPage.tsx').includes('creativeHistory(data,')],
   ['Creative Top3 displays imported factors rather than unsigned prose', read('client/src/pages/CreativeDashboardPage.tsx').includes('Imported factors:')],
   ['Creative plain heading', read('client/src/pages/CreativeDashboardPage.tsx').includes("name = number === 1 ? 'Output'")],
-  ['Signed Highlights required', read('server/src/modules/reads/services/reads.service.ts').includes("if (!['yes','signed','approved','true','1'].includes(signed)) return []")],
-  ['Media six-part section labels', ['Spend and return','Acquisition cost','Channels','Campaigns','Competition'].every(label=>read('client/src/pages/MediaDashboardPage.tsx').includes(`label="${label}"`))],
+  ['Signed Highlights required', read('server/src/modules/reads/services/reads.service.ts').includes("if (!['yes','signed','approved','true','1'].includes(signed)) {")],
+  ['Media source-backed section labels and Rivoli Competition', ['Spend and return','Acquisition cost','Channels','Campaigns','Competition'].every(label=>read('client/src/pages/MediaDashboardPage.tsx').includes(`label="${label}"`)) && read('client/src/pages/MediaDashboardPage.tsx').includes("useContextualCompetition('rivoli-shop'")],
   ['Media monthly histories', read('server/src/modules/media/services/media-analytics.service.ts').includes('getMediaKpiHistory')],
   ['Media GA4 optional workbook', read('server/src/modules/media/services/media-supplements.service.ts').includes('Rivoli-Consumer-GA4-Import-v4.xlsx')],
   ['Media Union Coop optional workbook', read('server/src/modules/media/services/media-supplements.service.ts').includes('UnionCoop-Media-Burst-Import.xlsx')],

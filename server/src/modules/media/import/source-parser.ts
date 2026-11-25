@@ -209,6 +209,14 @@ function parseZeroActivityPeriods(
 }
 
 
+/** Only serve approved image filenames that physically exist inside the media asset root. */
+function approvedCampaignImage(raw:unknown):string|null {
+  const image=text(raw);
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(png|jpe?g|webp)$/i.test(image)) return null;
+  const roots=[resolve(process.cwd(),'server/data/media-campaign-assets'),resolve(process.cwd(),'data/media-campaign-assets')];
+  return roots.some((root)=>existsSync(resolve(root,image))) ? image : null;
+}
+
 function parseGoogleCampaigns(source: WorkbookSource, periods: MediaPeriod[], batchId: string): CampaignRecord[] {
   return rows(source.workbook, 'Campaign Brand Map', 4).flatMap((row, index) => {
     const period = periodFromMonthName(text(value(row, 'Month')), periods);
@@ -230,12 +238,17 @@ function parseGoogleCampaigns(source: WorkbookSource, periods: MediaPeriod[], ba
       stage: text(value(row, 'Campaign type')),
       campaignType: text(value(row, 'Campaign type')),
       objective: verifiedObjective(value(row, 'Objective')),
+      objectiveSource: verifiedObjective(value(row, 'Objective')) ? `${source.name} / Campaign Brand Map / Objective` : null,
+      shortName: text(value(row,'Short name','Short campaign name'))||null,
+      thumbnailFile: approvedCampaignImage(value(row,'Thumbnail file','Thumbnail filename')),
       mappingSource: text(value(row, 'Validation')),
       confidence: text(value(row, 'Mapping confidence')),
       spend: numberValue(value(row, 'Cost (AED)')),
       claims: optionalNumber(value(row, 'Conversions')) ?? undefined,
       impressions: optionalNumber(value(row, 'Impressions')) ?? undefined,
       interactions: optionalNumber(value(row, 'Interactions')) ?? undefined,
+      clicks: optionalNumber(value(row, 'Clicks')) ?? undefined,
+      views: optionalNumber(value(row, 'Video views', 'Views')) ?? undefined,
     }];
   });
 }
@@ -243,8 +256,9 @@ function parseGoogleCampaigns(source: WorkbookSource, periods: MediaPeriod[], ba
 function parseMetaCampaigns(source: WorkbookSource, _periods: MediaPeriod[], _platformRows: PlatformRecord[], batchId: string): CampaignRecord[] {
   const templates = rows(source.workbook, 'Meta Campaign Brand Map').flatMap((row, index) => {
     const campaign = text(value(row, 'Campaign'));
-    const nineMonthSpend = numberValue(value(row, 'Spend 9-mo (AED)'));
-    if (!campaign || nineMonthSpend <= 0) return [];
+    const nineMonthSpend = optionalNumber(value(row, 'Spend 9-mo (AED)'));
+    // Loader spec explicitly retains zero-spend (ended) campaigns. Missing spend is not zero.
+    if (!campaign || nineMonthSpend === null || nineMonthSpend < 0) return [];
     return [{
       batchId,
       sourceFile: source.name,
@@ -257,10 +271,17 @@ function parseMetaCampaigns(source: WorkbookSource, _periods: MediaPeriod[], _pl
       segment: text(value(row, 'Final segment')),
       stage: text(value(row, 'Stage')),
       campaignType: text(value(row, 'Stage')),
-      objective: verifiedObjective(value(row, 'Objective')),
+      objective: verifiedObjective(value(row, 'Objective')) ?? metaStageObjective(value(row, 'Stage')),
+      objectiveSource: verifiedObjective(value(row, 'Objective')) ? `${source.name} / Meta Campaign Brand Map / Objective` : metaStageObjective(value(row, 'Stage')) ? `${source.name} / Meta Campaign Brand Map / Stage (loader spec)` : null,
+      shortName: text(value(row,'Short name','Short campaign name'))||null,
+      thumbnailFile: approvedCampaignImage(value(row,'Thumbnail file','Thumbnail filename')),
       mappingSource: text(value(row, 'Note')) || 'T31N naming map',
       confidence: text(value(row, 'Confidence')),
       spend: nineMonthSpend,
+      claims: optionalNumber(value(row, 'Conversions', 'Purchases')) ?? undefined,
+      impressions: optionalNumber(value(row, 'Impressions')) ?? undefined,
+      clicks: optionalNumber(value(row, 'Link clicks')) ?? undefined,
+      views: optionalNumber(value(row, 'Video views', 'Views')) ?? undefined,
     }];
   });
 
@@ -324,25 +345,31 @@ function applyApprovedCampaignMetadata(campaigns: CampaignRecord[], sources: Wor
   const byIdentity = new Map<string, {objective: CampaignRecord['objective']; shortName:string|null; thumbnailFile:string|null}>();
   for (const row of rows(metadataSource.workbook,'Campaign Metadata')) {
     const campaign=text(value(row,'Campaign','Full campaign name'));
-    const platform=text(value(row,'Platform'));
+    const rawPlatform=text(value(row,'Platform')).toLowerCase();
+    const platform=['google ads','google'].includes(rawPlatform)?'Google Ads':
+      ['meta ads','meta'].includes(rawPlatform)?'Meta Ads':'';
     const objective=verifiedObjective(value(row,'Objective'));
     const name=text(value(row,'Short name','Short Name'));
-    const image=text(value(row,'Thumbnail file','Thumbnail filename'));
+    const image=value(row,'Thumbnail file','Thumbnail filename');
     if (!campaign || !['Google Ads','Meta Ads'].includes(platform)) continue;
-    // Images must resolve only inside server/data/media-campaign-assets. No URL or traversal is allowed.
-    const validName=/^[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(png|jpe?g|webp)$/i.test(image) ? image : null;
-    const roots=[resolve(process.cwd(),'server/data/media-campaign-assets'),resolve(process.cwd(),'data/media-campaign-assets')];
-    const safeImage=validName && roots.some((root)=>existsSync(resolve(root,validName))) ? validName : null;
+    // Original source imagery only. Never substitute stock assets or external URLs.
+    const safeImage=approvedCampaignImage(image);
     byIdentity.set(`${platform}\n${campaign}`, {objective,shortName:name||null,thumbnailFile:safeImage});
   }
   return campaigns.map((campaign)=>{
     const verified=byIdentity.get(`${campaign.platform}\n${campaign.campaign}`);
-    return verified ? {...campaign, objective:verified.objective??campaign.objective, shortName:verified.shortName,
-      thumbnailFile:verified.thumbnailFile, mappingSource: verified.objective ? `${metadataSource.name} / Campaign Metadata` : campaign.mappingSource} : campaign;
+    return verified ? {...campaign, objective:verified.objective??campaign.objective, shortName:verified.shortName??campaign.shortName,
+      thumbnailFile:verified.thumbnailFile??campaign.thumbnailFile, objectiveSource:verified.objective ? `${metadataSource.name} / Campaign Metadata / Objective` : campaign.objectiveSource, mappingSource: verified.objective ? `${metadataSource.name} / Campaign Metadata` : campaign.mappingSource} : campaign;
   });
 }
 
-/** Published business objectives come only from a dedicated workbook column. */
+/** Exact Meta stage mapping authorized by the source workbook loader spec. */
+function metaStageObjective(raw:unknown): CampaignRecord['objective'] {
+  const stage=String(raw??'').trim().toLowerCase();
+  if(stage==='drive to site (traffic)')return 'Traffic';
+  if(stage==='build (reach/awareness)')return 'Awareness';
+  return null;
+}
 function verifiedObjective(raw: unknown): CampaignRecord['objective'] {
   const label = String(raw ?? '').trim().toLowerCase();
   if (label === 'conversion') return 'Conversion';

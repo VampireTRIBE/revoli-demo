@@ -33,8 +33,10 @@ describe('Competition V2 import contract',()=>{
     expect(capture.reportedPopulation).toBe(200);
     expect(capture.sampleSize).toBe(2);
     expect(capture.channel).toBe('Google');
-    expect(capture.observations[0]?.libraryId).toMatch(/^not-captured-/);
-    expect(capture.observations[0]?.startDateAvailable).toBe(false);
+    const firstObservation = capture.observations[0];
+    if (!firstObservation) throw new Error('Expected first Google observation');
+    expect(firstObservation.libraryId).toMatch(/^not-captured-/);
+    expect(firstObservation.startDateAvailable).toBe(false);
   });
   it('keeps separate competitor sheets and only publishes explicitly signed highlights',()=>{
     const file=create('Competition-Capture-UnionCoop-Carrefour-LuLu-18-Nov-2026.xlsx',{

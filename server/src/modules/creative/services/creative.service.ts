@@ -208,13 +208,15 @@ export function getCreativeDashboard(filter: CreativeFilter): CreativeDashboard 
   const accountSummaries = dataset.accountSummarySections.filter((section) => section.brandId === brand.id);
   const accountLevelAvailable = brand.accountLevelAvailable && (accountDailyMetrics.length > 0 || accountSummaries.length > 0);
   const available = brand.postLevelAvailable && (organic.eligiblePostCount > 0 || preparedPeriodPosts.length > 0);
+  // Keep the label available even when the literal brand union is exhaustively narrowed.
+  const brandLabel = brand.label;
   const unavailableMessage = brand.postLevelAvailable
     ? `No eligible Instagram Posts or Reels were published for ${brand.label} in the selected period.`
     : brand.accountLevelAvailable
       ? `${brand.label} supplies daily account observations only. Post-level reach, shares, saves, comments, captions, and links are required for this gallery and its calculations.`
       : brand.id === 'souq-al-haraj' || brand.id === 'souq-al-jubail'
         ? `AWAITING · No Creative export identified as ${brand.label} is supplied. Existing Souq CSVs are labelled Souq Al Bahar and Souq Al Jubair. These sources cannot be reassigned to ${brand.label} without approved identity confirmation.`
-        : `${brand.label}: no approved post-level import supplied. Source identity must be verified before publishing metrics.`;
+        : `${brandLabel}: no approved post-level import supplied. Source identity must be verified before publishing metrics.`;
   const paidScopeSupported = brand.paidPostLevelAvailable
     && selected.year === Number(paidMetaSource.reportingPeriodStart.slice(0, 4))
     && selected.month === 0;
